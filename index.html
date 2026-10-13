@@ -1471,7 +1471,7 @@
     <!-- ========================================== -->
     <!-- MODAL: QUẢN LÝ DANH MỤC NGÀNH NGHỀ CALLBOT -->
     <!-- ========================================== -->
-    <div id="modal-callbot-industry-manager" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div id="modal-callbot-industry-manager" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             <!-- Modal Header -->
             <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
@@ -1490,19 +1490,19 @@
                 </button>
             </div>
 
-            <!-- Form Thêm / Cập nhật Ngành Nghề Mới -->
+            <!-- Form Thêm / Cập nhật Ngành Nghề Mới (Bố cục 2 hàng rộng rãi, không bị đè hay cắt nút) -->
             <div class="p-4 border-b border-slate-200 bg-white shrink-0">
                 <form id="cb-ind-quick-form" onsubmit="window.callbotHub.handleSaveIndustryFromManager(event)" class="space-y-2.5">
                     <input type="hidden" id="cb-mgr-ind-id" value="">
                     <div class="flex items-center justify-between">
                         <label id="cb-mgr-form-title" class="block text-xs font-bold text-slate-700">Thêm ngành nghề mới</label>
-                        <button type="button" id="cb-mgr-cancel-edit-btn" onclick="window.callbotHub.cancelEditIndustryInManager()" class="text-[11px] text-indigo-600 hover:underline hidden">Hủy sửa</button>
+                        <button type="button" id="cb-mgr-cancel-edit-btn" onclick="window.callbotHub.cancelEditIndustryInManager()" class="text-[11px] text-indigo-600 hover:underline font-semibold hidden">Hủy sửa</button>
                     </div>
 
+                    <!-- Hàng 1: Icon Selector + Tên ngành nghề -->
                     <div class="flex items-center gap-2">
-                        <!-- Icon Selector -->
                         <div class="relative shrink-0">
-                            <select id="cb-mgr-ind-icon" class="h-9 px-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:ring-1 focus:ring-indigo-500 font-medium">
+                            <select id="cb-mgr-ind-icon" class="h-9 px-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium">
                                 <option value="building-2">🏢 BĐS</option>
                                 <option value="smile">🙂 Nha khoa</option>
                                 <option value="graduation-cap">🎓 Giáo dục</option>
@@ -1514,17 +1514,19 @@
                                 <option value="layers">📑 Khác</option>
                             </select>
                         </div>
-                        <input type="text" id="cb-mgr-ind-name" required placeholder="VD: Bất Động Sản, Nha Khoa..."
-                            class="flex-1 text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
-                        <button type="submit" id="cb-mgr-submit-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 shrink-0">
-                            <i data-lucide="plus" class="w-3.5 h-3.5" id="cb-mgr-submit-icon"></i>
-                            <span id="cb-mgr-submit-text">Thêm</span>
-                        </button>
+                        <input type="text" id="cb-mgr-ind-name" required placeholder="Tên ngành nghề (VD: Bất Động Sản...)"
+                            class="flex-1 min-w-0 text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                     </div>
 
-                    <div>
+                    <!-- Hàng 2: Mô tả ngắn + Nút Thêm/Cập nhật (Pastel Style, đầy đủ không bị tràn) -->
+                    <div class="flex items-center gap-2">
                         <input type="text" id="cb-mgr-ind-desc" placeholder="Mô tả ngắn ngành nghề (tùy chọn)..."
-                            class="w-full text-xs px-3 py-1.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 text-slate-600">
+                            class="flex-1 min-w-0 text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-slate-600">
+                        <button type="submit" id="cb-mgr-submit-btn"
+                            class="px-3.5 sm:px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap active:scale-95 transition-all">
+                            <i data-lucide="plus" class="w-4 h-4 text-indigo-600" id="cb-mgr-submit-icon"></i>
+                            <span id="cb-mgr-submit-text">Thêm</span>
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1562,18 +1564,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v52"></script>
+    <script src="js/firebase-config.js?v=20261014_v53"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v52"></script>
-    <script src="js/callbot-data.js?v=20261014_v52"></script>
-    <script src="js/number-to-words.js?v=20261014_v52"></script>
-    <script src="js/store.js?v=20261014_v52"></script>
-    <script src="js/quote-builder.js?v=20261014_v52"></script>
-    <script src="js/document-hub.js?v=20261014_v52"></script>
-    <script src="js/callbot-hub.js?v=20261014_v52"></script>
-    <script src="js/product-catalog.js?v=20261014_v52"></script>
-    <script src="js/pdf-export.js?v=20261014_v52"></script>
-    <script src="js/app.js?v=20261014_v52"></script>
+    <script src="js/logo-data.js?v=20261014_v53"></script>
+    <script src="js/callbot-data.js?v=20261014_v53"></script>
+    <script src="js/number-to-words.js?v=20261014_v53"></script>
+    <script src="js/store.js?v=20261014_v53"></script>
+    <script src="js/quote-builder.js?v=20261014_v53"></script>
+    <script src="js/document-hub.js?v=20261014_v53"></script>
+    <script src="js/callbot-hub.js?v=20261014_v53"></script>
+    <script src="js/product-catalog.js?v=20261014_v53"></script>
+    <script src="js/pdf-export.js?v=20261014_v53"></script>
+    <script src="js/app.js?v=20261014_v53"></script>
 </body>
 </html>
