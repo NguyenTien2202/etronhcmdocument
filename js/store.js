@@ -8,10 +8,21 @@ const STORAGE_KEYS = {
     COMPANY: 'saleshub_company',
     PRODUCTS: 'saleshub_products',
     DOCUMENTS: 'saleshub_documents',
+    DOCUMENT_CATEGORIES: 'saleshub_document_categories',
     QUOTES: 'saleshub_quotes',
     CUSTOMERS: 'saleshub_customers',
     INITIALIZED: 'saleshub_etron_salekit_v2026_pricing_v9'
 };
+
+// Danh mục tài liệu mặc định chuẩn Etron
+const DEFAULT_DOCUMENT_CATEGORIES = [
+    { id: 'cat-bang-gia', name: 'Bảng giá chính thức', icon: 'file-text' },
+    { id: 'cat-bao-gia', name: 'Báo giá & Mẫu biểu', icon: 'file-spreadsheet' },
+    { id: 'cat-salekit', name: 'Salekit & Giới thiệu', icon: 'sparkles' },
+    { id: 'cat-chinh-sach', name: 'Chính sách bán hàng', icon: 'shield-check' },
+    { id: 'cat-cskh', name: 'Hỗ trợ & Chăm sóc khách hàng', icon: 'life-buoy' },
+    { id: 'cat-dao-tao', name: 'Tài liệu đào tạo', icon: 'book-open' }
+];
 
 // Initial Seed Data - ETRON SOLUTIONS JSC
 const DEFAULT_COMPANY = {
@@ -745,13 +756,65 @@ class SalesStore {
         }
     }
 
+    // ==========================================
+    // Quản lý Danh Mục Tài Liệu (Document Categories)
+    // ==========================================
+    getDocumentCategories() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEYS.DOCUMENT_CATEGORIES);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        return DEFAULT_DOCUMENT_CATEGORIES;
+    }
+
+    saveDocumentCategory(cat) {
+        const categories = this.getDocumentCategories();
+        let targetCat = null;
+        if (cat.id) {
+            const idx = categories.findIndex(c => c.id === cat.id);
+            if (idx !== -1) {
+                targetCat = { ...categories[idx], ...cat };
+                categories[idx] = targetCat;
+            } else {
+                targetCat = { ...cat };
+                categories.push(targetCat);
+            }
+        } else {
+            targetCat = { ...cat, id: 'cat-' + Date.now(), icon: cat.icon || 'tag' };
+            categories.push(targetCat);
+        }
+
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(categories));
+
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('config').doc('categories').set({ list: categories })
+                .catch(err => console.warn('Lỗi ghi danh mục Firestore:', err));
+        }
+        return targetCat;
+    }
+
+    deleteDocumentCategory(catId) {
+        let categories = this.getDocumentCategories();
+        categories = categories.filter(c => c.id !== catId);
+        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(categories));
+
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('config').doc('categories').set({ list: categories })
+                .catch(err => console.warn('Lỗi xóa danh mục Firestore:', err));
+        }
+    }
+
     setupCloudSync() {
         if (!window.firebaseDb) return;
 
         try {
+            // 1. Đồng bộ Kho Tài Liệu Real-time
             window.firebaseDb.collection('documents').onSnapshot((snapshot) => {
                 if (snapshot.empty) {
-                    console.log('Khởi tạo dữ liệu mặc định lên Firestore...');
+                    console.log('Khởi tạo dữ liệu tài liệu mặc định lên Firestore...');
                     const initialDocs = this.getDocuments();
                     const listToPush = (initialDocs && initialDocs.length > 0) ? initialDocs : DEFAULT_DOCUMENTS;
                     listToPush.forEach(d => {
@@ -781,6 +844,28 @@ class SalesStore {
             }, (error) => {
                 console.warn('Lỗi đồng bộ Real-time Firestore:', error);
             });
+
+            // 2. Đồng bộ Danh Mục Tài Liệu Real-time
+            window.firebaseDb.collection('config').doc('categories').onSnapshot((docSnap) => {
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    if (data && Array.isArray(data.list) && data.list.length > 0) {
+                        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(data.list));
+                        if (window.documentHub) {
+                            window.documentHub.renderCategoryPills();
+                            window.documentHub.updateCategorySelectOptions();
+                            window.documentHub.renderCategoryManagerList();
+                        }
+                    }
+                } else {
+                    const localCats = this.getDocumentCategories();
+                    window.firebaseDb.collection('config').doc('categories').set({ list: localCats })
+                        .catch(() => {});
+                }
+            }, (error) => {
+                console.warn('Lỗi đồng bộ danh mục Firestore:', error);
+            });
+
         } catch (err) {
             console.warn('Lỗi thiết lập lắng nghe Firestore:', err);
         }

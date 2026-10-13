@@ -122,6 +122,7 @@ class DocumentHub {
         this.renderQuickAccess();
         this.renderTypePills();
         this.renderCategoryPills();
+        this.updateCategorySelectOptions();
         
         const sortSelect = document.getElementById('doc-sort-select');
         if (sortSelect) {
@@ -133,14 +134,10 @@ class DocumentHub {
     }
 
     getCategories() {
+        const customCats = window.salesStore.getDocumentCategories();
         return [
             { id: 'all', name: 'Tất cả danh mục', icon: 'layers' },
-            { id: 'Bảng giá chính thức', name: 'Bảng giá chính thức', icon: 'file-text' },
-            { id: 'Báo giá & Mẫu biểu', name: 'Báo giá & Mẫu biểu', icon: 'file-spreadsheet' },
-            { id: 'Salekit & Giới thiệu', name: 'Salekit & Giới thiệu', icon: 'sparkles' },
-            { id: 'Chính sách bán hàng', name: 'Chính sách & Hoa hồng', icon: 'shield-check' },
-            { id: 'Hỗ trợ & Chăm sóc khách hàng', name: 'CSKH & Cam kết SLA', icon: 'life-buoy' },
-            { id: 'Tài liệu đào tạo', name: 'Tài liệu đào tạo', icon: 'book-open' }
+            ...customCats
         ];
     }
 
@@ -300,17 +297,27 @@ class DocumentHub {
         if (!container) return;
 
         const categories = this.getCategories();
-        container.innerHTML = categories.map(cat => `
-            <button onclick="window.documentHub.setCategory('${cat.id}')"
-                class="px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
-                    this.selectedCategory === cat.id 
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' 
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-                }">
-                <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i>
-                <span>${cat.name}</span>
+        container.innerHTML = `
+            ${categories.map(cat => `
+                <button onclick="window.documentHub.setCategory('${cat.id}')"
+                    class="px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
+                        this.selectedCategory === cat.id 
+                        ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' 
+                        : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    }">
+                    <i data-lucide="${cat.icon || 'tag'}" class="w-3.5 h-3.5"></i>
+                    <span>${cat.name}</span>
+                </button>
+            `).join('')}
+
+            <!-- Nút Mở Modal Quản Lý Danh Mục (Thêm / Sửa / Xóa) -->
+            <button type="button" onclick="window.documentHub.openCategoryManagerModal()"
+                class="px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs"
+                title="Quản lý, thêm mới, sửa hoặc xóa danh mục tài liệu">
+                <i data-lucide="settings-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+                <span>Quản lý danh mục</span>
             </button>
-        `).join('');
+        `;
 
         lucide.createIcons();
     }
@@ -384,8 +391,10 @@ class DocumentHub {
     getFilteredDocuments() {
         const docs = window.salesStore.getDocuments();
         const filtered = docs.filter(doc => {
-            // Lọc danh mục
-            const matchesCat = this.selectedCategory === 'all' || doc.category === this.selectedCategory;
+            // Lọc danh mục (so sánh trực tiếp tên hoặc qua ID danh mục)
+            const matchedCategoryObj = this.getCategories().find(c => c.id === this.selectedCategory);
+            const targetCatName = matchedCategoryObj ? matchedCategoryObj.name : this.selectedCategory;
+            const matchesCat = this.selectedCategory === 'all' || doc.category === this.selectedCategory || doc.category === targetCatName;
 
             // Lọc loại tài nguyên
             let matchesType = true;
@@ -998,6 +1007,183 @@ class DocumentHub {
         }
     }
 
+    updateCategorySelectOptions(selectedValue = null) {
+        const selectEl = document.getElementById('new-doc-category');
+        if (!selectEl) return;
+
+        const categories = window.salesStore.getDocumentCategories();
+        selectEl.innerHTML = categories.map(cat => `
+            <option value="${this.escapeHtml(cat.name)}">${this.escapeHtml(cat.name)}</option>
+        `).join('');
+
+        if (selectedValue) {
+            selectEl.value = selectedValue;
+        }
+    }
+
+    openCategoryManagerModal() {
+        const modal = document.getElementById('category-manager-modal');
+        if (!modal) return;
+        this.renderCategoryManagerList();
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    closeCategoryManagerModal() {
+        const modal = document.getElementById('category-manager-modal');
+        if (modal) modal.classList.add('hidden');
+        const input = document.getElementById('new-category-name-input');
+        if (input) input.value = '';
+    }
+
+    renderCategoryManagerList() {
+        const container = document.getElementById('category-manager-list');
+        const totalCountEl = document.getElementById('cat-manager-total-count');
+        if (!container) return;
+
+        const categories = window.salesStore.getDocumentCategories();
+        const docs = window.salesStore.getDocuments();
+
+        if (totalCountEl) totalCountEl.textContent = categories.length;
+
+        if (categories.length === 0) {
+            container.innerHTML = '<div class="py-6 text-center text-slate-400 text-xs">Chưa có danh mục nào. Hãy thêm danh mục đầu tiên bên trên!</div>';
+            return;
+        }
+
+        container.innerHTML = categories.map(cat => {
+            const count = docs.filter(d => d.category === cat.name || d.category === cat.id).length;
+            return `
+                <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="${cat.icon || 'tag'}" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-800 truncate">${this.escapeHtml(cat.name)}</p>
+                            <span class="text-[10px] text-slate-400 font-mono">${count} tài liệu</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="window.documentHub.promptRenameCategory('${cat.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Đổi tên danh mục">
+                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onclick="window.documentHub.deleteCategory('${cat.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa danh mục">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        lucide.createIcons();
+    }
+
+    handleAddNewCategory(event) {
+        event.preventDefault();
+        const input = document.getElementById('new-category-name-input');
+        if (!input) return;
+        const name = input.value.trim();
+        if (!name) return;
+
+        const currentCats = window.salesStore.getDocumentCategories();
+        if (currentCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+            alert(`Danh mục "${name}" đã tồn tại! Vui lòng chọn tên khác.`);
+            return;
+        }
+
+        const newCat = {
+            id: 'cat-' + Date.now(),
+            name: name,
+            icon: 'tag'
+        };
+
+        window.salesStore.saveDocumentCategory(newCat);
+        input.value = '';
+
+        this.renderCategoryManagerList();
+        this.renderCategoryPills();
+        this.updateCategorySelectOptions(name);
+
+        window.salesApp.showNotification(`Đã thêm danh mục mới: "${name}"!`, 'success');
+    }
+
+    promptRenameCategory(catId) {
+        const categories = window.salesStore.getDocumentCategories();
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return;
+
+        const oldName = cat.name;
+        const newName = prompt(`Nhập tên mới cho danh mục "${oldName}":`, oldName);
+        if (!newName || !newName.trim() || newName.trim() === oldName) return;
+
+        const cleanName = newName.trim();
+
+        // Cập nhật danh mục
+        cat.name = cleanName;
+        window.salesStore.saveDocumentCategory(cat);
+
+        // Tự động cập nhật các tài liệu đang thuộc danh mục cũ sang tên mới
+        const docs = window.salesStore.getDocuments();
+        let updatedCount = 0;
+        docs.forEach(d => {
+            if (d.category === oldName) {
+                d.category = cleanName;
+                window.salesStore.saveDocument(d);
+                updatedCount++;
+            }
+        });
+
+        this.renderCategoryManagerList();
+        this.renderCategoryPills();
+        this.updateCategorySelectOptions(cleanName);
+        this.renderDocumentsList();
+
+        window.salesApp.showNotification(`Đã đổi tên danh mục thành "${cleanName}" (${updatedCount} tài liệu được cập nhật)!`, 'success');
+    }
+
+    deleteCategory(catId) {
+        const categories = window.salesStore.getDocumentCategories();
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return;
+
+        const docs = window.salesStore.getDocuments();
+        const affectedDocs = docs.filter(d => d.category === cat.name || d.category === cat.id);
+
+        if (affectedDocs.length > 0) {
+            const confirmed = confirm(
+                `Danh mục "${cat.name}" hiện đang có ${affectedDocs.length} tài liệu.\n` +
+                `Nếu bạn xóa, các tài liệu này sẽ tự động chuyển về danh mục "Chung / Khác".\n\n` +
+                `Bạn có chắc chắn muốn xóa không?`
+            );
+            if (!confirmed) return;
+
+            // Đổi danh mục tài liệu sang "Chung"
+            affectedDocs.forEach(d => {
+                d.category = 'Chung';
+                window.salesStore.saveDocument(d);
+            });
+        } else {
+            const confirmed = confirm(`Bạn có chắc muốn xóa danh mục "${cat.name}" khỏi hệ thống?`);
+            if (!confirmed) return;
+        }
+
+        window.salesStore.deleteDocumentCategory(catId);
+
+        if (this.selectedCategory === cat.id || this.selectedCategory === cat.name) {
+            this.selectedCategory = 'all';
+        }
+
+        this.renderCategoryManagerList();
+        this.renderCategoryPills();
+        this.updateCategorySelectOptions();
+        this.renderDocumentsList();
+
+        window.salesApp.showNotification(`Đã xóa danh mục "${cat.name}"!`, 'info');
+    }
+
     openAddModal() {
         const idInput = document.getElementById('editing-doc-id');
         if (idInput) idInput.value = '';
@@ -1010,6 +1196,8 @@ class DocumentHub {
 
         const submitText = document.getElementById('doc-modal-submit-text');
         if (submitText) submitText.textContent = 'Lưu Vào Kho Tài Nguyên';
+
+        this.updateCategorySelectOptions();
 
         const form = document.getElementById('document-add-form');
         if (form) form.reset();
@@ -1038,12 +1226,11 @@ class DocumentHub {
         const submitText = document.getElementById('doc-modal-submit-text');
         if (submitText) submitText.textContent = 'Lưu Thay Đổi';
 
+        this.updateCategorySelectOptions(doc.category);
+
         // Điền dữ liệu cũ vào form
         const titleInput = document.getElementById('new-doc-title');
         if (titleInput) titleInput.value = doc.title || '';
-
-        const catSelect = document.getElementById('new-doc-category');
-        if (catSelect) catSelect.value = doc.category || 'Báo giá & Mẫu biểu';
 
         const descInput = document.getElementById('new-doc-desc');
         if (descInput) descInput.value = doc.description || '';
