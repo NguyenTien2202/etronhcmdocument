@@ -297,11 +297,18 @@ class CallbotHub {
                                 </span>
                             </div>
                         </div>
-                        <button onclick="window.callbotHub.openEditGroupModal('common', '${group.id}')"
-                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/80 transition-colors shrink-0"
-                            title="Chỉnh sửa nhóm từ khóa">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </button>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="window.callbotHub.openEditGroupModal('common', '${group.id}')"
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/80 transition-colors shrink-0"
+                                title="Chỉnh sửa nhóm từ khóa">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="window.callbotHub.deleteGroup('common', '${group.id}')"
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white/80 transition-colors shrink-0"
+                                title="Xóa nhóm từ khóa">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 2 Hàng: Hàng 1 Mô tả (có icon copy), Hàng 2 Từ khóa (có icon copy) -->
@@ -449,11 +456,18 @@ class CallbotHub {
                                 </span>
                             </div>
                         </div>
-                        <button onclick="window.callbotHub.openEditGroupModal('${curInd.id}', '${group.id}')"
-                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/80 transition-colors shrink-0"
-                            title="Chỉnh sửa nhóm từ khóa">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i>
-                        </button>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button onclick="window.callbotHub.openEditGroupModal('${curInd.id}', '${group.id}')"
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/80 transition-colors shrink-0"
+                                title="Chỉnh sửa nhóm từ khóa">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="window.callbotHub.deleteGroup('${curInd.id}', '${group.id}')"
+                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white/80 transition-colors shrink-0"
+                                title="Xóa nhóm từ khóa">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 2 Hàng: Hàng 1 Mô tả (có icon copy), Hàng 2 Từ khóa (có icon copy) -->
@@ -1266,6 +1280,9 @@ class CallbotHub {
         document.getElementById('cb-grp-desc').value = group.description || '';
         document.getElementById('cb-grp-keywords').value = (group.keywords || []).join(', ');
 
+        const delBtn = document.getElementById('cb-grp-delete-btn');
+        if (delBtn) delBtn.classList.remove('hidden');
+
         document.getElementById('cb-grp-modal-title').textContent = `Chỉnh Sửa Nhóm Từ Khóa: ${group.name}`;
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
@@ -1278,10 +1295,56 @@ class CallbotHub {
         document.getElementById('cb-grp-form').reset();
         document.getElementById('cb-grp-ind-id').value = indId;
         document.getElementById('cb-grp-id').value = '';
+
+        const delBtn = document.getElementById('cb-grp-delete-btn');
+        if (delBtn) delBtn.classList.add('hidden');
+
         document.getElementById('cb-grp-modal-title').textContent = indId === 'common' ? 'Thêm Nhóm Từ Khóa Dùng Chung' : 'Thêm Nhóm Từ Khóa Mới';
 
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
+    }
+
+    deleteGroup(indId, groupId) {
+        const data = window.salesStore.getCallbotKeywords();
+        let groupName = 'nhóm từ khóa này';
+
+        if (indId === 'common') {
+            const grp = (data.common || []).find(g => g.id === groupId);
+            if (grp) groupName = grp.name;
+        } else {
+            const ind = (data.industries || []).find(i => i.id === indId);
+            if (ind) {
+                const grp = (ind.groups || []).find(g => g.id === groupId);
+                if (grp) groupName = grp.name;
+            }
+        }
+
+        if (!confirm(`Bạn có chắc chắn muốn xóa nhóm từ khóa "${groupName}" không?`)) {
+            return;
+        }
+
+        if (indId === 'common') {
+            data.common = (data.common || []).filter(g => g.id !== groupId);
+        } else {
+            const ind = (data.industries || []).find(i => i.id === indId);
+            if (ind && ind.groups) {
+                ind.groups = ind.groups.filter(g => g.id !== groupId);
+            }
+        }
+
+        window.salesStore.saveCallbotKeywords(data);
+        const modal = document.getElementById('modal-callbot-group');
+        if (modal) modal.classList.add('hidden');
+        this.renderKeywords();
+        window.salesApp.showNotification(`Đã xóa nhóm từ khóa "${groupName}"!`, 'info');
+    }
+
+    deleteGroupFromModal() {
+        const indId = document.getElementById('cb-grp-ind-id').value;
+        const groupId = document.getElementById('cb-grp-id').value;
+        if (!groupId) return;
+        this.deleteGroup(indId, groupId);
     }
 
     saveGroupFromModal(e) {
