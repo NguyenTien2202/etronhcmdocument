@@ -278,10 +278,11 @@ class CallbotHub {
                     </button>
                 `;
             }).join('')}
-            <button onclick="window.callbotHub.openAddIndustryModal()"
-                class="px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50/80 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-2xs">
-                <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i>
-                <span>Thêm Ngành Mới</span>
+            <button onclick="window.callbotHub.openIndustryManagerModal()"
+                class="px-3.5 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-2xs"
+                title="Quản lý, thêm mới, sửa hoặc xóa danh mục ngành nghề">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4 text-indigo-600"></i>
+                <span>Quản lý ngành nghề</span>
             </button>
         `;
 
@@ -301,7 +302,7 @@ class CallbotHub {
             });
         }
 
-        // Header thông tin ngành + Nút Copy All - Phong cách Pastel
+        // Header thông tin ngành + Nút Thao Tác
         const headerInfo = document.getElementById('cb-industry-header-info');
         if (headerInfo) {
             let totalKw = 0;
@@ -322,25 +323,14 @@ class CallbotHub {
                         <p class="text-xs text-slate-500">${this.escapeHtml(curInd.description || 'Dành riêng cho kịch bản cuộc gọi ngành này.')}</p>
                     </div>
                     <div class="flex items-center gap-1.5 flex-wrap shrink-0">
-                        <button onclick="window.callbotHub.openEditIndustryModal('${curInd.id}')"
-                            class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-xs flex items-center gap-1 active:scale-95"
-                            title="Đổi tên, biểu tượng hoặc mô tả ngành này">
-                            <i data-lucide="edit-3" class="w-3.5 h-3.5 text-indigo-600"></i>
-                            <span>Sửa Ngành</span>
-                        </button>
-                        <button onclick="window.callbotHub.deleteIndustry('${curInd.id}')"
-                            class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 hover:border-rose-200 text-xs font-semibold transition-all shadow-xs flex items-center gap-1 active:scale-95"
-                            title="Xóa ngành này">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-500"></i>
-                            <span>Xóa</span>
-                        </button>
-                        <button onclick="window.callbotHub.copyAllIndustryKeywords('${curInd.id}')"
-                            class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95">
-                            <i data-lucide="copy-check" class="w-4 h-4"></i>
-                            <span>Sao Chép Toàn Bộ</span>
+                        <button onclick="window.callbotHub.openIndustryManagerModal()"
+                            class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                            title="Quản lý danh mục các ngành nghề">
+                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>Quản lý ngành nghề</span>
                         </button>
                         <button onclick="window.callbotHub.openAddGroupModal('${curInd.id}')"
-                            class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1 active:scale-95">
+                            class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span>Thêm Nhóm Từ Khóa</span>
                         </button>
@@ -488,29 +478,18 @@ class CallbotHub {
     // ==========================================
     renderTemplates() {
         const container = document.getElementById('cb-templates-grid');
-        const filterContainer = document.getElementById('cb-template-filters');
         if (!container) return;
 
         const templates = window.salesStore.getCallbotTemplates();
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
 
-        // Render Filter Buttons - Phong cách Pastel đồng bộ Quote Builder
-        if (filterContainer) {
-            filterContainer.innerHTML = `
-                <button onclick="window.callbotHub.filterTemplates('all')"
-                    class="px-3 py-1.5 rounded-xl text-xs transition-all border ${this.templateFilter === 'all' ? 'bg-indigo-50/90 border-indigo-300 text-indigo-800 font-bold shadow-xs ring-1 ring-indigo-200/70' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900'}">
-                    Tất Cả (${templates.length})
-                </button>
+        const indSelect = document.getElementById('cb-template-ind-filter');
+        if (indSelect) {
+            indSelect.innerHTML = `
+                <option value="all" ${this.templateFilter === 'all' ? 'selected' : ''}>📂 Tất cả ngành nghề (${templates.length})</option>
                 ${industries.map(ind => {
                     const count = templates.filter(t => t.industry === ind.id).length;
-                    const isActive = this.templateFilter === ind.id;
-                    return `
-                        <button onclick="window.callbotHub.filterTemplates('${ind.id}')"
-                            class="px-3 py-1.5 rounded-xl text-xs transition-all border flex items-center gap-1.5 ${isActive ? 'bg-indigo-50/90 border-indigo-300 text-indigo-800 font-bold shadow-xs ring-1 ring-indigo-200/70' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900'}">
-                            <i data-lucide="${ind.icon || 'folder'}" class="w-3.5 h-3.5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}"></i>
-                            <span>${this.escapeHtml(ind.name)} (${count})</span>
-                        </button>
-                    `;
+                    return `<option value="${ind.id}" ${this.templateFilter === ind.id ? 'selected' : ''}>${this.escapeHtml(ind.name)} (${count})</option>`;
                 }).join('')}
             `;
         }
@@ -652,55 +631,42 @@ class CallbotHub {
     // ==========================================
     renderMedia() {
         const container = document.getElementById('cb-media-container');
-        const filterContainer = document.getElementById('cb-media-filters');
         if (!container) return;
 
         const mediaList = window.salesStore.getCallbotMedia();
-
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
 
-        // Filter Bar - Phong cách Pastel đồng bộ Quote Builder
-        if (filterContainer) {
-            filterContainer.innerHTML = `
-                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-                    <!-- Filter Type -->
-                    <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl shrink-0">
-                        <button onclick="window.callbotHub.filterMediaByType('all')"
-                            class="px-2.5 py-1 rounded-lg text-xs transition-all ${this.mediaTypeFilter === 'all' ? 'bg-white text-slate-800 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">
-                            Tất Cả (${mediaList.length})
-                        </button>
-                        <button onclick="window.callbotHub.filterMediaByType('audio')"
-                            class="px-2.5 py-1 rounded-lg text-xs transition-all flex items-center gap-1 ${this.mediaTypeFilter === 'audio' ? 'bg-white text-amber-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">
-                            <i data-lucide="music" class="w-3 h-3 text-amber-500"></i>
-                            <span>Audio</span>
-                        </button>
-                        <button onclick="window.callbotHub.filterMediaByType('video')"
-                            class="px-2.5 py-1 rounded-lg text-xs transition-all flex items-center gap-1 ${this.mediaTypeFilter === 'video' ? 'bg-white text-purple-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">
-                            <i data-lucide="video" class="w-3 h-3 text-purple-500"></i>
-                            <span>Video</span>
-                        </button>
-                    </div>
+        const mediaIndSelect = document.getElementById('cb-media-ind-filter');
+        if (mediaIndSelect) {
+            mediaIndSelect.innerHTML = `
+                <option value="all" ${this.mediaIndustryFilter === 'all' ? 'selected' : ''}>📂 Tất cả ngành nghề (${mediaList.length})</option>
+                ${industries.map(ind => {
+                    const count = mediaList.filter(m => m.industry === ind.id).length;
+                    return `<option value="${ind.id}" ${this.mediaIndustryFilter === ind.id ? 'selected' : ''}>${this.escapeHtml(ind.name)} (${count})</option>`;
+                }).join('')}
+            `;
+        }
 
-                    <div class="h-4 w-px bg-slate-200 shrink-0 mx-0.5"></div>
+        const typeBtns = document.getElementById('cb-media-type-btns');
+        if (typeBtns) {
+            const audioCount = mediaList.filter(m => m.type === 'audio').length;
+            const videoCount = mediaList.filter(m => m.type === 'video').length;
 
-                    <!-- Filter Industry -->
-                    <span class="text-xs font-bold text-slate-500 shrink-0">Ngành:</span>
-                    <button onclick="window.callbotHub.filterMediaByIndustry('all')"
-                        class="px-2.5 py-1 rounded-lg text-xs transition-all border shrink-0 ${this.mediaIndustryFilter === 'all' ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-bold shadow-2xs' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}">
-                        Tất cả
-                    </button>
-                    ${industries.map(ind => {
-                        const count = mediaList.filter(m => m.industry === ind.id).length;
-                        const isActive = this.mediaIndustryFilter === ind.id;
-                        return `
-                            <button onclick="window.callbotHub.filterMediaByIndustry('${ind.id}')"
-                                class="px-2.5 py-1 rounded-lg text-xs transition-all border flex items-center gap-1 shrink-0 ${isActive ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-bold shadow-2xs' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}">
-                                <i data-lucide="${ind.icon || 'folder'}" class="w-3 h-3 ${isActive ? 'text-indigo-600' : 'text-slate-400'}"></i>
-                                <span>${this.escapeHtml(ind.name)} (${count})</span>
-                            </button>
-                        `;
-                    }).join('')}
-                </div>
+            typeBtns.innerHTML = `
+                <button onclick="window.callbotHub.filterMediaByType('all')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${this.mediaTypeFilter === 'all' ? 'bg-white text-slate-800 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">
+                    Tất Cả (${mediaList.length})
+                </button>
+                <button onclick="window.callbotHub.filterMediaByType('audio')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${this.mediaTypeFilter === 'audio' ? 'bg-white text-amber-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i data-lucide="music" class="w-3 h-3 text-amber-500"></i>
+                    <span>Audio (${audioCount})</span>
+                </button>
+                <button onclick="window.callbotHub.filterMediaByType('video')"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${this.mediaTypeFilter === 'video' ? 'bg-white text-purple-700 font-bold shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">
+                    <i data-lucide="video" class="w-3 h-3 text-purple-500"></i>
+                    <span>Video (${videoCount})</span>
+                </button>
             `;
         }
 
@@ -1127,53 +1093,124 @@ class CallbotHub {
         window.salesApp.showNotification('Đã lưu nhóm từ khóa thành công!', 'success');
     }
 
-    openAddIndustryModal() {
-        const modal = document.getElementById('modal-callbot-industry');
+    // ==========================================
+    // 6. QUẢN LÝ DANH MỤC NGÀNH NGHỀ (MODAL THỐNG NHẤT)
+    // ==========================================
+    openIndustryManagerModal() {
+        const modal = document.getElementById('modal-callbot-industry-manager');
         if (!modal) return;
 
-        document.getElementById('cb-ind-form').reset();
-        document.getElementById('cb-ind-id').value = '';
-        const titleEl = document.getElementById('cb-ind-modal-title');
-        if (titleEl) {
-            titleEl.innerHTML = `
-                <i data-lucide="plus-circle" class="w-5 h-5 text-indigo-600"></i>
-                <span>Thêm Ngành Nghề Mới</span>
-            `;
-        }
+        this.cancelEditIndustryInManager();
+        this.renderIndustryManagerList();
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
 
-    openEditIndustryModal(indId) {
-        const modal = document.getElementById('modal-callbot-industry');
-        if (!modal) return;
+    closeIndustryManagerModal() {
+        const modal = document.getElementById('modal-callbot-industry-manager');
+        if (modal) modal.classList.add('hidden');
+    }
 
+    renderIndustryManagerList() {
+        const container = document.getElementById('cb-ind-manager-list');
+        const countEl = document.getElementById('cb-ind-manager-total-count');
+        if (!container) return;
+
+        const data = window.salesStore.getCallbotKeywords();
+        const industries = data.industries || [];
+        const templates = window.salesStore.getCallbotTemplates();
+
+        if (countEl) countEl.textContent = industries.length;
+
+        if (industries.length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">Chưa có ngành nghề nào.</p>';
+            return;
+        }
+
+        container.innerHTML = industries.map(ind => {
+            const groupCount = (ind.groups || []).length;
+            const tplCount = templates.filter(t => t.industry === ind.id).length;
+
+            return `
+                <div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs hover:border-indigo-200 transition-all">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs shrink-0">
+                            <i data-lucide="${ind.icon || 'layers'}" class="w-4 h-4"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-slate-800 truncate">${this.escapeHtml(ind.name)}</p>
+                            <span class="text-[10px] text-slate-400 font-mono">${groupCount} nhóm từ khóa • ${tplCount} kịch bản</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="window.callbotHub.editIndustryInManager('${ind.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa ngành nghề">
+                            <i data-lucide="edit-2" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onclick="window.callbotHub.deleteIndustryFromManager('${ind.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa ngành nghề">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    editIndustryInManager(indId) {
         const data = window.salesStore.getCallbotKeywords();
         const ind = (data.industries || []).find(i => i.id === indId);
         if (!ind) return;
 
-        document.getElementById('cb-ind-id').value = ind.id;
-        document.getElementById('cb-ind-name').value = ind.name || '';
-        document.getElementById('cb-ind-desc').value = ind.description || '';
-        document.getElementById('cb-ind-icon').value = ind.icon || 'layers';
+        const idInput = document.getElementById('cb-mgr-ind-id');
+        const nameInput = document.getElementById('cb-mgr-ind-name');
+        const descInput = document.getElementById('cb-mgr-ind-desc');
+        const iconInput = document.getElementById('cb-mgr-ind-icon');
+        const formTitle = document.getElementById('cb-mgr-form-title');
+        const submitText = document.getElementById('cb-mgr-submit-text');
+        const submitIcon = document.getElementById('cb-mgr-submit-icon');
+        const cancelBtn = document.getElementById('cb-mgr-cancel-edit-btn');
 
-        const titleEl = document.getElementById('cb-ind-modal-title');
-        if (titleEl) {
-            titleEl.innerHTML = `
-                <i data-lucide="edit-3" class="w-5 h-5 text-indigo-600"></i>
-                <span>Chỉnh Sửa Ngành Nghề: ${this.escapeHtml(ind.name)}</span>
-            `;
-        }
-        modal.classList.remove('hidden');
+        if (idInput) idInput.value = ind.id;
+        if (nameInput) nameInput.value = ind.name || '';
+        if (descInput) descInput.value = ind.description || '';
+        if (iconInput) iconInput.value = ind.icon || 'layers';
+        if (formTitle) formTitle.textContent = `Chỉnh sửa: ${ind.name}`;
+        if (submitText) submitText.textContent = 'Cập nhật';
+        if (submitIcon) submitIcon.setAttribute('data-lucide', 'check');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+        if (nameInput) nameInput.focus();
         if (window.lucide) lucide.createIcons();
     }
 
-    saveIndustryFromModal(e) {
-        e.preventDefault();
-        const id = document.getElementById('cb-ind-id').value;
-        const name = document.getElementById('cb-ind-name').value.trim();
-        const description = document.getElementById('cb-ind-desc').value.trim();
-        const icon = document.getElementById('cb-ind-icon').value;
+    cancelEditIndustryInManager() {
+        const form = document.getElementById('cb-ind-quick-form');
+        if (form) form.reset();
+
+        const idInput = document.getElementById('cb-mgr-ind-id');
+        const formTitle = document.getElementById('cb-mgr-form-title');
+        const submitText = document.getElementById('cb-mgr-submit-text');
+        const submitIcon = document.getElementById('cb-mgr-submit-icon');
+        const cancelBtn = document.getElementById('cb-mgr-cancel-edit-btn');
+
+        if (idInput) idInput.value = '';
+        if (formTitle) formTitle.textContent = 'Thêm ngành nghề mới';
+        if (submitText) submitText.textContent = 'Thêm';
+        if (submitIcon) submitIcon.setAttribute('data-lucide', 'plus');
+        if (cancelBtn) cancelBtn.classList.add('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    handleSaveIndustryFromManager(e) {
+        if (e && e.preventDefault) e.preventDefault();
+
+        const id = document.getElementById('cb-mgr-ind-id')?.value;
+        const name = (document.getElementById('cb-mgr-ind-name')?.value || '').trim();
+        const description = (document.getElementById('cb-mgr-ind-desc')?.value || '').trim();
+        const icon = document.getElementById('cb-mgr-ind-icon')?.value || 'layers';
 
         if (!name) {
             window.salesApp.showNotification('Vui lòng nhập tên ngành nghề!', 'warning');
@@ -1192,7 +1229,29 @@ class CallbotHub {
                     description,
                     icon
                 };
+
+                // Đồng bộ tên ngành nghề sang các kịch bản mẫu & media thuộc ngành này
+                const templates = window.salesStore.getCallbotTemplates();
+                let updatedTpl = false;
+                templates.forEach(t => {
+                    if (t.industry === id) {
+                        t.industryName = name;
+                        updatedTpl = true;
+                    }
+                });
+                if (updatedTpl) window.salesStore.saveCallbotTemplates(templates);
+
+                const mediaList = window.salesStore.getCallbotMedia();
+                let updatedMedia = false;
+                mediaList.forEach(m => {
+                    if (m.industry === id) {
+                        m.industryName = name;
+                        updatedMedia = true;
+                    }
+                });
+                if (updatedMedia) window.salesStore.saveCallbotMedia(mediaList);
             }
+            window.salesApp.showNotification(`Đã cập nhật ngành nghề "${name}"!`, 'success');
         } else {
             const newId = 'ind-' + Date.now();
             data.industries.push({
@@ -1203,28 +1262,50 @@ class CallbotHub {
                 groups: []
             });
             this.selectedIndustry = newId;
+            window.salesApp.showNotification(`Đã thêm ngành nghề mới "${name}"!`, 'success');
         }
 
         window.salesStore.saveCallbotKeywords(data);
-        document.getElementById('modal-callbot-industry').classList.add('hidden');
+        this.cancelEditIndustryInManager();
+        this.renderIndustryManagerList();
         this.render();
-        window.salesApp.showNotification(id ? 'Đã cập nhật ngành nghề thành công!' : 'Đã thêm ngành nghề mới!', 'success');
     }
 
-    deleteIndustry(indId) {
+    deleteIndustryFromManager(indId) {
         const data = window.salesStore.getCallbotKeywords();
         const ind = (data.industries || []).find(i => i.id === indId);
         if (!ind) return;
 
-        if (confirm(`Bạn có chắc chắn muốn xóa ngành nghề "${ind.name}"?\n(Toàn bộ các nhóm từ khóa bên trong ngành này cũng sẽ bị xóa)`)) {
+        const groupCount = (ind.groups || []).length;
+        const confirmMsg = groupCount > 0
+            ? `Bạn có chắc chắn muốn xóa ngành nghề "${ind.name}"?\n(Ngành này đang có ${groupCount} nhóm từ khóa, toàn bộ sẽ bị xóa)`
+            : `Bạn có chắc chắn muốn xóa ngành nghề "${ind.name}"?`;
+
+        if (confirm(confirmMsg)) {
             data.industries = data.industries.filter(i => i.id !== indId);
             if (this.selectedIndustry === indId) {
                 this.selectedIndustry = data.industries.length > 0 ? data.industries[0].id : '';
             }
             window.salesStore.saveCallbotKeywords(data);
+            this.cancelEditIndustryInManager();
+            this.renderIndustryManagerList();
             this.render();
             window.salesApp.showNotification(`Đã xóa ngành nghề "${ind.name}"!`, 'info');
         }
+    }
+
+    // Backward compatibility aliases
+    openAddIndustryModal() {
+        this.openIndustryManagerModal();
+    }
+
+    openEditIndustryModal(indId) {
+        this.openIndustryManagerModal();
+        this.editIndustryInManager(indId);
+    }
+
+    deleteIndustry(indId) {
+        this.deleteIndustryFromManager(indId);
     }
 
     escapeHtml(text) {
