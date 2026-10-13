@@ -1364,6 +1364,198 @@ class CallbotHub {
         window.salesApp.showNotification(id ? 'Đã cập nhật kịch bản mẫu!' : 'Đã thêm kịch bản mẫu mới vào kho!', 'success');
     }
 
+    normalizeKeyword(str) {
+        return String(str || '')
+            .normalize('NFC')
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, ' ');
+    }
+
+    syncKeywordsBackdropScroll() {
+        const textarea = document.getElementById('cb-grp-keywords');
+        const backdrop = document.getElementById('cb-grp-keywords-backdrop');
+        if (textarea && backdrop) {
+            backdrop.scrollTop = textarea.scrollTop;
+            backdrop.scrollLeft = textarea.scrollLeft;
+        }
+    }
+
+    validateGroupKeywordsLive() {
+        const textarea = document.getElementById('cb-grp-keywords');
+        const backdrop = document.getElementById('cb-grp-keywords-backdrop');
+        const wrap = document.getElementById('cb-grp-keywords-wrap');
+        const errorBox = document.getElementById('cb-grp-dup-error');
+        const countBadge = document.getElementById('cb-grp-kw-count-badge');
+        const submitBtn = document.getElementById('cb-grp-submit-btn');
+
+        if (!textarea) return { isValid: true, duplicates: [], keywords: [] };
+
+        const raw = textarea.value || '';
+        const parts = raw.split(/([,;\n]+)/);
+
+        const counts = new Map();
+        const keywords = [];
+
+        for (let i = 0; i < parts.length; i += 2) {
+            const trimmed = parts[i].trim();
+            if (!trimmed) continue;
+            keywords.push(trimmed);
+            const norm = this.normalizeKeyword(trimmed);
+            if (counts.has(norm)) {
+                counts.get(norm).count += 1;
+            } else {
+                counts.set(norm, { count: 1, firstRaw: trimmed });
+            }
+        }
+
+        const duplicates = [];
+        counts.forEach((val, norm) => {
+            if (val.count > 1) {
+                duplicates.push({ norm, word: val.firstRaw, count: val.count });
+            }
+        });
+
+        if (countBadge) {
+            if (duplicates.length > 0) {
+                countBadge.className = 'text-[11px] font-mono text-rose-600 font-bold';
+                countBadge.textContent = `${keywords.length} từ khóa • ${duplicates.length} từ bị trùng`;
+            } else {
+                countBadge.className = 'text-[11px] font-mono text-slate-500 font-semibold';
+                countBadge.textContent = `${keywords.length} từ khóa`;
+            }
+        }
+
+        if (duplicates.length > 0) {
+            // Nổi đỏ chữ nhập trùng ngay trong ô nhập
+            if (backdrop) {
+                const seenSoFar = new Map();
+                let backdropHtml = parts.map((part, idx) => {
+                    if (idx % 2 === 1) return this.escapeHtml(part);
+                    const trimmed = part.trim();
+                    if (!trimmed) return this.escapeHtml(part);
+
+                    const norm = this.normalizeKeyword(trimmed);
+                    const info = counts.get(norm);
+                    if (!info || info.count <= 1) return this.escapeHtml(part);
+
+                    const seenCount = (seenSoFar.get(norm) || 0) + 1;
+                    seenSoFar.set(norm, seenCount);
+
+                    const leadingMatch = part.match(/^\s*/);
+                    const trailingMatch = part.match(/\s*$/);
+                    const leading = leadingMatch ? leadingMatch[0] : '';
+                    const trailing = trailingMatch ? trailingMatch[0] : '';
+                    const core = part.slice(leading.length, part.length - trailing.length);
+
+                    const highlightClass = seenCount > 1
+                        ? 'bg-rose-200/95 text-rose-700 underline decoration-rose-600 decoration-2 rounded-xs'
+                        : 'bg-rose-100/90 text-rose-600 underline decoration-rose-500 decoration-2 rounded-xs';
+
+                    return `${this.escapeHtml(leading)}<span class="${highlightClass}">${this.escapeHtml(core)}</span>${this.escapeHtml(trailing)}`;
+                }).join('');
+
+                if (raw.endsWith('\n')) backdropHtml += ' ';
+                backdrop.innerHTML = backdropHtml;
+                backdrop.classList.remove('hidden');
+            }
+
+            textarea.classList.remove('text-slate-800');
+            textarea.classList.add('text-transparent', 'caret-slate-900');
+            this.syncKeywordsBackdropScroll();
+
+            if (wrap) {
+                wrap.className = 'relative rounded-xl border-2 border-rose-500 bg-rose-50/10 ring-2 ring-rose-500/20 transition-all overflow-hidden';
+            }
+
+            if (errorBox) {
+                errorBox.classList.remove('hidden');
+                errorBox.innerHTML = `
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-start gap-2 min-w-0">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-rose-600 shrink-0 mt-0.5"></i>
+                            <div class="space-y-1.5 min-w-0">
+                                <p class="font-extrabold text-rose-800 leading-snug">
+                                    Không thể lưu! Phát hiện từ khóa bị nhập trùng trong nhóm:
+                                </p>
+                                <div class="flex flex-wrap gap-1.5">
+                                    ${duplicates.map(d => `
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-rose-100 text-rose-700 border border-rose-300 font-bold text-[11px] shadow-2xs">
+                                            <span>"${this.escapeHtml(d.word)}"</span>
+                                            <span class="text-[10px] font-mono bg-rose-200 text-rose-900 px-1 rounded">trùng ${d.count} lần</span>
+                                        </span>
+                                    `).join('')}
+                                </div>
+                                <p class="text-[11px] text-rose-600 font-medium">
+                                    Các từ khóa trùng đã được <b class="text-rose-700 underline">tô đỏ</b> bên trên. Vui lòng xóa hoặc sửa từ trùng để lưu!
+                                </p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="window.callbotHub.removeDuplicateKeywordsInModal()"
+                            class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-300 text-[11px] font-bold shrink-0 transition-colors shadow-2xs whitespace-nowrap"
+                            title="Tự động giữ lại 1 từ và xóa các từ nhập trùng">
+                            Xóa từ trùng
+                        </button>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+            }
+
+            if (submitBtn) {
+                submitBtn.className = 'px-5 py-2 text-xs font-bold text-rose-100 bg-rose-400 cursor-not-allowed rounded-xl transition-colors flex items-center gap-1.5 opacity-80';
+            }
+        } else {
+            if (backdrop) {
+                backdrop.classList.add('hidden');
+                backdrop.innerHTML = '';
+            }
+            textarea.classList.remove('text-transparent');
+            textarea.classList.add('text-slate-800');
+
+            if (wrap) {
+                wrap.className = 'relative rounded-xl border border-slate-200 bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all overflow-hidden';
+            }
+
+            if (errorBox) {
+                errorBox.classList.add('hidden');
+                errorBox.innerHTML = '';
+            }
+
+            if (submitBtn) {
+                submitBtn.className = 'px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm shadow-indigo-100 flex items-center gap-1.5';
+            }
+        }
+
+        return {
+            isValid: duplicates.length === 0,
+            duplicates,
+            keywords
+        };
+    }
+
+    removeDuplicateKeywordsInModal() {
+        const textarea = document.getElementById('cb-grp-keywords');
+        if (!textarea) return;
+
+        const raw = textarea.value || '';
+        const rawItems = raw.split(/[,;\n]+/).map(k => k.trim()).filter(Boolean);
+        const seen = new Set();
+        const uniqueKeywords = [];
+
+        rawItems.forEach(item => {
+            const norm = this.normalizeKeyword(item);
+            if (!seen.has(norm)) {
+                seen.add(norm);
+                uniqueKeywords.push(item);
+            }
+        });
+
+        textarea.value = uniqueKeywords.join(', ');
+        this.validateGroupKeywordsLive();
+        textarea.focus();
+        window.salesApp.showNotification('Đã tự động loại bỏ các từ khóa trùng lặp!', 'info');
+    }
+
     openEditGroupModal(indId, groupId) {
         const modal = document.getElementById('modal-callbot-group');
         if (!modal) return;
@@ -1390,6 +1582,7 @@ class CallbotHub {
         if (delBtn) delBtn.classList.remove('hidden');
 
         document.getElementById('cb-grp-modal-title').textContent = `Chỉnh Sửa Nhóm Từ Khóa: ${group.name}`;
+        this.validateGroupKeywordsLive();
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
@@ -1406,6 +1599,7 @@ class CallbotHub {
         if (delBtn) delBtn.classList.add('hidden');
 
         document.getElementById('cb-grp-modal-title').textContent = indId === 'common' ? 'Thêm Nhóm Từ Khóa Dùng Chung' : 'Thêm Nhóm Từ Khóa Mới';
+        this.validateGroupKeywordsLive();
 
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
@@ -1466,7 +1660,21 @@ class CallbotHub {
             return;
         }
 
-        const keywords = kwRaw.split(/[,;\n]+/).map(k => k.trim()).filter(Boolean);
+        // Kiểm tra trùng lặp từ khóa trong nhóm
+        const validation = this.validateGroupKeywordsLive();
+        if (!validation.isValid) {
+            const dupList = validation.duplicates.map(d => `"${d.word}"`).join(', ');
+            const errorBox = document.getElementById('cb-grp-dup-error');
+            if (errorBox) {
+                errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            const textarea = document.getElementById('cb-grp-keywords');
+            if (textarea) textarea.focus();
+            window.salesApp.showNotification(`Không thể lưu! Từ khóa bị trùng: ${dupList}`, 'error');
+            return;
+        }
+
+        const keywords = validation.keywords;
         const data = window.salesStore.getCallbotKeywords();
 
         if (indId === 'common') {

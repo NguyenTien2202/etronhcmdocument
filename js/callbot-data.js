@@ -17,9 +17,9 @@ const DEFAULT_CALLBOT_KEYWORDS = {
                 'zalo', 'da lô', 'da lo', 'gửi thông tin', 'gửi cho', 'gửi qua', 'gửi vào', 'tài liệu',
                 'bảng thông tin', 'gửi chính sách', 'gửi bảng giá', 'gửi mặt bằng', 'gửi hình ảnh',
                 'gửi ảnh', 'gửi vi deo', 'gửi video', 'mình xem sau', 'gửi em', 'gửi chị', 'gửi mình',
-                'kết bạn', 'kết nối', 'nhắn tin', 'nhắn qua', 'nhắn vào', 'nhắn vô', 'gửi vô', 'gửi vào',
-                'ô kê', 'gửi qua', 'gửi', 'gửi đi', 'gửi xem', 'gửi coi', 'xem nào', 'số này', 'số khác',
-                'tìm hiểu', 'nghiên cứu', 'xem xét', 'kết bạn', 'điện thoại', 'thông tin', 'qua đây', 'oke em', 'ok em'
+                'kết bạn', 'kết nối', 'nhắn tin', 'nhắn qua', 'nhắn vào', 'nhắn vô', 'gửi vô',
+                'ô kê', 'gửi', 'gửi đi', 'gửi xem', 'gửi coi', 'xem nào', 'số này', 'số khác',
+                'tìm hiểu', 'nghiên cứu', 'xem xét', 'điện thoại', 'thông tin', 'qua đây', 'oke em', 'ok em'
             ]
         },
         {
@@ -50,7 +50,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
                 'nói qua', 'biết thêm', 'tìm hiểu', 'nói tiếp', 'cứ nói', 'nói đi', 'nghe đây', 'được em',
                 'ừ được', 'được đấy', 'được được', 'được đó', 'cũng được', 'thử xem', 'đang quan tâm',
                 'khá quan tâm', 'có quan tâm', 'đang tìm hiểu', 'muốn tìm hiểu', 'đang xem', 'đang nghiên cứu',
-                'cân nhắc', 'xem xét', 'thấy cũng ổn', 'khá ổn', 'phù hợp', 'cụ thể', 'nói đi', 'đang nghe',
+                'cân nhắc', 'xem xét', 'thấy cũng ổn', 'khá ổn', 'phù hợp', 'cụ thể', 'đang nghe',
                 'muốn nghe', 'nhất trí', 'chị nghe', 'anh nghe', 'mình nghe', 'tôi nghe'
             ]
         },
@@ -92,7 +92,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             description: 'Khách hàng nghe không rõ âm thanh, bị ồn hoặc hỏi lại mục đích cuộc gọi.',
             keywords: [
                 'gì hả', 'hả gì', 'gì cơ', 'cái gì', 'nói lại', 'a lô', 'chưa hiểu', 'gì đấy',
-                'nói chậm', 'nói lại', 'nói to', 'nói nhanh', 'chưa biết', 'chưa rõ', 'không rõ',
+                'nói chậm', 'nói to', 'nói nhanh', 'chưa biết', 'chưa rõ', 'không rõ',
                 'sao đấy', 'chưa nghe rõ', 'chả nghe', 'nghe gì', 'ồn', 'nói nhỏ', 'không nghe rõ',
                 'sao thế', 'sao vậy', 'có việc gì', 'có gì không', 'gọi làm gì', 'gọi cho tôi có việc',
                 'mục đích gì', 'để làm gì', 'làm gì'
@@ -119,7 +119,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
                         'đắt nhờ', 'đắt thế', 'mắc nhờ', 'hơi cao', 'hơi nhỉnh', 'cao nhỉ', 'cao vậy', 'chi phí cao',
                         'giá đắt', 'giá mắc', 'giá hơi mắc', 'giá chát', 'chát thế', 'giá không rẻ', 'đắt thật', 'mắc thật',
                         'giá cả', 'giá sao', 'giá bên', 'bao nhiêu', 'bao tiền', 'nhiêu tiền', 'bao tỷ', 'đơn giá',
-                        'thanh toán', 'bao tiền', 'miễn phí', 'ưu đãi', 'chiết khấu', 'tỷ', 'bảng giá', 'giá cụ thể',
+                        'thanh toán', 'miễn phí', 'ưu đãi', 'chiết khấu', 'tỷ', 'bảng giá', 'giá cụ thể',
                         'mét vuông', 'nhiu mét', 'thanh khoản', 'giá bao nhiêu', 'căn này bao tiền', 'giá như nào', 'mức giá',
                         'giá ra sao', 'tầm bao nhiêu', 'khoảng bao nhiêu', 'tầm giá', 'giá một ngủ', 'giá 2 ngủ', 'giá hai phòng',
                         'đặt cọc', 'booking', 'lịch thanh toán', 'thương lượng', 'giá tốt không', 'vừa tiền không'

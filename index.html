@@ -1464,9 +1464,20 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Danh Sách Từ Khóa (Cách nhau bằng dấu phẩy) <span class="text-rose-500">*</span></label>
-                    <textarea id="cb-grp-keywords" rows="6" required placeholder="giá cao, cao quá, bao nhiêu tiền, bao tỷ, đơn giá, chiết khấu, booking, đặt cọc..."
-                        class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono leading-relaxed"></textarea>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Danh Sách Từ Khóa (Cách nhau bằng dấu phẩy) <span class="text-rose-500">*</span></label>
+                        <span id="cb-grp-kw-count-badge" class="text-[11px] font-mono text-slate-500 font-semibold">0 từ khóa</span>
+                    </div>
+                    <div id="cb-grp-keywords-wrap" class="relative rounded-xl border border-slate-200 bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all overflow-hidden">
+                        <div id="cb-grp-keywords-backdrop" aria-hidden="true"
+                            class="hidden absolute inset-0 p-2.5 text-xs font-mono leading-relaxed whitespace-pre-wrap break-words pointer-events-none overflow-y-auto no-scrollbar text-slate-800"></div>
+                        <textarea id="cb-grp-keywords" rows="6" required
+                            oninput="window.callbotHub.validateGroupKeywordsLive()"
+                            onscroll="window.callbotHub.syncKeywordsBackdropScroll()"
+                            placeholder="giá cao, cao quá, bao nhiêu tiền, bao tỷ, đơn giá, chiết khấu, booking, đặt cọc..."
+                            class="relative z-10 w-full text-xs p-2.5 border-0 bg-transparent focus:ring-0 focus:outline-none font-mono leading-relaxed no-scrollbar resize-none text-slate-800"></textarea>
+                    </div>
+                    <div id="cb-grp-dup-error" class="hidden mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-700 text-xs space-y-1.5 shadow-2xs"></div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-200 flex items-center justify-between gap-2">
@@ -1480,7 +1491,7 @@
                             class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
                             Hủy
                         </button>
-                        <button type="submit"
+                        <button type="submit" id="cb-grp-submit-btn"
                             class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm shadow-indigo-100 flex items-center gap-1.5">
                             <i data-lucide="check" class="w-4 h-4"></i>
                             <span>Lưu Nhóm Từ Khóa</span>
@@ -1587,18 +1598,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v57"></script>
+    <script src="js/firebase-config.js?v=20261014_v58"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v57"></script>
-    <script src="js/callbot-data.js?v=20261014_v57"></script>
-    <script src="js/number-to-words.js?v=20261014_v57"></script>
-    <script src="js/store.js?v=20261014_v57"></script>
-    <script src="js/quote-builder.js?v=20261014_v57"></script>
-    <script src="js/document-hub.js?v=20261014_v57"></script>
-    <script src="js/callbot-hub.js?v=20261014_v57"></script>
-    <script src="js/product-catalog.js?v=20261014_v57"></script>
-    <script src="js/pdf-export.js?v=20261014_v57"></script>
-    <script src="js/app.js?v=20261014_v57"></script>
+    <script src="js/logo-data.js?v=20261014_v58"></script>
+    <script src="js/callbot-data.js?v=20261014_v58"></script>
+    <script src="js/number-to-words.js?v=20261014_v58"></script>
+    <script src="js/store.js?v=20261014_v58"></script>
+    <script src="js/quote-builder.js?v=20261014_v58"></script>
+    <script src="js/document-hub.js?v=20261014_v58"></script>
+    <script src="js/callbot-hub.js?v=20261014_v58"></script>
+    <script src="js/product-catalog.js?v=20261014_v58"></script>
+    <script src="js/pdf-export.js?v=20261014_v58"></script>
+    <script src="js/app.js?v=20261014_v58"></script>
 </body>
 </html>
