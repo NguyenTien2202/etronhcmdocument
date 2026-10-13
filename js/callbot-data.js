@@ -422,3 +422,8 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         pinned: false
     }
 ];
+
+// Gán biến toàn cục Window để đảm bảo mọi module truy cập tức thì
+window.DEFAULT_CALLBOT_KEYWORDS = DEFAULT_CALLBOT_KEYWORDS;
+window.DEFAULT_CALLBOT_TEMPLATES = DEFAULT_CALLBOT_TEMPLATES;
+

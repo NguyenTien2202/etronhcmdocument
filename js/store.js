@@ -926,12 +926,19 @@ class SalesStore {
             const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_KEYWORDS);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (parsed && (parsed.common || parsed.industries)) return parsed;
+                if (parsed && (
+                    (Array.isArray(parsed.common) && parsed.common.length > 0) ||
+                    (Array.isArray(parsed.industries) && parsed.industries.length > 0)
+                )) {
+                    return parsed;
+                }
             }
         } catch {}
-        if (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') {
-            localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(DEFAULT_CALLBOT_KEYWORDS));
-            return DEFAULT_CALLBOT_KEYWORDS;
+
+        const def = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : (window.DEFAULT_CALLBOT_KEYWORDS || null);
+        if (def) {
+            localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(def));
+            return def;
         }
         return { common: [], industries: [] };
     }
@@ -953,9 +960,11 @@ class SalesStore {
                 if (Array.isArray(parsed) && parsed.length > 0) return parsed;
             }
         } catch {}
-        if (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') {
-            localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(DEFAULT_CALLBOT_TEMPLATES));
-            return DEFAULT_CALLBOT_TEMPLATES;
+
+        const def = (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') ? DEFAULT_CALLBOT_TEMPLATES : (window.DEFAULT_CALLBOT_TEMPLATES || []);
+        if (def && def.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(def));
+            return def;
         }
         return [];
     }
@@ -1056,16 +1065,27 @@ class SalesStore {
 
             // 3. Đồng bộ Bộ Từ Khóa Callbot Real-time
             window.firebaseDb.collection('config').doc('callbot_keywords').onSnapshot((docSnap) => {
+                let hasValidCloudData = false;
                 if (docSnap.exists) {
                     const data = docSnap.data();
-                    if (data && data.data) {
+                    if (data && data.data && (
+                        (Array.isArray(data.data.common) && data.data.common.length > 0) ||
+                        (Array.isArray(data.data.industries) && data.data.industries.length > 0)
+                    )) {
                         localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(data.data));
-                        if (window.callbotHub) window.callbotHub.renderKeywords();
+                        hasValidCloudData = true;
+                        if (window.callbotHub) window.callbotHub.render();
                     }
-                } else {
-                    const localKw = this.getCallbotKeywords();
-                    window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: localKw })
-                        .catch(() => {});
+                }
+
+                if (!hasValidCloudData) {
+                    const defKw = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : (window.DEFAULT_CALLBOT_KEYWORDS || null);
+                    if (defKw) {
+                        localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(defKw));
+                        window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: defKw })
+                            .catch(e => console.warn('Lỗi ghi từ khóa lên Firestore:', e));
+                        if (window.callbotHub) window.callbotHub.render();
+                    }
                 }
             }, (err) => console.warn('Lỗi đồng bộ từ khóa Firestore:', err));
 
@@ -1080,7 +1100,7 @@ class SalesStore {
                     const cloudTpls = [];
                     snapshot.forEach(docSnap => cloudTpls.push({ id: docSnap.id, ...docSnap.data() }));
                     localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(cloudTpls));
-                    if (window.callbotHub) window.callbotHub.renderTemplates();
+                    if (window.callbotHub) window.callbotHub.render();
                 }
             }, (err) => console.warn('Lỗi đồng bộ kịch bản Firestore:', err));
 

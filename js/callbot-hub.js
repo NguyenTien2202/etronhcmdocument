@@ -91,6 +91,7 @@ class CallbotHub {
     // 1. PHÂN KHU BỘ TỪ KHÓA CHUẨN
     // ==========================================
     renderKeywords() {
+        this.renderStats();
         const data = window.salesStore.getCallbotKeywords();
         this.renderCommonKeywords(data.common || []);
         this.renderIndustryKeywords(data.industries || []);
@@ -117,7 +118,7 @@ class CallbotHub {
             container.innerHTML = `
                 <div class="col-span-full py-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-slate-200">
                     <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                    <p class="text-sm font-semibold">Không tìm thấy từ khóa chung nào khớp với "${this.escapeHtml(query)}"</p>
+                    <p class="text-sm font-semibold">${query ? `Không tìm thấy từ khóa chung nào khớp với "${this.escapeHtml(query)}"` : 'Đang tải dữ liệu bộ từ khóa dùng chung...'}</p>
                 </div>
             `;
             return;
