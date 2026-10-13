@@ -372,3 +372,7 @@ a:focus, a:focus-visible { outline: none !important; }
 .qb-unit-input::placeholder { color: #94a3b8; }
 .qb-unit-input::-webkit-calendar-picker-indicator { display: none !important; opacity: 0; }
 @media (max-width: 767px) { .qb-unit-input { font-size: 14px; max-width: 12ch; } }
+
+/* No scrollbar utility for mobile touch carousels */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

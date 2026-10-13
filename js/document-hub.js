@@ -159,26 +159,26 @@ class DocumentHub {
         const cloudCount = docs.filter(d => d.type === 'link').length;
 
         statsEl.innerHTML = `
-            <div class="flex flex-wrap items-center gap-2 text-xs">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-100">
+            <div class="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap py-0.5">
+                <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shrink-0 text-[11px] sm:text-xs">
                     <i data-lucide="folder-check" class="w-3.5 h-3.5"></i>
-                    Tổng cộng: <b>${docs.length}</b> tài nguyên
+                    <span>Tổng: <b>${docs.length}</b> mục</span>
                 </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                     ${docsCount} Văn bản
                 </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     ${sheetsCount} Bảng tính
                 </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
                     <span class="w-2 h-2 rounded-full bg-purple-500"></span>
                     ${mediaCount} Ảnh & Video
                 </span>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
                     <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                    ${cloudCount} Liên kết Cloud
+                    ${cloudCount} Cloud
                 </span>
             </div>
         `;
@@ -203,20 +203,20 @@ class DocumentHub {
             const isVideo = doc.type === 'video' || doc.fileType === 'youtube';
 
             return `
-                <div class="bg-white rounded-xl border-2 ${badge.border} p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
+                <div class="w-[270px] sm:w-auto shrink-0 snap-start bg-white rounded-xl border-2 ${badge.border} p-3.5 sm:p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-20 h-20 ${badge.subtleBg} rounded-bl-full pointer-events-none transition-transform group-hover:scale-110"></div>
                     
                     <div>
                         <!-- Header thẻ Quick Access -->
-                        <div class="flex items-center justify-between gap-2 mb-3">
-                            <div class="w-10 h-10 rounded-xl ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
+                        <div class="flex items-center justify-between gap-2 mb-2.5 sm:mb-3">
+                            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-xs shadow-inner shrink-0">
                                 ${badge.label}
                             </div>
                             <div class="flex items-center gap-1">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge.bg} ${badge.color}">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge.bg} ${badge.color} truncate max-w-[120px]">
                                     ${this.escapeHtml(doc.category)}
                                 </span>
-                                <button onclick="window.documentHub.togglePin('${doc.id}')" class="text-amber-500 hover:text-amber-600 p-0.5 transition-colors" title="Bỏ ghim khỏi mục Truy cập nhanh">
+                                <button onclick="window.documentHub.togglePin('${doc.id}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim khỏi mục Truy cập nhanh">
                                     <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-500"></i>
                                 </button>
                             </div>
@@ -227,32 +227,32 @@ class DocumentHub {
                             onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
                             ${this.escapeHtml(doc.title)}
                         </h4>
-                        <p class="text-[11px] text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+                        <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
                             ${this.escapeHtml(doc.description || 'Chưa có mô tả chi tiết')}
                         </p>
                     </div>
 
                     <!-- Footer Thẻ -->
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <span class="text-[11px] text-slate-400 font-medium">
+                    <div class="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">
                             ${this.escapeHtml(doc.fileSize || 'Trực tuyến')}
                         </span>
                         
                         <div class="flex items-center gap-1.5">
                             <button onclick="window.documentHub.openDocument('${doc.id}')"
-                                class="px-3 py-1 rounded-lg ${badge.bg} ${badge.color} font-bold text-xs hover:opacity-90 transition-all flex items-center gap-1">
+                                class="px-2.5 sm:px-3 py-1 rounded-lg ${badge.bg} ${badge.color} font-bold text-xs hover:opacity-90 transition-all flex items-center gap-1">
                                 <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : 'external-link')}" class="w-3.5 h-3.5"></i>
                                 <span>${isImage ? 'Xem ảnh' : (isVideo ? 'Phát' : 'Mở')}</span>
                             </button>
 
                             ${doc.fileUrl ? `
                                 <button onclick="window.documentHub.copyDocLink('${doc.id}')"
-                                    class="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
+                                    class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 </button>
                             ` : `
                                 <button onclick="window.documentHub.downloadDocument('${doc.id}')"
-                                    class="p-1 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
+                                    class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                     <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                 </button>
                             `}
@@ -272,7 +272,7 @@ class DocumentHub {
         const types = this.getResourceTypes();
         container.innerHTML = types.map(t => `
             <button onclick="window.documentHub.setType('${t.id}')"
-                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
                     this.selectedType === t.id
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -292,7 +292,7 @@ class DocumentHub {
         const categories = this.getCategories();
         container.innerHTML = categories.map(cat => `
             <button onclick="window.documentHub.setCategory('${cat.id}')"
-                class="px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                class="px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
                     this.selectedCategory === cat.id 
                     ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' 
                     : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
@@ -418,12 +418,12 @@ class DocumentHub {
                     <table class="w-full text-left text-xs border-collapse">
                         <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">
                             <tr>
-                                <th class="py-3 px-4">Tên Tài Liệu & Nội Dung</th>
-                                <th class="py-3 px-3">Định Dạng</th>
-                                <th class="py-3 px-3">Phân Loại Danh Mục</th>
-                                <th class="py-3 px-3">Dung Lượng / Nguồn</th>
-                                <th class="py-3 px-3">Cập Nhật</th>
-                                <th class="py-3 px-4 text-right">Thao Tác</th>
+                                <th class="py-3 px-3 sm:px-4">Tên Tài Liệu & Nội Dung</th>
+                                <th class="py-3 px-2 sm:px-3 hidden sm:table-cell">Định Dạng</th>
+                                <th class="py-3 px-2 sm:px-3 hidden md:table-cell">Phân Loại Danh Mục</th>
+                                <th class="py-3 px-2 sm:px-3 hidden lg:table-cell">Dung Lượng / Nguồn</th>
+                                <th class="py-3 px-2 sm:px-3 hidden sm:table-cell">Cập Nhật</th>
+                                <th class="py-3 px-3 sm:px-4 text-right">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -434,14 +434,14 @@ class DocumentHub {
 
                                 return `
                                     <tr class="hover:bg-indigo-50/40 transition-colors group">
-                                        <td class="py-3 px-4 max-w-xs sm:max-w-md">
-                                            <div class="flex items-start gap-3">
+                                        <td class="py-2.5 sm:py-3 px-3 sm:px-4 max-w-[200px] sm:max-w-md">
+                                            <div class="flex items-start gap-2.5 sm:gap-3">
                                                 <div class="w-8 h-8 rounded-lg ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                                                     ${badge.label}
                                                 </div>
                                                 <div class="min-w-0">
                                                     <div class="flex items-center gap-1.5">
-                                                        <h5 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors cursor-pointer truncate"
+                                                        <h5 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors cursor-pointer truncate text-xs sm:text-sm"
                                                             onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
                                                             ${this.escapeHtml(doc.title)}
                                                         </h5>
@@ -449,11 +449,18 @@ class DocumentHub {
                                                             <span class="text-amber-500 text-[10px]" title="Đang ghim ở mục Truy cập nhanh">⭐</span>
                                                         ` : ''}
                                                     </div>
-                                                    <p class="text-[11px] text-slate-400 truncate mt-0.5">
+                                                    <!-- Hiển thị phân loại & dung lượng dưới tên khi ở màn hình nhỏ -->
+                                                    <div class="flex items-center gap-1 sm:hidden mt-0.5">
+                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${badge.bg} ${badge.color}">${badge.label}</span>
+                                                        <span class="text-[10px] text-slate-500 font-medium truncate max-w-[110px]">${this.escapeHtml(doc.category)}</span>
+                                                        <span class="text-[10px] text-slate-300">•</span>
+                                                        <span class="text-[10px] text-slate-400 font-mono">${this.escapeHtml(doc.fileSize || '')}</span>
+                                                    </div>
+                                                    <p class="text-[11px] text-slate-400 truncate mt-0.5 hidden sm:block">
                                                         ${this.escapeHtml(doc.description || 'Chưa có mô tả chi tiết')}
                                                     </p>
                                                     ${doc.tags && doc.tags.length > 0 ? `
-                                                        <div class="flex flex-wrap gap-1 mt-1">
+                                                        <div class="hidden sm:flex flex-wrap gap-1 mt-1">
                                                             ${doc.tags.map(t => `<span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-medium">#${this.escapeHtml(t)}</span>`).join('')}
                                                         </div>
                                                     ` : ''}
@@ -461,53 +468,53 @@ class DocumentHub {
                                             </div>
                                         </td>
 
-                                        <td class="py-3 px-3">
+                                        <td class="py-3 px-2 sm:px-3 hidden sm:table-cell">
                                             <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge.bg} ${badge.color}">
                                                 ${badge.fullName}
                                             </span>
                                         </td>
 
-                                        <td class="py-3 px-3 text-slate-600 font-medium">
+                                        <td class="py-3 px-2 sm:px-3 text-slate-600 font-medium hidden md:table-cell">
                                             ${this.escapeHtml(doc.category)}
                                         </td>
 
-                                        <td class="py-3 px-3 text-slate-500 font-mono text-[11px]">
+                                        <td class="py-3 px-2 sm:px-3 text-slate-500 font-mono text-[11px] hidden lg:table-cell">
                                             ${this.escapeHtml(doc.fileSize || (doc.type === 'link' ? 'Cloud Link' : 'Tệp tải lên'))}
                                         </td>
 
-                                        <td class="py-3 px-3 text-slate-400 text-[11px]">
+                                        <td class="py-3 px-2 sm:px-3 text-slate-400 text-[11px] hidden sm:table-cell">
                                             ${doc.updatedAt || 'Hôm nay'}
                                         </td>
 
-                                        <td class="py-3 px-4 text-right">
-                                            <div class="flex items-center justify-end gap-1.5">
+                                        <td class="py-2.5 sm:py-3 px-3 sm:px-4 text-right">
+                                            <div class="flex items-center justify-end gap-1">
                                                 <button onclick="window.documentHub.openDocument('${doc.id}')"
-                                                    class="px-2.5 py-1 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-bold transition-colors flex items-center gap-1"
+                                                    class="px-2 sm:px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-bold transition-colors flex items-center gap-1"
                                                     title="Mở tài liệu">
                                                     <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : 'external-link')}" class="w-3.5 h-3.5"></i>
-                                                    <span>${isImage ? 'Xem' : (isVideo ? 'Phát' : 'Mở')}</span>
+                                                    <span class="hidden sm:inline">${isImage ? 'Xem' : (isVideo ? 'Phát' : 'Mở')}</span>
                                                 </button>
 
                                                 ${doc.fileUrl ? `
                                                     <button onclick="window.documentHub.copyDocLink('${doc.id}')"
-                                                        class="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
-                                                        <i data-lucide="copy" class="w-4 h-4"></i>
+                                                        class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
+                                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                 ` : `
                                                     <button onclick="window.documentHub.downloadDocument('${doc.id}')"
-                                                        class="p-1 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
-                                                        <i data-lucide="download" class="w-4 h-4"></i>
+                                                        class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
+                                                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                 `}
 
                                                 <button onclick="window.documentHub.togglePin('${doc.id}')"
-                                                    class="p-1 rounded ${doc.pinned ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'} hover:bg-amber-50 transition-colors"
+                                                    class="p-1 sm:p-1.5 rounded-lg ${doc.pinned ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'} hover:bg-amber-50 transition-colors"
                                                     title="${doc.pinned ? 'Bỏ ghim' : 'Ghim lên đầu'}">
                                                     <i data-lucide="star" class="w-4 h-4 ${doc.pinned ? 'fill-amber-400 text-amber-500' : ''}"></i>
                                                 </button>
 
                                                 <button onclick="window.documentHub.deleteDocument('${doc.id}')"
-                                                    class="p-1 rounded text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
+                                                    class="p-1 sm:p-1.5 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
                                             </div>
@@ -524,22 +531,22 @@ class DocumentHub {
 
     renderGridView(container, docs) {
         container.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
                 ${docs.map(doc => {
                     const badge = this.getFileBadge(doc.fileType, doc.type);
                     const isImage = doc.type === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(doc.fileType);
                     const isVideo = doc.type === 'video' || doc.fileType === 'youtube';
 
                     return `
-                        <div class="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-lg hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                        <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-5 hover:shadow-lg hover:border-indigo-200 transition-all flex flex-col justify-between group">
                             <div>
                                 <!-- Header Card -->
                                 <div class="flex items-start justify-between gap-3 mb-3">
-                                    <div class="w-11 h-11 rounded-xl ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-sm shadow-inner shrink-0">
+                                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-sm shadow-inner shrink-0">
                                         ${badge.label}
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 truncate max-w-[140px]">
                                             ${this.escapeHtml(doc.category)}
                                         </span>
                                         <button onclick="window.documentHub.togglePin('${doc.id}')"
@@ -570,7 +577,7 @@ class DocumentHub {
                                 ` : ''}
 
                                 <!-- Tiêu đề & Mô tả -->
-                                <h4 class="font-bold text-slate-900 text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
                                     onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
                                     ${this.escapeHtml(doc.title)}
                                 </h4>
@@ -589,7 +596,7 @@ class DocumentHub {
                             </div>
 
                             <!-- Footer & Hành động -->
-                            <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                            <div class="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                                 <span class="flex items-center gap-1 text-[11px]">
                                     <i data-lucide="clock" class="w-3.5 h-3.5"></i>
                                     ${doc.updatedAt || 'Hôm nay'}
@@ -605,18 +612,18 @@ class DocumentHub {
 
                                     ${doc.fileUrl ? `
                                         <button onclick="window.documentHub.copyDocLink('${doc.id}')"
-                                            class="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
+                                            class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                             <i data-lucide="copy" class="w-4 h-4"></i>
                                         </button>
                                     ` : `
                                         <button onclick="window.documentHub.downloadDocument('${doc.id}')"
-                                            class="p-1 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
+                                            class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                             <i data-lucide="download" class="w-4 h-4"></i>
                                         </button>
                                     `}
 
                                     <button onclick="window.documentHub.deleteDocument('${doc.id}')"
-                                        class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
+                                        class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 </div>
