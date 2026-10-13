@@ -1190,6 +1190,7 @@ class DocumentHub {
     openCategoryManagerModal() {
         const modal = document.getElementById('category-manager-modal');
         if (!modal) return;
+        this.cancelEditCategoryInManager();
         this.renderCategoryManagerList();
         modal.classList.remove('hidden');
         lucide.createIcons();
@@ -1198,8 +1199,7 @@ class DocumentHub {
     closeCategoryManagerModal() {
         const modal = document.getElementById('category-manager-modal');
         if (modal) modal.classList.add('hidden');
-        const input = document.getElementById('new-category-name-input');
-        if (input) input.value = '';
+        this.cancelEditCategoryInManager();
         this.renderModalCategoryDropdown();
     }
 
@@ -1261,9 +1261,12 @@ class DocumentHub {
     }
 
     updateAddIconPreview(iconName) {
-        const preview = document.getElementById('new-category-icon-preview');
-        if (preview) {
-            preview.setAttribute('data-lucide', iconName);
+        const btn = document.getElementById('new-category-icon-btn');
+        if (btn) {
+            btn.innerHTML = `
+                <i id="new-category-icon-preview" data-lucide="${iconName}" class="w-4 h-4"></i>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+            `;
             lucide.createIcons();
         }
     }
@@ -1360,7 +1363,7 @@ class DocumentHub {
             const count = docs.filter(d => d.category === cat.name || d.category === cat.id).length;
             const isPinned = cat.pinned === true;
             return `
-                <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-indigo-200 transition-all group">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                         <button type="button" onclick="window.documentHub.openIconPickerForCategory('${cat.id}')"
                             class="w-8 h-8 rounded-lg ${isPinned ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} hover:ring-2 hover:ring-indigo-300 hover:scale-105 flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-2xs"
@@ -1381,8 +1384,8 @@ class DocumentHub {
                             title="${isPinned ? 'Bỏ ghim khỏi mục Truy cập nhanh' : 'Ghim danh mục lên mục Truy cập nhanh'}">
                             <i data-lucide="star" class="w-4 h-4 ${isPinned ? 'fill-amber-400 text-amber-500' : ''}"></i>
                         </button>
-                        <button type="button" onclick="window.documentHub.promptRenameCategory('${cat.id}')"
-                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Đổi tên danh mục">
+                        <button type="button" onclick="window.documentHub.editCategoryInManager('${cat.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa danh mục">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                         </button>
                         <button type="button" onclick="window.documentHub.deleteCategory('${cat.id}')"
@@ -1412,8 +1415,66 @@ class DocumentHub {
         window.salesApp.showNotification(msg, 'success');
     }
 
+    editCategoryInManager(catId) {
+        const categories = window.salesStore.getDocumentCategories();
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return;
+
+        const idInput = document.getElementById('edit-category-id');
+        const nameInput = document.getElementById('new-category-name-input');
+        const pinnedCheck = document.getElementById('new-category-pinned-check');
+        const formTitle = document.getElementById('cat-mgr-form-title');
+        const submitBtn = document.getElementById('cat-mgr-submit-btn');
+        const cancelBtn = document.getElementById('cat-mgr-cancel-edit-btn');
+
+        if (idInput) idInput.value = cat.id;
+        if (nameInput) nameInput.value = cat.name || '';
+        if (pinnedCheck) pinnedCheck.checked = Boolean(cat.pinned);
+
+        this.selectedNewCategoryIcon = cat.icon || 'folder';
+        this.userPickedAddIcon = true;
+        this.updateAddIconPreview(this.selectedNewCategoryIcon);
+
+        if (formTitle) formTitle.textContent = `Chỉnh sửa: ${cat.name}`;
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Cập nhật</span>`;
+        }
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+
+        if (nameInput) nameInput.focus();
+        lucide.createIcons();
+    }
+
+    cancelEditCategoryInManager() {
+        const idInput = document.getElementById('edit-category-id');
+        const nameInput = document.getElementById('new-category-name-input');
+        const pinnedCheck = document.getElementById('new-category-pinned-check');
+        const formTitle = document.getElementById('cat-mgr-form-title');
+        const submitBtn = document.getElementById('cat-mgr-submit-btn');
+        const cancelBtn = document.getElementById('cat-mgr-cancel-edit-btn');
+        const picker = document.getElementById('new-category-icon-picker');
+
+        if (idInput) idInput.value = '';
+        if (nameInput) nameInput.value = '';
+        if (pinnedCheck) pinnedCheck.checked = false;
+        if (picker) picker.classList.add('hidden');
+
+        this.userPickedAddIcon = false;
+        this.selectedNewCategoryIcon = 'folder';
+        this.updateAddIconPreview('folder');
+
+        if (formTitle) formTitle.textContent = 'Thêm danh mục mới';
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i data-lucide="plus" class="w-3.5 h-3.5"></i><span>Thêm</span>`;
+        }
+        if (cancelBtn) cancelBtn.classList.add('hidden');
+        lucide.createIcons();
+    }
+
     handleAddNewCategory(event) {
         event.preventDefault();
+        const idInput = document.getElementById('edit-category-id');
+        const editingCatId = idInput ? idInput.value.trim() : '';
         const input = document.getElementById('new-category-name-input');
         const pinnedCheck = document.getElementById('new-category-pinned-check');
         if (!input) return;
@@ -1421,13 +1482,58 @@ class DocumentHub {
         if (!name) return;
 
         const currentCats = window.salesStore.getDocumentCategories();
-        if (currentCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-            alert(`Danh mục "${name}" đã tồn tại! Vui lòng chọn tên khác.`);
+        const isPinned = Boolean(pinnedCheck && pinnedCheck.checked);
+        const assignedIcon = this.selectedNewCategoryIcon || (typeof detectCategoryIcon === 'function' ? detectCategoryIcon(name) : 'folder');
+
+        if (editingCatId) {
+            const cat = currentCats.find(c => c.id === editingCatId);
+            if (!cat) {
+                this.cancelEditCategoryInManager();
+                return;
+            }
+            if (currentCats.some(c => c.id !== editingCatId && c.name.toLowerCase() === name.toLowerCase())) {
+                window.salesApp.showNotification(`Danh mục "${name}" đã tồn tại! Vui lòng chọn tên khác.`, 'warning');
+                return;
+            }
+
+            const oldName = cat.name;
+            cat.name = name;
+            cat.icon = assignedIcon;
+            cat.pinned = isPinned;
+            window.salesStore.saveDocumentCategory(cat);
+
+            // Tự động đồng bộ tên danh mục sang các tài liệu đang thuộc danh mục cũ
+            if (oldName !== name) {
+                const docs = window.salesStore.getDocuments();
+                docs.forEach(d => {
+                    if (d.category === oldName) {
+                        d.category = name;
+                        window.salesStore.saveDocument(d);
+                    }
+                });
+                if (this.selectedCategory === oldName) {
+                    this.selectedCategory = name;
+                }
+                if (this.selectedModalCategory === oldName) {
+                    this.selectedModalCategory = name;
+                }
+            }
+
+            this.cancelEditCategoryInManager();
+            this.renderCategoryManagerList();
+            this.renderCategoryPills();
+            this.updateCategorySelectOptions(name);
+            this.renderDocumentsList();
+            this.renderQuickAccess();
+
+            window.salesApp.showNotification(`Đã cập nhật danh mục "${name}"!`, 'success');
             return;
         }
 
-        const isPinned = Boolean(pinnedCheck && pinnedCheck.checked);
-        const assignedIcon = this.selectedNewCategoryIcon || (typeof detectCategoryIcon === 'function' ? detectCategoryIcon(name) : 'folder');
+        if (currentCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+            window.salesApp.showNotification(`Danh mục "${name}" đã tồn tại! Vui lòng chọn tên khác.`, 'warning');
+            return;
+        }
 
         const newCat = {
             id: 'cat-' + Date.now(),
@@ -1437,13 +1543,7 @@ class DocumentHub {
         };
 
         window.salesStore.saveDocumentCategory(newCat);
-        input.value = '';
-        if (pinnedCheck) pinnedCheck.checked = false;
-        this.userPickedAddIcon = false;
-        this.selectedNewCategoryIcon = 'folder';
-        this.updateAddIconPreview('folder');
-        const picker = document.getElementById('new-category-icon-picker');
-        if (picker) picker.classList.add('hidden');
+        this.cancelEditCategoryInManager();
 
         this.renderCategoryManagerList();
         this.renderCategoryPills();
@@ -1454,38 +1554,7 @@ class DocumentHub {
     }
 
     promptRenameCategory(catId) {
-        const categories = window.salesStore.getDocumentCategories();
-        const cat = categories.find(c => c.id === catId);
-        if (!cat) return;
-
-        const oldName = cat.name;
-        const newName = prompt(`Nhập tên mới cho danh mục "${oldName}":`, oldName);
-        if (!newName || !newName.trim() || newName.trim() === oldName) return;
-
-        const cleanName = newName.trim();
-
-        // Cập nhật danh mục
-        cat.name = cleanName;
-        window.salesStore.saveDocumentCategory(cat);
-
-        // Tự động cập nhật các tài liệu đang thuộc danh mục cũ sang tên mới
-        const docs = window.salesStore.getDocuments();
-        let updatedCount = 0;
-        docs.forEach(d => {
-            if (d.category === oldName) {
-                d.category = cleanName;
-                window.salesStore.saveDocument(d);
-                updatedCount++;
-            }
-        });
-
-        this.renderCategoryManagerList();
-        this.renderCategoryPills();
-        this.updateCategorySelectOptions(cleanName);
-        this.renderDocumentsList();
-        this.renderQuickAccess();
-
-        window.salesApp.showNotification(`Đã đổi tên danh mục thành "${cleanName}" (${updatedCount} tài liệu được cập nhật)!`, 'success');
+        this.editCategoryInManager(catId);
     }
 
     deleteCategory(catId) {
@@ -1520,6 +1589,7 @@ class DocumentHub {
             this.selectedCategory = 'all';
         }
 
+        this.cancelEditCategoryInManager();
         this.renderCategoryManagerList();
         this.renderCategoryPills();
         this.updateCategorySelectOptions();
@@ -1530,6 +1600,9 @@ class DocumentHub {
     }
 
     openAddModal() {
+        const form = document.getElementById('document-add-form');
+        if (form) form.reset();
+
         const idInput = document.getElementById('editing-doc-id');
         if (idInput) idInput.value = '';
 
@@ -1546,8 +1619,6 @@ class DocumentHub {
         this.isModalCatDropdownOpen = false;
         this.updateCategorySelectOptions();
 
-        const form = document.getElementById('document-add-form');
-        if (form) form.reset();
         this.clearSelectedFile();
         this.switchModalTab('upload');
 
@@ -1560,6 +1631,9 @@ class DocumentHub {
         const docs = window.salesStore.getDocuments();
         const doc = docs.find(d => d.id === id);
         if (!doc) return;
+
+        const form = document.getElementById('document-add-form');
+        if (form) form.reset();
 
         const idInput = document.getElementById('editing-doc-id');
         if (idInput) idInput.value = doc.id;
@@ -1698,27 +1772,37 @@ class DocumentHub {
                 return;
             }
 
-            targetDoc.type = 'link';
             targetDoc.fileUrl = fileUrl;
-            targetDoc.fileSize = 'Cloud Link';
+            const lowerUrl = fileUrl.toLowerCase();
 
-            if (fileUrl.includes('docs.google.com/spreadsheets')) {
+            if (lowerUrl.includes('docs.google.com/spreadsheets')) {
+                targetDoc.type = 'link';
                 targetDoc.fileType = 'xlsx';
                 targetDoc.fileSize = 'Google Sheets';
-            } else if (fileUrl.includes('docs.google.com/document')) {
+            } else if (lowerUrl.includes('docs.google.com/document')) {
+                targetDoc.type = 'link';
                 targetDoc.fileType = 'gdoc';
                 targetDoc.fileSize = 'Google Docs';
-            } else if (fileUrl.includes('drive.google.com')) {
+            } else if (lowerUrl.includes('drive.google.com')) {
+                targetDoc.type = 'link';
                 targetDoc.fileType = 'drive';
                 targetDoc.fileSize = 'Drive Folder';
-            } else if (fileUrl.includes('youtube.com') || fileUrl.includes('youtu.be')) {
+            } else if (lowerUrl.includes('youtube.com') || lowerUrl.includes('youtu.be')) {
                 targetDoc.fileType = 'youtube';
                 targetDoc.type = 'video';
                 targetDoc.fileSize = 'Video Link';
-            } else if (fileUrl.endsWith('.pdf')) {
+            } else if (/\.(png|jpg|jpeg|webp|svg)(\?.*)?$/i.test(lowerUrl)) {
+                targetDoc.type = 'image';
+                targetDoc.fileType = lowerUrl.match(/\.(png|jpg|jpeg|webp|svg)/i)[1];
+                targetDoc.fileSize = existingDoc?.fileSize || 'Hình ảnh';
+            } else if (lowerUrl.endsWith('.pdf')) {
+                targetDoc.type = 'link';
                 targetDoc.fileType = 'pdf';
+                targetDoc.fileSize = 'Cloud Link';
             } else {
+                targetDoc.type = (existingDoc && existingDoc.fileUrl === fileUrl && existingDoc.type) ? existingDoc.type : 'link';
                 targetDoc.fileType = targetDoc.fileType || 'link';
+                targetDoc.fileSize = existingDoc?.fileSize || 'Cloud Link';
             }
         }
 

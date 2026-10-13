@@ -1017,6 +1017,20 @@ class SalesStore {
         return target;
     }
 
+    saveCallbotTemplates(templates) {
+        if (!Array.isArray(templates)) return [];
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(templates));
+        if (window.firebaseDb) {
+            templates.forEach(tpl => {
+                if (tpl && tpl.id) {
+                    window.firebaseDb.collection('callbot_templates').doc(tpl.id).set(tpl)
+                        .catch(err => console.warn('Lỗi đồng bộ kịch bản mẫu Firestore:', err));
+                }
+            });
+        }
+        return templates;
+    }
+
     deleteCallbotTemplate(tplId) {
         let templates = this.getCallbotTemplates();
         templates = templates.filter(t => t.id !== tplId);
@@ -1035,7 +1049,11 @@ class SalesStore {
             const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_MEDIA);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    // Lọc bỏ các phần tử lỗi (nếu từng truyền mảng vào saveCallbotMedia trước đây)
+                    const valid = parsed.filter(m => m && typeof m === 'object' && !Array.isArray(m) && m.title);
+                    if (valid.length > 0) return valid;
+                }
             }
         } catch {}
 
@@ -1048,6 +1066,19 @@ class SalesStore {
     }
 
     saveCallbotMedia(media) {
+        if (Array.isArray(media)) {
+            const validList = media.filter(m => m && typeof m === 'object' && !Array.isArray(m) && m.title);
+            localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(validList));
+            if (window.firebaseDb) {
+                validList.forEach(item => {
+                    if (item && item.id) {
+                        window.firebaseDb.collection('callbot_media').doc(item.id).set(item)
+                            .catch(err => console.warn('Lỗi đồng bộ media Firestore:', err));
+                    }
+                });
+            }
+            return validList;
+        }
         const list = this.getCallbotMedia();
         let target = null;
         if (media.id) {

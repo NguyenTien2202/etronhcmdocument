@@ -1069,7 +1069,7 @@
                     <label class="block text-[11px] font-semibold text-slate-600">Đường Dẫn Tài Liệu (Google Drive / Docs / Sheets / YouTube / URL)</label>
                     <div class="relative">
                         <i data-lucide="link" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
-                        <input type="url" id="new-doc-url" placeholder="https://drive.google.com/... hoặc https://youtube.com/..." class="w-full pl-9 pr-3 py-2 text-xs font-mono border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500">
+                        <input type="text" id="new-doc-url" placeholder="https://drive.google.com/... hoặc https://youtube.com/..." class="w-full pl-9 pr-3 py-2 text-xs font-mono border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500">
                     </div>
                     <p class="text-[10px] text-slate-400">Hệ thống sẽ tự nhận diện biểu tượng Google Sheets, Docs, Drive, PDF hoặc Video YouTube.</p>
                 </div>
@@ -1173,10 +1173,14 @@
                 </button>
             </div>
 
-            <!-- Form Thêm Danh Mục Mới -->
+            <!-- Form Thêm / Cập nhật Danh Mục -->
             <div class="p-4 border-b border-slate-200 bg-white shrink-0">
                 <form id="add-category-form" onsubmit="window.documentHub.handleAddNewCategory(event)" class="space-y-2.5">
-                    <label class="block text-xs font-bold text-slate-700">Thêm danh mục mới</label>
+                    <input type="hidden" id="edit-category-id" value="">
+                    <div class="flex items-center justify-between">
+                        <label id="cat-mgr-form-title" class="block text-xs font-bold text-slate-700">Thêm danh mục mới</label>
+                        <button type="button" id="cat-mgr-cancel-edit-btn" onclick="window.documentHub.cancelEditCategoryInManager()" class="text-[11px] text-indigo-600 hover:underline font-semibold hidden">Hủy sửa</button>
+                    </div>
                     <div class="flex items-center gap-2">
                         <!-- Icon Selector Trigger -->
                         <button type="button" id="new-category-icon-btn" onclick="window.documentHub.toggleAddIconPicker()"
@@ -1188,8 +1192,8 @@
                         <input type="text" id="new-category-name-input" required 
                             oninput="window.documentHub.handleCategoryNameInput(this.value)"
                             placeholder="VD: Vid HDSD, HR, Case study..."
-                            class="flex-1 text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
-                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 shrink-0">
+                            class="flex-1 min-w-0 text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        <button type="submit" id="cat-mgr-submit-btn" class="px-3.5 sm:px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap active:scale-95 transition-all">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i>
                             <span>Thêm</span>
                         </button>
@@ -1308,14 +1312,14 @@
 
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Liên Kết Google Sheets / Google Drive</label>
-                        <input type="url" id="cb-tpl-url" placeholder="https://docs.google.com/spreadsheets/d/..."
+                        <input type="text" id="cb-tpl-url" placeholder="https://docs.google.com/spreadsheets/d/..."
                             class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                         <p class="text-[11px] text-slate-400 mt-1">Dán liên kết Google Sheets hoặc thư mục Drive chứa kịch bản.</p>
                     </div>
 
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Link Kịch Bản Callbot Hệ Thống (Ucall / Bot System)</label>
-                        <input type="url" id="cb-tpl-boturl" placeholder="https://app.ucall.vn/bot/... hoặc link kịch bản hệ thống"
+                        <input type="text" id="cb-tpl-boturl" placeholder="https://app.ucall.vn/bot/... hoặc link kịch bản hệ thống"
                             class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                         <p class="text-[11px] text-slate-400 mt-1">Liên kết trực tiếp tới cấu hình kịch bản Callbot trên hệ thống.</p>
                     </div>
@@ -1391,7 +1395,7 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Đường Dẫn / Link Media (Drive, YouTube, Link Trực Tiếp)</label>
-                    <input type="url" id="cb-med-url" placeholder="https://drive.google.com/... hoặc https://youtube.com/..."
+                    <input type="text" id="cb-med-url" placeholder="https://drive.google.com/... hoặc https://youtube.com/..."
                         class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono">
                     <p class="text-[11px] text-slate-400 mt-1">Dán link Google Drive chia sẻ công khai hoặc link MP3 / WAV / YouTube.</p>
                 </div>
@@ -1583,18 +1587,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v56"></script>
+    <script src="js/firebase-config.js?v=20261014_v57"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v56"></script>
-    <script src="js/callbot-data.js?v=20261014_v56"></script>
-    <script src="js/number-to-words.js?v=20261014_v56"></script>
-    <script src="js/store.js?v=20261014_v56"></script>
-    <script src="js/quote-builder.js?v=20261014_v56"></script>
-    <script src="js/document-hub.js?v=20261014_v56"></script>
-    <script src="js/callbot-hub.js?v=20261014_v56"></script>
-    <script src="js/product-catalog.js?v=20261014_v56"></script>
-    <script src="js/pdf-export.js?v=20261014_v56"></script>
-    <script src="js/app.js?v=20261014_v56"></script>
+    <script src="js/logo-data.js?v=20261014_v57"></script>
+    <script src="js/callbot-data.js?v=20261014_v57"></script>
+    <script src="js/number-to-words.js?v=20261014_v57"></script>
+    <script src="js/store.js?v=20261014_v57"></script>
+    <script src="js/quote-builder.js?v=20261014_v57"></script>
+    <script src="js/document-hub.js?v=20261014_v57"></script>
+    <script src="js/callbot-hub.js?v=20261014_v57"></script>
+    <script src="js/product-catalog.js?v=20261014_v57"></script>
+    <script src="js/pdf-export.js?v=20261014_v57"></script>
+    <script src="js/app.js?v=20261014_v57"></script>
 </body>
 </html>

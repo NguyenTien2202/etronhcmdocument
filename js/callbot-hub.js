@@ -670,11 +670,15 @@ class CallbotHub {
             return;
         }
 
+        const industries = (window.salesStore.getCallbotKeywords().industries || []);
+
         container.innerHTML = filtered.map((tpl, idx) => {
             const theme = this.getPastelTheme(idx);
             const hasUrl = Boolean(tpl.scriptUrl && tpl.scriptUrl.trim());
             const hasBotUrl = Boolean(tpl.botUrl && tpl.botUrl.trim());
             const hasFile = Boolean(tpl.scriptFileName && tpl.scriptFileName.trim());
+            const indObj = industries.find(i => i.id === tpl.industry);
+            const resolvedIndustryName = indObj ? indObj.name : (tpl.industryName || 'Ngành khác');
 
             return `
                 <div class="${theme.cardBg} ${theme.border} ${theme.glow} rounded-2xl border p-4 sm:p-5 shadow-2xs hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group">
@@ -682,7 +686,7 @@ class CallbotHub {
                         <!-- Header Card: Ngành nghề + Ngày cập nhật -->
                         <div class="flex items-center justify-between gap-2">
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${theme.badgeBg}">
-                                ${this.escapeHtml(tpl.industryName || 'Ngành khác')}
+                                ${this.escapeHtml(resolvedIndustryName)}
                             </span>
                             <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
                                 <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
@@ -954,12 +958,16 @@ class CallbotHub {
             return;
         }
 
+        const industries = (window.salesStore.getCallbotKeywords().industries || []);
+
         container.innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
                 ${filtered.map((item, idx) => {
                     const theme = this.getPastelTheme(idx);
                     const isAudio = item.type === 'audio';
                     const hasUrl = Boolean(item.mediaUrl && item.mediaUrl.trim());
+                    const indObj = industries.find(i => i.id === item.industry);
+                    const resolvedIndustryName = indObj ? indObj.name : (item.industryName || 'Ngành khác');
 
                     return `
                         <div class="${theme.cardBg} ${theme.border} ${theme.glow} rounded-2xl border p-4 sm:p-5 shadow-2xs hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between group">
@@ -967,7 +975,7 @@ class CallbotHub {
                                 <!-- Header: Ngành + Badge Audio / Video -->
                                 <div class="flex items-center justify-between gap-2">
                                     <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${theme.badgeBg}">
-                                        ${this.escapeHtml(item.industryName || 'Ngành khác')}
+                                        ${this.escapeHtml(resolvedIndustryName)}
                                     </span>
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${isAudio ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-purple-50 text-purple-700 border border-purple-200'}">
                                         <i data-lucide="${isAudio ? 'music' : 'video'}" class="w-3 h-3"></i>
@@ -1175,6 +1183,9 @@ class CallbotHub {
         const item = mediaList.find(m => m.id === id);
         if (!item) return;
 
+        const form = document.getElementById('cb-med-form');
+        if (form) form.reset();
+
         this.updateMediaIndustrySelectOptions();
 
         document.getElementById('cb-med-id').value = item.id;
@@ -1286,6 +1297,9 @@ class CallbotHub {
         const tpl = templates.find(t => t.id === id);
         if (!tpl) return;
 
+        const form = document.getElementById('cb-tpl-form');
+        if (form) form.reset();
+
         this.updateIndustrySelectOptions();
 
         document.getElementById('cb-tpl-id').value = tpl.id;
@@ -1340,9 +1354,9 @@ class CallbotHub {
             industryName: targetInd ? targetInd.name : 'Ngành khác',
             scriptUrl,
             scriptFileName: scriptFileName || (scriptUrl ? 'Kich_ban.xlsx' : ''),
-            botUrl,
-            pinned: false
+            botUrl
         };
+        if (!id) tplData.pinned = false;
 
         window.salesStore.saveCallbotTemplate(tplData);
         document.getElementById('modal-callbot-template').classList.add('hidden');
@@ -1576,8 +1590,7 @@ class CallbotHub {
         const descInput = document.getElementById('cb-mgr-ind-desc');
         const iconInput = document.getElementById('cb-mgr-ind-icon');
         const formTitle = document.getElementById('cb-mgr-form-title');
-        const submitText = document.getElementById('cb-mgr-submit-text');
-        const submitIcon = document.getElementById('cb-mgr-submit-icon');
+        const submitBtn = document.getElementById('cb-mgr-submit-btn');
         const cancelBtn = document.getElementById('cb-mgr-cancel-edit-btn');
 
         if (idInput) idInput.value = ind.id;
@@ -1585,8 +1598,9 @@ class CallbotHub {
         if (descInput) descInput.value = ind.description || '';
         if (iconInput) iconInput.value = ind.icon || 'layers';
         if (formTitle) formTitle.textContent = `Chỉnh sửa: ${ind.name}`;
-        if (submitText) submitText.textContent = 'Cập nhật';
-        if (submitIcon) submitIcon.setAttribute('data-lucide', 'check');
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i id="cb-mgr-submit-icon" data-lucide="check" class="w-4 h-4"></i><span id="cb-mgr-submit-text">Cập nhật</span>`;
+        }
         if (cancelBtn) cancelBtn.classList.remove('hidden');
 
         if (nameInput) nameInput.focus();
@@ -1599,14 +1613,14 @@ class CallbotHub {
 
         const idInput = document.getElementById('cb-mgr-ind-id');
         const formTitle = document.getElementById('cb-mgr-form-title');
-        const submitText = document.getElementById('cb-mgr-submit-text');
-        const submitIcon = document.getElementById('cb-mgr-submit-icon');
+        const submitBtn = document.getElementById('cb-mgr-submit-btn');
         const cancelBtn = document.getElementById('cb-mgr-cancel-edit-btn');
 
         if (idInput) idInput.value = '';
         if (formTitle) formTitle.textContent = 'Thêm ngành nghề mới';
-        if (submitText) submitText.textContent = 'Thêm';
-        if (submitIcon) submitIcon.setAttribute('data-lucide', 'plus');
+        if (submitBtn) {
+            submitBtn.innerHTML = `<i id="cb-mgr-submit-icon" data-lucide="plus" class="w-4 h-4"></i><span id="cb-mgr-submit-text">Thêm</span>`;
+        }
         if (cancelBtn) cancelBtn.classList.add('hidden');
         if (window.lucide) lucide.createIcons();
     }
@@ -1637,26 +1651,37 @@ class CallbotHub {
                     icon
                 };
 
-                // Đồng bộ tên ngành nghề sang các kịch bản mẫu & media thuộc ngành này
-                const templates = window.salesStore.getCallbotTemplates();
-                let updatedTpl = false;
-                templates.forEach(t => {
-                    if (t.industry === id) {
-                        t.industryName = name;
-                        updatedTpl = true;
-                    }
-                });
-                if (updatedTpl) window.salesStore.saveCallbotTemplates(templates);
+                // Lưu ngay danh mục ngành nghề trước
+                window.salesStore.saveCallbotKeywords(data);
 
-                const mediaList = window.salesStore.getCallbotMedia();
-                let updatedMedia = false;
-                mediaList.forEach(m => {
-                    if (m.industry === id) {
-                        m.industryName = name;
-                        updatedMedia = true;
+                // Đồng bộ tên ngành nghề sang các kịch bản mẫu & media thuộc ngành này
+                try {
+                    if (typeof window.salesStore.saveCallbotTemplates === 'function') {
+                        const templates = window.salesStore.getCallbotTemplates();
+                        let updatedTpl = false;
+                        templates.forEach(t => {
+                            if (t && t.industry === id) {
+                                t.industryName = name;
+                                updatedTpl = true;
+                            }
+                        });
+                        if (updatedTpl) window.salesStore.saveCallbotTemplates(templates);
                     }
-                });
-                if (updatedMedia) window.salesStore.saveCallbotMedia(mediaList);
+
+                    if (typeof window.salesStore.saveCallbotMedia === 'function') {
+                        const mediaList = window.salesStore.getCallbotMedia();
+                        let updatedMedia = false;
+                        mediaList.forEach(m => {
+                            if (m && m.industry === id) {
+                                m.industryName = name;
+                                updatedMedia = true;
+                            }
+                        });
+                        if (updatedMedia) window.salesStore.saveCallbotMedia(mediaList);
+                    }
+                } catch (syncErr) {
+                    console.warn('Lỗi đồng bộ tên ngành sang kịch bản/media:', syncErr);
+                }
             }
             window.salesApp.showNotification(`Đã cập nhật ngành nghề "${name}"!`, 'success');
         } else {
@@ -1669,10 +1694,10 @@ class CallbotHub {
                 groups: []
             });
             this.selectedIndustry = newId;
+            window.salesStore.saveCallbotKeywords(data);
             window.salesApp.showNotification(`Đã thêm ngành nghề mới "${name}"!`, 'success');
         }
 
-        window.salesStore.saveCallbotKeywords(data);
         this.cancelEditIndustryInManager();
         this.renderIndustryManagerList();
         this.render();
