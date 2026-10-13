@@ -1499,7 +1499,7 @@ class QuoteBuilder {
                     <td colspan="7" class="py-8 text-center text-slate-400 text-sm">
                         <div class="flex flex-col items-center justify-center gap-2">
                             <i data-lucide="package-open" class="w-8 h-8 text-slate-300"></i>
-                            <span>Chưa có sản phẩm nào. Chọn <b>mẫu giải pháp (Callbot, CRM)</b> hoặc bấm <b>"Chọn từ danh mục"</b> để bắt đầu.</span>
+                            <span>Chưa có sản phẩm nào. Chọn <b>mẫu giải pháp phía trên</b> hoặc bấm icon <i data-lucide="plus-circle" class="w-4 h-4 inline text-blue-600 align-text-bottom"></i> để chọn từ danh mục.</span>
                         </div>
                     </td>
                 </tr>

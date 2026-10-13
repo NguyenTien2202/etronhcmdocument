@@ -346,6 +346,7 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         badgeColor: 'emerald',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/16iV1wXVjmqLlsfkqf8mZQghTS3SUWxExRiYcy9_PPyw/edit?gid=329686546#gid=329686546',
         scriptFileName: 'Kich_ban_Palm_River_Ly.xlsx',
+        botUrl: 'https://app.ucall.vn/bot/bds-palmriver-demo',
         updatedAt: '2026-10-14'
     },
     {
@@ -356,6 +357,7 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         badgeColor: 'cyan',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Callbot_Nha_Khoa.xlsx',
+        botUrl: 'https://app.ucall.vn/bot/nhakhoa-chamsoc-demo',
         updatedAt: '2026-10-13'
     },
     {
@@ -366,6 +368,7 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         badgeColor: 'indigo',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Adahub_CRM_B2B.xlsx',
+        botUrl: 'https://app.ucall.vn/bot/adahub-crm-b2b-demo',
         updatedAt: '2026-10-12'
     }
 ];

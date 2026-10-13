@@ -593,7 +593,8 @@ class CallbotHub {
                 const matchTitle = (t.title || '').toLowerCase().includes(q);
                 const matchInd = (t.industryName || '').toLowerCase().includes(q);
                 const matchFile = (t.scriptFileName || '').toLowerCase().includes(q);
-                return matchTitle || matchInd || matchFile;
+                const matchBot = (t.botUrl || '').toLowerCase().includes(q);
+                return matchTitle || matchInd || matchFile || matchBot;
             });
         }
 
@@ -602,7 +603,7 @@ class CallbotHub {
                 <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="file-question" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                     <p class="font-bold text-slate-700 text-sm">Chưa có kịch bản mẫu nào khớp</p>
-                    <p class="text-xs text-slate-400 mt-1">${this.templateSearchQuery ? `Không tìm thấy kết quả khớp với "${this.escapeHtml(this.templateSearchQuery)}"` : 'Bấm nút "+ Thêm Kịch Bản" để lưu link Google Sheets/Drive hoặc file Excel.'}</p>
+                    <p class="text-xs text-slate-400 mt-1">${this.templateSearchQuery ? `Không tìm thấy kết quả khớp với "${this.escapeHtml(this.templateSearchQuery)}"` : 'Bấm nút "+ Thêm Kịch Bản" để lưu link Google Sheets/Drive, link Bot hệ thống hoặc file Excel.'}</p>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
@@ -612,6 +613,7 @@ class CallbotHub {
         container.innerHTML = filtered.map((tpl, idx) => {
             const theme = this.getPastelTheme(idx);
             const hasUrl = Boolean(tpl.scriptUrl && tpl.scriptUrl.trim());
+            const hasBotUrl = Boolean(tpl.botUrl && tpl.botUrl.trim());
             const hasFile = Boolean(tpl.scriptFileName && tpl.scriptFileName.trim());
 
             return `
@@ -630,11 +632,11 @@ class CallbotHub {
 
                         <!-- Tiêu đề Kịch bản (Bỏ hoàn toàn trường dự án) -->
                         <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:${theme.kwText} transition-colors cursor-pointer"
-                            onclick="${hasUrl ? `window.open('${this.escapeHtml(tpl.scriptUrl)}', '_blank')` : ''}">
+                            onclick="${(hasUrl || hasBotUrl) ? `window.open('${this.escapeHtml(tpl.scriptUrl || tpl.botUrl)}', '_blank')` : ''}">
                             ${this.escapeHtml(tpl.title)}
                         </h4>
 
-                        <!-- Đính kèm: Link hoặc File hoặc Cả hai - Nút chỉ để Icon kèm Icon Copy bên cạnh -->
+                        <!-- Đính kèm: Link Drive, Link Bot hệ thống hoặc File - Nút chỉ để Icon kèm Icon Copy bên cạnh -->
                         <div class="p-2.5 rounded-xl ${theme.rowBg} border space-y-2 shadow-2xs">
                             ${hasUrl ? `
                                 <div class="flex items-center justify-between gap-2">
@@ -647,7 +649,7 @@ class CallbotHub {
                                     <div class="flex items-center gap-1 shrink-0">
                                         <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
                                             class="p-1.5 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs"
-                                            title="Mở liên kết">
+                                            title="Mở liên kết Drive/Sheets">
                                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                                         </a>
                                         <button onclick="window.callbotHub.copyText('${this.escapeJs(tpl.scriptUrl)}', 'Đã sao chép liên kết!')"
@@ -659,10 +661,33 @@ class CallbotHub {
                                 </div>
                             ` : ''}
 
-                            ${hasFile ? `
+                            ${hasBotUrl ? `
                                 <div class="flex items-center justify-between gap-2 ${hasUrl ? 'pt-2 border-t border-slate-200/60' : ''}">
                                     <div class="flex items-center gap-2 min-w-0">
                                         <div class="w-6 h-6 rounded-lg bg-indigo-100/90 text-indigo-700 flex items-center justify-center shrink-0 shadow-2xs">
+                                            <i data-lucide="bot" class="w-3 h-3"></i>
+                                        </div>
+                                        <span class="text-xs font-semibold text-slate-700 truncate">Kịch Bản Bot Hệ Thống</span>
+                                    </div>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <a href="${this.escapeHtml(tpl.botUrl)}" target="_blank" rel="noopener noreferrer"
+                                            class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
+                                            title="Mở kịch bản trên hệ thống Callbot">
+                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        </a>
+                                        <button onclick="window.callbotHub.copyText('${this.escapeJs(tpl.botUrl)}', 'Đã sao chép link bot!')"
+                                            class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
+                                            title="Sao chép link bot">
+                                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            ${hasFile ? `
+                                <div class="flex items-center justify-between gap-2 ${(hasUrl || hasBotUrl) ? 'pt-2 border-t border-slate-200/60' : ''}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-6 h-6 rounded-lg bg-blue-100/90 text-blue-700 flex items-center justify-center shrink-0 shadow-2xs">
                                             <i data-lucide="file-spreadsheet" class="w-3 h-3"></i>
                                         </div>
                                         <span class="text-xs font-semibold text-slate-700 truncate" title="${this.escapeHtml(tpl.scriptFileName)}">
@@ -1184,6 +1209,8 @@ class CallbotHub {
 
         document.getElementById('cb-tpl-form').reset();
         document.getElementById('cb-tpl-id').value = '';
+        const botInput = document.getElementById('cb-tpl-boturl');
+        if (botInput) botInput.value = '';
         document.getElementById('cb-tpl-modal-title').textContent = 'Thêm Kịch Bản Mẫu Mới';
 
         this.updateIndustrySelectOptions();
@@ -1206,6 +1233,8 @@ class CallbotHub {
         document.getElementById('cb-tpl-industry').value = tpl.industry || '';
         document.getElementById('cb-tpl-url').value = tpl.scriptUrl || '';
         document.getElementById('cb-tpl-filename').value = tpl.scriptFileName || '';
+        const botInput = document.getElementById('cb-tpl-boturl');
+        if (botInput) botInput.value = tpl.botUrl || '';
 
         document.getElementById('cb-tpl-modal-title').textContent = 'Chỉnh Sửa Kịch Bản Mẫu';
         modal.classList.remove('hidden');
@@ -1229,14 +1258,15 @@ class CallbotHub {
         const industry = document.getElementById('cb-tpl-industry').value;
         const scriptUrl = document.getElementById('cb-tpl-url').value.trim();
         const scriptFileName = document.getElementById('cb-tpl-filename').value.trim();
+        const botUrl = (document.getElementById('cb-tpl-boturl')?.value || '').trim();
 
         if (!title) {
             window.salesApp.showNotification('Vui lòng nhập tên kịch bản mẫu!', 'warning');
             return;
         }
 
-        if (!scriptUrl && !scriptFileName) {
-            window.salesApp.showNotification('Vui lòng điền link Google Sheets/Drive hoặc tên file Excel (hoặc cả hai)!', 'warning');
+        if (!scriptUrl && !scriptFileName && !botUrl) {
+            window.salesApp.showNotification('Vui lòng điền link Drive/Sheets, link Bot hệ thống hoặc file Excel!', 'warning');
             return;
         }
 
@@ -1250,6 +1280,7 @@ class CallbotHub {
             industryName: targetInd ? targetInd.name : 'Ngành khác',
             scriptUrl,
             scriptFileName: scriptFileName || (scriptUrl ? 'Kich_ban.xlsx' : ''),
+            botUrl,
             pinned: false
         };
 
