@@ -141,7 +141,13 @@ class ProductCatalog {
         if (!container) return;
 
         const products = window.salesStore.getProducts().filter(p => {
-            const matchesCat = this.pickerCategory === 'all' || p.category === this.pickerCategory;
+            const matchesCat = this.pickerCategory === 'all' || 
+                p.category === this.pickerCategory ||
+                (this.pickerCategory === 'CRM' && (p.category === 'Phần mềm CRM' || p.category === 'CRM')) ||
+                (this.pickerCategory === 'Callbot' && (p.category === 'Callbot AI' || p.category === 'Callbot')) ||
+                (this.pickerCategory === 'Cước' && (p.category === 'Ví cước viễn thông' || p.category === 'Cước')) ||
+                (this.pickerCategory === 'Dịch vụ' && (p.category === 'Dịch vụ đi kèm' || p.category === 'Dịch vụ')) ||
+                (this.pickerCategory === 'Đầu số' && p.category === 'Đầu số');
             const matchesSearch = !this.pickerSearch || 
                    p.name.toLowerCase().includes(this.pickerSearch) ||
                    (p.code && p.code.toLowerCase().includes(this.pickerSearch)) ||

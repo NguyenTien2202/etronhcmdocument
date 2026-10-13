@@ -107,7 +107,7 @@ class QuoteBuilder {
         const code = (item.code || '').toLowerCase();
         const name = (item.name || '').toLowerCase();
         const cat = (item.category || '').toLowerCase();
-        if (id.startsWith('srv-') || cat.includes('đi kèm')) return false;
+        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm')) return false;
         return id.startsWith('callbot-') || code.startsWith('cb-') || name.includes('callbot') || cat.includes('callbot');
     }
 
@@ -252,8 +252,8 @@ class QuoteBuilder {
         const name = (item.name || '').toLowerCase();
         const cat = (item.category || '').toLowerCase();
 
-        // Dịch vụ đi kèm (kể cả phí kết nối/đấu nối đầu số tự chuẩn bị) chịu VAT 8%, không thuộc nhóm đã gồm VAT 10%
-        if (id.startsWith('srv-') || cat.includes('đi kèm') || name.includes('đấu nối')) return false;
+        // Dịch vụ (kể cả phí kết nối/đấu nối đầu số tự chuẩn bị) chịu VAT 8%, không thuộc nhóm đã gồm VAT 10%
+        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm') || name.includes('đấu nối')) return false;
 
         const isNumberItem = cat === 'đầu số' || 
                              id.startsWith('num-') || 
@@ -268,8 +268,8 @@ class QuoteBuilder {
             return false;
         }
 
-        // Ví cước viễn thông: luôn là cước viễn thông trả trước (đã bao gồm VAT 10%)
-        if (cat === 'ví cước viễn thông' || id === 'vi-cuoc-vien-thong' || code.startsWith('vc-') || code === 'vi-cuoc' || name.includes('ví cước') || name.includes('nạp cước')) {
+        // Cước viễn thông: luôn là cước viễn thông trả trước (đã bao gồm VAT 10%)
+        if (cat === 'cước' || cat === 'ví cước viễn thông' || id === 'vi-cuoc-vien-thong' || code.startsWith('vc-') || code === 'vi-cuoc' || name.includes('ví cước') || name.includes('nạp cước')) {
             return true;
         }
 
@@ -1036,6 +1036,7 @@ class QuoteBuilder {
         const cat = (item.category || '').toLowerCase();
         return id === 'vi-cuoc-vien-thong' || 
                code === 'vi-cuoc' || 
+               cat === 'cước' ||
                cat === 'ví cước viễn thông' ||
                name.includes('nạp cước viễn thông') || 
                name.includes('ví cước');
@@ -1048,23 +1049,23 @@ class QuoteBuilder {
         const name = (item.name || '').toLowerCase();
         const cat = (item.category || '').toLowerCase();
 
-        if (id.startsWith('srv-') || cat.includes('đi kèm')) {
-            return 'Dịch vụ đi kèm';
+        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm')) {
+            return 'Dịch vụ';
         }
-        if (id.startsWith('crm-') || code.startsWith('crm') || name.includes('crm') || name.includes('adahub') || cat.includes('crm')) {
-            return 'Phần mềm Adahub CRM';
+        if (cat === 'crm' || id.startsWith('crm-') || code.startsWith('crm') || name.includes('crm') || name.includes('adahub') || cat.includes('crm')) {
+            return 'CRM';
         }
-        if (id.startsWith('callbot-') || code.startsWith('cb-') || name.includes('callbot') || cat.includes('callbot') || name.includes('ucall')) {
-            return 'Callbot AI UCALL';
+        if (cat === 'callbot' || id.startsWith('callbot-') || code.startsWith('cb-') || name.includes('callbot') || cat.includes('callbot') || name.includes('ucall')) {
+            return 'Callbot';
         }
-        if (id === 'vi-cuoc-vien-thong' || code === 'vi-cuoc' || name.includes('ví cước') || name.includes('nạp cước') || cat.includes('ví cước')) {
-            return 'Ví cước viễn thông';
+        if (cat === 'cước' || id === 'vi-cuoc-vien-thong' || code === 'vi-cuoc' || name.includes('ví cước') || name.includes('nạp cước') || cat.includes('ví cước')) {
+            return 'Cước';
         }
-        if (id.startsWith('num-') || code.startsWith('num') || name.includes('đầu số') || name.includes('đấu nối') || name.includes('brandname') || cat.includes('đầu số')) {
+        if (cat === 'đầu số' || id.startsWith('num-') || code.startsWith('num') || name.includes('đầu số') || name.includes('đấu nối') || name.includes('brandname') || cat.includes('đầu số')) {
             return 'Đầu số';
         }
-        if (id.startsWith('srv-') || cat.includes('đi kèm') || name.includes('kịch bản') || name.includes('thu âm') || name.includes('tích hợp')) {
-            return 'Dịch vụ đi kèm';
+        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm') || name.includes('kịch bản') || name.includes('thu âm') || name.includes('tích hợp')) {
+            return 'Dịch vụ';
         }
         return item.category || 'Hạng mục khác';
     }
@@ -1140,11 +1141,11 @@ class QuoteBuilder {
 
     groupItemsByCategory(items) {
         const categoryOrder = [
-            'Phần mềm Adahub CRM',
-            'Callbot AI UCALL',
+            'CRM',
+            'Callbot',
             'Đầu số',
-            'Ví cước viễn thông',
-            'Dịch vụ đi kèm',
+            'Cước',
+            'Dịch vụ',
             'Hạng mục khác'
         ];
 

@@ -109,7 +109,7 @@ const DEFAULT_PRODUCTS = [
         id: 'crm-tong-dai',
         code: 'CRM-TD',
         name: 'Phần mềm Adahub CRM - Gói Tổng Đài',
-        category: 'Phần mềm CRM',
+        category: 'CRM',
         unit: 'User/tháng',
         price: 40000,
         description: 'Tổng đài gọi điện, Quản lý khách hàng, Mobile App, Dashboard báo cáo, Tự động hoá 100 credits/tháng. (Thời hạn <12 tháng: 50.000₫/user/tháng)',
@@ -119,7 +119,7 @@ const DEFAULT_PRODUCTS = [
         id: 'crm-standard',
         code: 'CRM-STD',
         name: 'Phần mềm Adahub CRM - Gói Standard (Khuyên dùng)',
-        category: 'Phần mềm CRM',
+        category: 'CRM',
         unit: 'User/tháng',
         price: 80000,
         description: 'Bao gồm gói Tổng đài + Chat đa kênh (10 kênh), Tích hợp phần mềm qua API, Tự động hoá 200 credits/tháng, Tùy chọn 3/9 module nâng cao. (Thời hạn <12 tháng: 100.000₫/user/tháng)',
@@ -129,7 +129,7 @@ const DEFAULT_PRODUCTS = [
         id: 'crm-advanced',
         code: 'CRM-ADV',
         name: 'Phần mềm Adahub CRM - Gói Advanced (Đầy đủ tính năng)',
-        category: 'Phần mềm CRM',
+        category: 'CRM',
         unit: 'User/tháng',
         price: 150000,
         description: 'Trọn bộ 9/9 module nâng cao (Đơn hàng, Cơ hội, Kho, Công việc, Lịch hẹn, Ticket, KPI, Telesales, ZNS), Tự động hoá 500 credits/tháng, Không giới hạn quyền hạn. (Thời hạn <12 tháng: 250.000₫/user/tháng)',
@@ -141,7 +141,7 @@ const DEFAULT_PRODUCTS = [
         id: 'callbot-cb2',
         code: 'CB-2',
         name: 'Gói Callbot AI UCALL CB2 (2 Triệu / 45 ngày)',
-        category: 'Callbot AI',
+        category: 'Callbot',
         unit: 'Gói (45 ngày)',
         price: 2000000,
         description: 'Thời hạn 45 ngày. Giá gốc (chưa chiết khấu) - Giá block 6s: Standard 230₫ (8.695 block), Advanced 270₫ (7.407 block), AI Call Agent 330₫ (6.060 block). Tặng 1 tài khoản CRM.',
@@ -151,7 +151,7 @@ const DEFAULT_PRODUCTS = [
         id: 'callbot-cb5',
         code: 'CB-5',
         name: 'Gói Callbot AI UCALL CB5 (5 Triệu / 3 tháng)',
-        category: 'Callbot AI',
+        category: 'Callbot',
         unit: 'Gói (3 tháng)',
         price: 5000000,
         description: 'Thời hạn 3 tháng. Chiết khấu cuộc gọi -10₫/block so với giá gốc - Giá block 6s: Standard 220₫ (22.727 block), Advanced 260₫ (19.230 block), AI Call Agent 320₫ (15.625 block). Tặng 1 kịch bản, 1 ghi âm (áp dụng cho 2 lần mua đầu tiên), 1 tài khoản CRM.',
@@ -161,7 +161,7 @@ const DEFAULT_PRODUCTS = [
         id: 'callbot-cb20',
         code: 'CB-20',
         name: 'Gói Callbot AI UCALL CB20 (20 Triệu / 6 tháng)',
-        category: 'Callbot AI',
+        category: 'Callbot',
         unit: 'Gói (6 tháng)',
         price: 20000000,
         description: 'Thời hạn 6 tháng. Chiết khấu cuộc gọi -20₫, cảm ứng giọng nói -5₫/block - Giá block 6s: Standard 210₫ (95.238 block), Advanced 245₫ (81.632 block), AI Call Agent 305₫ (65.573 block). Tặng 2 kịch bản, 2 ghi âm, 2 tài khoản CRM.',
@@ -171,7 +171,7 @@ const DEFAULT_PRODUCTS = [
         id: 'callbot-cb50',
         code: 'CB-50',
         name: 'Gói Callbot AI UCALL CB50 (50 Triệu / 6 tháng)',
-        category: 'Callbot AI',
+        category: 'Callbot',
         unit: 'Gói (6 tháng)',
         price: 50000000,
         description: 'Thời hạn 6 tháng. Chiết khấu cuộc gọi -30₫, cảm ứng giọng nói -5₫/block - Giá block 6s: Standard 200₫ (250.000 block), Advanced 235₫ (212.765 block), AI Call Agent 295₫ (169.491 block). Tặng 4 kịch bản, 4 ghi âm, 4 tài khoản CRM.',
@@ -181,7 +181,7 @@ const DEFAULT_PRODUCTS = [
         id: 'callbot-cb100',
         code: 'CB-100',
         name: 'Gói Callbot AI UCALL CB100 (100 Triệu / 12 tháng)',
-        category: 'Callbot AI',
+        category: 'Callbot',
         unit: 'Gói (12 tháng)',
         price: 100000000,
         description: 'Thời hạn 12 tháng. Chiết khấu cuộc gọi -40₫, cảm ứng giọng nói -10₫, nhận diện ý định -5₫, AI Agent -5₫, nói prompt -5₫/block - Giá block 6s: Standard 190₫ (526.315 block), Advanced 215₫ (465.116 block), AI Call Agent 265₫ (377.358 block). Tặng 6 kịch bản, 6 ghi âm, 8 tài khoản CRM.',
@@ -191,7 +191,7 @@ const DEFAULT_PRODUCTS = [
         id: 'callbot-cb200',
         code: 'CB-200',
         name: 'Gói Callbot AI UCALL CB200 (200 Triệu / 12 tháng)',
-        category: 'Callbot AI',
+        category: 'Callbot',
         unit: 'Gói (12 tháng)',
         price: 200000000,
         description: 'Thời hạn 12 tháng. Chiết khấu cuộc gọi -50₫, cảm ứng giọng nói -10₫, nhận diện ý định -5₫, AI Agent -5₫, nói prompt -5₫/block - Giá block 6s: Standard 180₫ (1.111.111 block), Advanced 205₫ (975.609 block), AI Call Agent 255₫ (784.313 block). Tặng 8 kịch bản, 8 ghi âm, 16 tài khoản CRM.',
@@ -203,7 +203,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-kich-ban',
         code: 'DV-KB',
         name: 'Kịch bản',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Gói',
         price: 250000,
         description: 'Xây dựng luồng hội thoại kịch bản Callbot thông minh chuẩn theo từng ngành nghề kinh doanh.',
@@ -213,7 +213,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-ghi-am',
         code: 'DV-GA',
         name: 'Thu âm',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Gói',
         price: 250000,
         description: 'Giọng thu phát thanh viên chuyên nghiệp, ngữ điệu truyền cảm, âm thanh chất lượng cao.',
@@ -223,7 +223,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-combo-kb-ga',
         code: 'DV-COMBO',
         name: 'Combo kịch bản thu âm',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Gói',
         price: 400000,
         description: 'Trọn gói thiết kế kịch bản + thu âm phát thanh viên chuyên nghiệp (tiết kiệm 100.000₫).',
@@ -233,7 +233,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-ket-noi-so-dau',
         code: 'DV-KN1',
         name: 'Phí kết nối đầu số tự chuẩn bị (lần đầu)',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Lần',
         price: 1000000,
         description: 'Khách làm việc với nhà cung cấp đầu số và kết nối với UCALL. Phí kết nối lần đầu 1.000.000₫ (chưa gồm VAT 8%).',
@@ -243,7 +243,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-ket-noi-so-them',
         code: 'DV-KN2',
         name: 'Phí kết nối đầu số tự chuẩn bị (từ lần thứ 2)',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Số',
         price: 100000,
         description: 'Kết nối thêm đầu số tự chuẩn bị từ lần thứ 2: 100.000₫/đầu số (chưa gồm VAT 8%).',
@@ -253,7 +253,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-duy-tri-so-ngoai',
         code: 'DV-KN-DT',
         name: 'Phí duy trì kết nối đầu số tự chuẩn bị',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Tháng',
         price: 100000,
         description: 'Duy trì kết nối đầu số khách tự chuẩn bị với UCALL: 100.000₫/tháng (chưa gồm VAT 8%).',
@@ -263,7 +263,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-quan-ly-chien-dich',
         code: 'DV-QLCD',
         name: 'Quản Lý & Vận Hành Chiến Dịch Callbot',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Chiến dịch/tháng',
         price: 1000000,
         description: 'Chuyên viên Etron trực tiếp vận hành, lọc data, giám sát và tối ưu tỷ lệ nghe máy hàng tháng.',
@@ -273,7 +273,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-tich-hop-api',
         code: 'DV-TICH',
         name: 'Khởi Tạo Tích Hợp Hệ Thống Qua API',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Lần',
         price: 1000000,
         description: 'Phí thiết lập kết nối 2 chiều giữa Callbot/CRM với website, ERP, landing page của doanh nghiệp.',
@@ -283,7 +283,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-duy-tri-api',
         code: 'DV-TICH-DT',
         name: 'Phí Duy Trì Tích Hợp Hệ Thống',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Tích hợp/tháng',
         price: 100000,
         description: 'Duy trì webhook và bảo trì cổng API hoạt động ổn định liên tục (100.000₫/tích hợp/tháng).',
@@ -293,7 +293,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-quet-data',
         code: 'DV-ADL',
         name: 'Quét Data Khách Hàng Tiềm Năng Adalead',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Nhóm FB',
         price: 100000,
         description: 'Quét tương tác và trích xuất danh sách khách hàng từ các nhóm/fanpage Facebook (100.000₫/nhóm/lần).',
@@ -303,7 +303,7 @@ const DEFAULT_PRODUCTS = [
         id: 'srv-setup-ky-thuat',
         code: 'DV-SETUP',
         name: 'Dịch Vụ Setup Kỹ Thuật Theo Yêu Cầu',
-        category: 'Dịch vụ đi kèm',
+        category: 'Dịch vụ',
         unit: 'Lần',
         price: 200000,
         description: 'Khảo sát và cấu hình kỹ thuật chuyên sâu theo nhu cầu đặc thù (200.000₫ – 2.000.000₫/lần).',
@@ -417,7 +417,7 @@ const DEFAULT_PRODUCTS = [
         id: 'vi-cuoc-vien-thong',
         code: 'VI-CUOC',
         name: 'Nạp cước viễn thông trả trước (Đã gồm VAT 10%)',
-        category: 'Ví cước viễn thông',
+        category: 'Cước',
         unit: 'Lần nạp',
         price: 1000000,
         description: 'Nạp cước viễn thông trả trước tối thiểu 1.000.000₫ (đã gồm VAT 10%). Cước cuộc gọi thực tế trừ dần vào ví cước.',
@@ -641,8 +641,8 @@ class SalesStore {
     init() {
         // Cập nhật cấu hình Etron nếu chưa khởi tạo phiên bản mới
         const initVersion = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
-        if (initVersion !== 'v16_done') {
-            if (!initVersion || (initVersion !== 'v15_done' && !initVersion.startsWith('v'))) {
+        if (initVersion !== 'v17_done') {
+            if (!initVersion || (initVersion !== 'v16_done' && !initVersion.startsWith('v'))) {
                 localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(DEFAULT_COMPANY));
                 localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(DEFAULT_DOCUMENTS));
                 localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(DEFAULT_QUOTES));
@@ -673,7 +673,7 @@ class SalesStore {
                     }
                 } catch (e) { /* bỏ qua */ }
             }
-            // Làm mới danh mục sản phẩm (bảng giá đầu số và cước viễn thông mới)
+            // Làm mới danh mục sản phẩm (bảng giá rút gọn CRM, Callbot, Đầu số, Cước, Dịch vụ)
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
             // Cập nhật điều khoản cước Callbot và cước viễn thông trong cấu hình công ty (giữ nguyên các thiết lập khác)
             try {
@@ -689,7 +689,7 @@ class SalesStore {
                     localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(comp));
                 }
             } catch (e) { /* bỏ qua */ }
-            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'v16_done');
+            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'v17_done');
         }
     }
 
@@ -722,9 +722,32 @@ class SalesStore {
     // Products
     getProducts() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS)) || [];
+            let products = JSON.parse(localStorage.getItem(STORAGE_KEYS.PRODUCTS));
+            if (!products || !Array.isArray(products) || products.length === 0) {
+                products = DEFAULT_PRODUCTS;
+                localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+            }
+            // Chuẩn hóa danh mục rút gọn: CRM, Callbot, Đầu số, Cước, Dịch vụ
+            const catMap = {
+                'Phần mềm CRM': 'CRM',
+                'Callbot AI': 'Callbot',
+                'Ví cước viễn thông': 'Cước',
+                'Dịch vụ đi kèm': 'Dịch vụ'
+            };
+            let updated = false;
+            products = products.map(p => {
+                if (p.category && catMap[p.category]) {
+                    updated = true;
+                    return { ...p, category: catMap[p.category] };
+                }
+                return p;
+            });
+            if (updated) {
+                localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+            }
+            return products;
         } catch {
-            return [];
+            return DEFAULT_PRODUCTS;
         }
     }
 

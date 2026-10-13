@@ -578,54 +578,76 @@
                 </div>
 
                 <!-- PHẦN A: BỘ TỪ KHÓA CHUNG -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">A. Bộ từ khóa chung</h3>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden transition-all">
+                    <!-- Collapsible Header -->
+                    <div onclick="window.callbotHub.toggleSection('A')"
+                        class="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-50/70 via-slate-50/30 to-white hover:from-emerald-50/90 hover:via-slate-50/50 cursor-pointer select-none flex items-center justify-between gap-3 transition-colors border-b border-slate-100">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <i data-lucide="chevron-down" id="cb-sec-a-chevron"
+                                class="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 transition-transform duration-200 shrink-0"></i>
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                            <h3 class="font-extrabold text-slate-900 text-xs sm:text-base truncate">A. Bộ từ khóa chung</h3>
+                            <span id="cb-sec-a-count" class="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">6 nhóm</span>
+                            <span id="cb-sec-a-hint" class="text-[11px] font-medium text-slate-400 hidden sm:inline">(Thu gọn)</span>
                         </div>
-                        <button type="button" onclick="window.callbotHub.openAddGroupModal('common')"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs active:scale-95"
-                            title="Thêm nhóm từ khóa chung mới">
-                            <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span class="hidden sm:inline">Thêm Nhóm Từ Khóa Chung</span>
-                            <span class="sm:hidden">Thêm nhóm</span>
-                        </button>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" onclick="event.stopPropagation(); window.callbotHub.openAddGroupModal('common')"
+                                class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs active:scale-95"
+                                title="Thêm nhóm từ khóa chung mới">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                <span class="hidden sm:inline">Thêm Nhóm Từ Khóa Chung</span>
+                                <span class="sm:hidden">Thêm nhóm</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <div id="cb-common-keywords-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                        <!-- Rendered by JS -->
+                    <!-- Collapsible Body -->
+                    <div id="cb-common-body" class="p-3.5 sm:p-4 space-y-3 transition-all duration-200">
+                        <div id="cb-common-keywords-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                            <!-- Rendered by JS -->
+                        </div>
                     </div>
                 </div>
 
                 <!-- PHẦN B: BỘ TỪ KHÓA THEO NGÀNH -->
-                <div class="space-y-3 pt-4 border-t border-slate-200">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">B. Bộ từ khóa theo ngành</h3>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden transition-all">
+                    <!-- Collapsible Header -->
+                    <div onclick="window.callbotHub.toggleSection('B')"
+                        class="p-3.5 sm:p-4 bg-gradient-to-r from-indigo-50/70 via-slate-50/30 to-white hover:from-indigo-50/90 hover:via-slate-50/50 cursor-pointer select-none flex items-center justify-between gap-3 transition-colors border-b border-slate-100">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <i data-lucide="chevron-down" id="cb-sec-b-chevron"
+                                class="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 transition-transform duration-200 shrink-0"></i>
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></span>
+                            <h3 class="font-extrabold text-slate-900 text-xs sm:text-base truncate">B. Bộ từ khóa theo ngành</h3>
+                            <span id="cb-sec-b-count" class="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200 shrink-0">9 ngành</span>
+                            <span id="cb-sec-b-hint" class="text-[11px] font-medium text-slate-400 hidden sm:inline">(Thu gọn)</span>
                         </div>
-                        <button type="button" onclick="window.callbotHub.openIndustryManagerModal()"
-                            class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs active:scale-95"
-                            title="Quản lý, thêm mới, sửa hoặc xóa danh mục ngành nghề">
-                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-indigo-600"></i>
-                            <span class="hidden sm:inline">Quản lý ngành nghề</span>
-                        </button>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" onclick="event.stopPropagation(); window.callbotHub.openIndustryManagerModal()"
+                                class="px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-white hover:bg-indigo-50 border border-indigo-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs active:scale-95"
+                                title="Quản lý, thêm mới, sửa hoặc xóa danh mục ngành nghề">
+                                <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                <span class="hidden sm:inline">Quản lý ngành nghề</span>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Tabs Ngành Nghề (Horizontal Scroll) -->
-                    <div id="cb-industry-tabs-container" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                        <!-- Rendered by JS -->
-                    </div>
+                    <!-- Collapsible Body -->
+                    <div id="cb-industry-body" class="p-3.5 sm:p-4 space-y-4 transition-all duration-200">
+                        <!-- Tabs Ngành Nghề (Horizontal Scroll) -->
+                        <div id="cb-industry-tabs-container" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                            <!-- Rendered by JS -->
+                        </div>
 
-                    <!-- Header Thông Tin Ngành Đang Chọn -->
-                    <div id="cb-industry-header-info">
-                        <!-- Rendered by JS -->
-                    </div>
+                        <!-- Header Thông Tin Ngành Đang Chọn -->
+                        <div id="cb-industry-header-info">
+                            <!-- Rendered by JS -->
+                        </div>
 
-                    <!-- Danh Sách Các Nhóm Từ Khóa Của Ngành -->
-                    <div id="cb-industry-groups-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
-                        <!-- Rendered by JS -->
+                        <!-- Danh Sách Các Nhóm Từ Khóa Của Ngành -->
+                        <div id="cb-industry-groups-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                            <!-- Rendered by JS -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -920,25 +942,25 @@
                         class="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm shrink-0">
                         Tất cả
                     </button>
-                    <button type="button" data-picker-cat="Phần mềm CRM" onclick="window.productCatalog.filterPickerCategory('Phần mềm CRM')"
+                    <button type="button" data-picker-cat="CRM" onclick="window.productCatalog.filterPickerCategory('CRM')"
                         class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
-                        Phần mềm CRM
+                        CRM
                     </button>
-                    <button type="button" data-picker-cat="Callbot AI" onclick="window.productCatalog.filterPickerCategory('Callbot AI')"
+                    <button type="button" data-picker-cat="Callbot" onclick="window.productCatalog.filterPickerCategory('Callbot')"
                         class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
-                        Callbot AI
+                        Callbot
                     </button>
                     <button type="button" data-picker-cat="Đầu số" onclick="window.productCatalog.filterPickerCategory('Đầu số')"
                         class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
                         Đầu số
                     </button>
-                    <button type="button" data-picker-cat="Ví cước viễn thông" onclick="window.productCatalog.filterPickerCategory('Ví cước viễn thông')"
+                    <button type="button" data-picker-cat="Cước" onclick="window.productCatalog.filterPickerCategory('Cước')"
                         class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
-                        Ví cước viễn thông
+                        Cước
                     </button>
-                    <button type="button" data-picker-cat="Dịch vụ đi kèm" onclick="window.productCatalog.filterPickerCategory('Dịch vụ đi kèm')"
+                    <button type="button" data-picker-cat="Dịch vụ" onclick="window.productCatalog.filterPickerCategory('Dịch vụ')"
                         class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
-                        Dịch vụ đi kèm
+                        Dịch vụ
                     </button>
                 </div>
             </div>
@@ -1561,18 +1583,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v55"></script>
+    <script src="js/firebase-config.js?v=20261014_v56"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v55"></script>
-    <script src="js/callbot-data.js?v=20261014_v55"></script>
-    <script src="js/number-to-words.js?v=20261014_v55"></script>
-    <script src="js/store.js?v=20261014_v55"></script>
-    <script src="js/quote-builder.js?v=20261014_v55"></script>
-    <script src="js/document-hub.js?v=20261014_v55"></script>
-    <script src="js/callbot-hub.js?v=20261014_v55"></script>
-    <script src="js/product-catalog.js?v=20261014_v55"></script>
-    <script src="js/pdf-export.js?v=20261014_v55"></script>
-    <script src="js/app.js?v=20261014_v55"></script>
+    <script src="js/logo-data.js?v=20261014_v56"></script>
+    <script src="js/callbot-data.js?v=20261014_v56"></script>
+    <script src="js/number-to-words.js?v=20261014_v56"></script>
+    <script src="js/store.js?v=20261014_v56"></script>
+    <script src="js/quote-builder.js?v=20261014_v56"></script>
+    <script src="js/document-hub.js?v=20261014_v56"></script>
+    <script src="js/callbot-hub.js?v=20261014_v56"></script>
+    <script src="js/product-catalog.js?v=20261014_v56"></script>
+    <script src="js/pdf-export.js?v=20261014_v56"></script>
+    <script src="js/app.js?v=20261014_v56"></script>
 </body>
 </html>

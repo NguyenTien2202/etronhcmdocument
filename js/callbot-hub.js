@@ -15,6 +15,8 @@ class CallbotHub {
         this.mediaSearchQuery = '';
         this.isTplDropdownOpen = false;
         this.isMedDropdownOpen = false;
+        this.isSectionAOpen = true;
+        this.isSectionBOpen = true;
     }
 
     init() {
@@ -231,6 +233,50 @@ class CallbotHub {
         if (window.lucide) lucide.createIcons();
     }
 
+    toggleSection(section) {
+        if (section === 'A') {
+            this.isSectionAOpen = !this.isSectionAOpen;
+        } else if (section === 'B') {
+            this.isSectionBOpen = !this.isSectionBOpen;
+        }
+        this.updateSectionCollapseUI();
+        if (window.lucide) lucide.createIcons();
+    }
+
+    updateSectionCollapseUI() {
+        const bodyA = document.getElementById('cb-common-body');
+        const chevronA = document.getElementById('cb-sec-a-chevron');
+        const hintA = document.getElementById('cb-sec-a-hint');
+
+        if (bodyA) {
+            if (this.isSectionAOpen) {
+                bodyA.classList.remove('hidden');
+                if (chevronA) chevronA.classList.remove('-rotate-90');
+                if (hintA) hintA.textContent = '(Thu gọn)';
+            } else {
+                bodyA.classList.add('hidden');
+                if (chevronA) chevronA.classList.add('-rotate-90');
+                if (hintA) hintA.textContent = '(Mở rộng)';
+            }
+        }
+
+        const bodyB = document.getElementById('cb-industry-body');
+        const chevronB = document.getElementById('cb-sec-b-chevron');
+        const hintB = document.getElementById('cb-sec-b-hint');
+
+        if (bodyB) {
+            if (this.isSectionBOpen) {
+                bodyB.classList.remove('hidden');
+                if (chevronB) chevronB.classList.remove('-rotate-90');
+                if (hintB) hintB.textContent = '(Thu gọn)';
+            } else {
+                bodyB.classList.add('hidden');
+                if (chevronB) chevronB.classList.add('-rotate-90');
+                if (hintB) hintB.textContent = '(Mở rộng)';
+            }
+        }
+    }
+
     // ==========================================
     // 2. PHÂN KHU BỘ TỪ KHÓA (CHUNG & THEO NGÀNH)
     // Tối giản: 1 hàng mô tả, 1 hàng từ khóa, có nút icon copy
@@ -240,6 +286,20 @@ class CallbotHub {
         const data = window.salesStore.getCallbotKeywords();
         this.renderCommonKeywords(data.common || []);
         this.renderIndustryKeywords(data.industries || []);
+
+        // Cập nhật số lượng nhóm/ngành và trạng thái thu gọn
+        const countA = document.getElementById('cb-sec-a-count');
+        if (countA) {
+            const numGroups = (data.common || []).length;
+            countA.textContent = `${numGroups} nhóm`;
+        }
+        const countB = document.getElementById('cb-sec-b-count');
+        if (countB) {
+            const numInds = (data.industries || []).length;
+            countB.textContent = `${numInds} ngành`;
+        }
+        this.updateSectionCollapseUI();
+
         if (window.lucide) lucide.createIcons();
     }
 
