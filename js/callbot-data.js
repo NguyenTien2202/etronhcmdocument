@@ -13,7 +13,6 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             icon: 'message-circle',
             color: 'emerald',
             description: 'Khách hàng đồng ý kết bạn Zalo hoặc yêu cầu gửi thông tin, bảng giá qua Zalo/tin nhắn.',
-            actionGuide: 'Chuyển trạng thái SĐT sang Tiềm năng (Gửi Zalo), kích hoạt kịch bản kết bạn Zalo tự động.',
             keywords: [
                 'zalo', 'da lô', 'da lo', 'gửi thông tin', 'gửi cho', 'gửi qua', 'gửi vào', 'tài liệu',
                 'bảng thông tin', 'gửi chính sách', 'gửi bảng giá', 'gửi mặt bằng', 'gửi hình ảnh',
@@ -30,7 +29,6 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             icon: 'x-circle',
             color: 'rose',
             description: 'Khách hàng từ chối, không có nhu cầu, bận, hết tiền hoặc yêu cầu không làm phiền.',
-            actionGuide: 'Bot cảm ơn và chào lịch sự, kết thúc cuộc gọi nhanh dưới 3s, tag KNC để tránh gọi lại.',
             keywords: [
                 'không cần', 'không có nhu cầu', 'không nhu cầu', 'không quan tâm', 'không đâu',
                 'không cần đâu', 'không mua', 'không muốn mua', 'không có tiền', 'hết tiền', 'đang nghèo',
@@ -47,7 +45,6 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             icon: 'help-circle',
             color: 'indigo',
             description: 'Khách hàng có nhu cầu lắng nghe giới thiệu, quan tâm và sẵn sàng nghe tiếp.',
-            actionGuide: 'Bot tiếp tục trình bày ưu điểm cốt lõi và điều hướng hẹn tư vấn chuyên sâu / kết bạn Zalo.',
             keywords: [
                 'tư vấn', 'nói thêm', 'nói rõ', 'nói kỹ', 'chia sẻ thêm', 'chia sẻ đi', 'giới thiệu',
                 'nói qua', 'biết thêm', 'tìm hiểu', 'nói tiếp', 'cứ nói', 'nói đi', 'nghe đây', 'được em',
@@ -64,7 +61,6 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             icon: 'clock',
             color: 'amber',
             description: 'Khách hàng đang bận họp, lái xe, làm việc và muốn gọi lại sau.',
-            actionGuide: 'Bot ghi nhận lịch hẹn, đề xuất gửi trước qua Zalo hoặc tự động lập lịch gọi lại sau 2-3 tiếng.',
             keywords: [
                 'đang bận', 'bận rồi', 'bận lắm', 'bận chút', 'có việc', 'bận việc', 'làm việc',
                 'đang họp', 'đang làm', 'giờ làm', 'chạy xe', 'đi xe', 'đi đường', 'lái xe', 'có khách',
@@ -81,7 +77,6 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             icon: 'phone-off',
             color: 'slate',
             description: 'Cuộc gọi gặp tổng đài nhà mạng, hộp thư thoại tự động, máy bận hoặc số không liên lạc được.',
-            actionGuide: 'Bot tự ngắt cuộc gọi ngay lập tức trong 1-2s để tiết kiệm cước viễn thông.',
             keywords: [
                 'thuê bao', 'quý khách', 'vui lòng', 'vi na phôn', 'mô bai phôn', 'viettel',
                 'tổng đài', 'bấm phím', 'dơ năm bờ phôn', 'trợ lý ảo', 'tự động', 'lời nhắn',
@@ -95,7 +90,6 @@ const DEFAULT_CALLBOT_KEYWORDS = {
             icon: 'volume-2',
             color: 'blue',
             description: 'Khách hàng nghe không rõ âm thanh, bị ồn hoặc hỏi lại mục đích cuộc gọi.',
-            actionGuide: 'Bot nhắc lại câu ngắn gọn, rõ ràng, giảm tốc độ nói và điều hướng gửi Zalo.',
             keywords: [
                 'gì hả', 'hả gì', 'gì cơ', 'cái gì', 'nói lại', 'a lô', 'chưa hiểu', 'gì đấy',
                 'nói chậm', 'nói lại', 'nói to', 'nói nhanh', 'chưa biết', 'chưa rõ', 'không rõ',
@@ -342,7 +336,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
     ]
 };
 
-// 3. KHO KỊCH BẢN MẪU & MEDIA BAN ĐẦU
+// 2. KHO KỊCH BẢN MẪU (Tinh gọn: Tên kịch bản, Ngành nghề, Link Google Sheets/Drive, File Excel đính kèm)
 const DEFAULT_CALLBOT_TEMPLATES = [
     {
         id: 'cb-tpl-palmriver',
@@ -351,25 +345,9 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         industry: 'ind-bds',
         industryName: 'Bất Động Sản & Nhà Đất',
         badgeColor: 'emerald',
-        // Kịch bản đính kèm
-        scriptType: 'google-sheets',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/16iV1wXVjmqLlsfkqf8mZQghTS3SUWxExRiYcy9_PPyw/edit?gid=329686546#gid=329686546',
         scriptFileName: 'Kich_ban_Palm_River_Ly.xlsx',
-        // Media đính kèm
-        audioTitle: 'Giọng Nữ Miền Nam - Lời chào & Tư vấn Palm River',
-        audioVoice: 'Nữ Miền Nam (Ấm áp, chuyên nghiệp, tự nhiên)',
-        audioDuration: '0:19',
-        audioTextSample: 'Dạ, em bên phòng kinh doanh dự án Palm River ở đường Song Hành Quận 2 cũ ạ. Đợt này bên em mở bán phân khu cao tầng trực diện sông mà mình chỉ cần thanh toán 30% trải dài 12 tháng và ngưng cho đến khi nhận nhà ạ. Kì này mình có quan tâm dòng căn hộ trung tâm Sài Gòn hông ạ?',
-        videoUrl: '',
-        // Thông số chiến dịch
-        keywordsCount: '9 nhóm - 550+ từ khóa',
-        targetAudience: 'Khách hàng mua ở và đầu tư căn hộ cao cấp ven sông Nam Rạch Chiếc',
-        salesTips: [
-            'Nên gọi đến đâu, nhân viên check báo cáo đến đó để khách hàng còn ấm nhu cầu chốt ngay.',
-            'Khung giờ chạy ưu tiên: 9h-10h sáng, 15h-16h chiều; Gọi lại 3 lần, mỗi lần cách 10-20p.',
-            'Câu chào đầu thu âm dưới 20s là đẹp nhất để bot bắt nhịp nhanh.',
-            'Điểm chốt chuyển sang Zalo: "chỉ cần thanh toán 30% trải dài 12 tháng ngưng đến khi nhận nhà".'
-        ],
+        fileDownloadUrl: '',
         updatedAt: '2026-10-14',
         pinned: true
     },
@@ -380,20 +358,9 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         industry: 'ind-nha-khoa',
         industryName: 'Nha Khoa & Thẩm Mỹ Viện',
         badgeColor: 'cyan',
-        scriptType: 'google-sheets',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Callbot_Nha_Khoa.xlsx',
-        audioTitle: 'Giọng Nữ Miền Nam - Khảo sát & Đặt lịch Nha khoa',
-        audioVoice: 'Nữ Miền Nam (Tươi vui, ân cần, nhịp nhàng)',
-        audioDuration: '0:18',
-        audioTextSample: 'Dạ alo, em chào anh/chị. Em gọi từ Nha khoa Quốc tế ạ. Tuần này bên em đang có chương trình tri ân tặng 1 suất lấy cao răng và thăm khám răng miệng hoàn toàn miễn phí cho mình ạ. Không biết gần đây răng miệng của mình có đang gặp vấn đề gì ê buốt không anh/chị ha?',
-        videoUrl: '',
-        keywordsCount: '3 nhóm - 120 từ khóa',
-        targetAudience: 'Cư dân xung quanh bán kính 5km phòng khám',
-        salesTips: [
-            'Đánh mạnh vào quyền lợi Miễn Phí để khách không cúp máy.',
-            'Đề xuất 2 khung giờ cụ thể (Sáng Thứ 7 hoặc Chiều Chủ Nhật) để khách dễ chọn lịch.'
-        ],
+        fileDownloadUrl: '',
         updatedAt: '2026-10-13',
         pinned: false
     },
@@ -404,26 +371,52 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         industry: 'ind-crm',
         industryName: 'Phần Mềm, CRM & Tổng Đài AI',
         badgeColor: 'indigo',
-        scriptType: 'google-sheets',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Adahub_CRM_B2B.xlsx',
-        audioTitle: 'Giọng Nữ Miền Bắc - Tư vấn B2B Doanh Nghiệp',
-        audioVoice: 'Nữ Miền Bắc (Rõ ràng, dứt khoát, phong thái chuyên viên tư vấn)',
-        audioDuration: '0:22',
-        audioTextSample: 'Dạ em chào anh/chị. Em gọi từ Etron Solutions, bên em chuyên cung cấp giải pháp CRM và Callbot AI tự động gọi chăm sóc khách hàng giúp tối ưu 70% chi phí telesale ạ. Em xin phép gửi tài liệu giải pháp qua Zalo để công ty mình tham khảo được không ạ?',
-        videoUrl: '',
-        keywordsCount: '2 nhóm - 95 từ khóa',
-        targetAudience: 'Chủ doanh nghiệp, Trưởng phòng kinh doanh, Quản lý CSKH',
-        salesTips: [
-            'Đối tượng B2B rất bận, câu chào phải nêu ngay giá trị "tiết kiệm 70% chi phí".',
-            'Không ép chốt máy trên điện thoại, mục tiêu số 1 là xin kết bạn Zalo gửi profile giải pháp.'
-        ],
+        fileDownloadUrl: '',
         updatedAt: '2026-10-12',
         pinned: false
+    }
+];
+
+// 3. THƯ VIỆN MEDIA (Audio & Video thực tế theo ngành nghề)
+const DEFAULT_CALLBOT_MEDIA = [
+    {
+        id: 'media-001',
+        title: 'Ghi âm cuộc gọi thực tế - Giọng Nữ Miền Nam (Tư vấn BĐS Palm River)',
+        industry: 'ind-bds',
+        industryName: 'Bất Động Sản & Nhà Đất',
+        type: 'audio',
+        mediaUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+        fileName: 'Palm_River_Voice_Nu_Nam.mp3',
+        fileSize: 'Audio MP3',
+        updatedAt: '2026-10-14'
+    },
+    {
+        id: 'media-002',
+        title: 'Demo Cuộc Gọi Tự Động Ucall - Mời Trải Nghiệm CRM (Giọng Nữ Bắc)',
+        industry: 'ind-crm',
+        industryName: 'Phần Mềm, CRM & Tổng Đài AI',
+        type: 'audio',
+        mediaUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+        fileName: 'Adahub_CRM_Callbot_Nu_Bac.mp3',
+        fileSize: 'Audio MP3',
+        updatedAt: '2026-10-13'
+    },
+    {
+        id: 'media-003',
+        title: 'Video Demo Tính Năng Callbot AI & Tự Động Hóa Vận Hành CRM',
+        industry: 'ind-crm',
+        industryName: 'Phần Mềm, CRM & Tổng Đài AI',
+        type: 'video',
+        mediaUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        fileName: 'Video_Demo_Callbot.mp4',
+        fileSize: 'YouTube Video',
+        updatedAt: '2026-10-12'
     }
 ];
 
 // Gán biến toàn cục Window để đảm bảo mọi module truy cập tức thì
 window.DEFAULT_CALLBOT_KEYWORDS = DEFAULT_CALLBOT_KEYWORDS;
 window.DEFAULT_CALLBOT_TEMPLATES = DEFAULT_CALLBOT_TEMPLATES;
-
+window.DEFAULT_CALLBOT_MEDIA = DEFAULT_CALLBOT_MEDIA;

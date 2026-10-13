@@ -9,8 +9,8 @@ class CallbotHub {
         this.selectedIndustry = 'ind-bds';
         this.searchQuery = '';
         this.templateFilter = 'all';
-        this.currentUtterance = null;
-        this.playingTemplateId = null;
+        this.mediaFilter = 'all';
+        this.mediaTypeFilter = 'all';
     }
 
     init() {
@@ -28,16 +28,18 @@ class CallbotHub {
         }
     }
 
+    // ==========================================
+    // 1. CHUYỂN ĐỔI SUB-TAB (Đồng bộ kiểu dáng với Top Nav)
+    // ==========================================
     switchSubTab(tabName) {
         this.activeSubTab = tabName;
         document.querySelectorAll('.cb-subtab-btn').forEach(btn => {
             const isMatch = btn.getAttribute('data-cb-tab') === tabName;
-            btn.classList.toggle('bg-indigo-600', isMatch);
-            btn.classList.toggle('text-white', isMatch);
-            btn.classList.toggle('shadow-sm', isMatch);
-            btn.classList.toggle('bg-white', !isMatch);
-            btn.classList.toggle('text-slate-600', !isMatch);
-            btn.classList.toggle('hover:bg-slate-100', !isMatch);
+            if (isMatch) {
+                btn.className = 'cb-subtab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm focus:outline-none';
+            } else {
+                btn.className = 'cb-subtab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none';
+            }
         });
 
         document.getElementById('cb-tab-keywords')?.classList.toggle('hidden', tabName !== 'keywords');
@@ -62,6 +64,7 @@ class CallbotHub {
     renderStats() {
         const data = window.salesStore.getCallbotKeywords();
         const templates = window.salesStore.getCallbotTemplates();
+        const mediaList = window.salesStore.getCallbotMedia();
 
         let totalKeywords = 0;
         if (data.common) {
@@ -77,18 +80,21 @@ class CallbotHub {
 
         const industriesCount = (data.industries || []).length;
         const templatesCount = templates.length;
+        const mediaCount = mediaList.length;
 
         const statTotalKw = document.getElementById('cb-stat-total-keywords');
         const statIndustries = document.getElementById('cb-stat-total-industries');
         const statTemplates = document.getElementById('cb-stat-total-templates');
+        const statMedia = document.getElementById('cb-stat-total-media');
 
         if (statTotalKw) statTotalKw.textContent = totalKeywords.toLocaleString('vi-VN') + '+ từ';
         if (statIndustries) statIndustries.textContent = industriesCount + ' ngành nghề';
         if (statTemplates) statTemplates.textContent = templatesCount + ' kịch bản';
+        if (statMedia) statMedia.textContent = mediaCount + ' files demo';
     }
 
     // ==========================================
-    // 1. PHÂN KHU BỘ TỪ KHÓA CHUẨN
+    // 2. PHÂN KHU BỘ TỪ KHÓA (CHUNG & THEO NGÀNH)
     // ==========================================
     renderKeywords() {
         this.renderStats();
@@ -109,7 +115,7 @@ class CallbotHub {
             filteredGroups = commonGroups.filter(g => {
                 const matchName = g.name.toLowerCase().includes(query);
                 const matchDesc = (g.description || '').toLowerCase().includes(query);
-                const matchKw = g.keywords.some(k => k.toLowerCase().includes(query));
+                const matchKw = (g.keywords || []).some(k => k.toLowerCase().includes(query));
                 return matchName || matchDesc || matchKw;
             });
         }
@@ -126,59 +132,58 @@ class CallbotHub {
 
         container.innerHTML = filteredGroups.map(group => {
             const colorMap = {
-                emerald: { border: 'border-emerald-200', bg: 'bg-emerald-50/40', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', text: 'text-emerald-700', iconBg: 'bg-emerald-100 text-emerald-700' },
-                rose: { border: 'border-rose-200', bg: 'bg-rose-50/40', badge: 'bg-rose-50 text-rose-700 border-rose-200', text: 'text-rose-700', iconBg: 'bg-rose-100 text-rose-700' },
-                indigo: { border: 'border-indigo-200', bg: 'bg-indigo-50/40', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', text: 'text-indigo-700', iconBg: 'bg-indigo-100 text-indigo-700' },
-                amber: { border: 'border-amber-200', bg: 'bg-amber-50/40', badge: 'bg-amber-50 text-amber-700 border-amber-200', text: 'text-amber-700', iconBg: 'bg-amber-100 text-amber-700' },
-                slate: { border: 'border-slate-300', bg: 'bg-slate-50/60', badge: 'bg-slate-100 text-slate-700 border-slate-200', text: 'text-slate-700', iconBg: 'bg-slate-200 text-slate-700' },
-                blue: { border: 'border-blue-200', bg: 'bg-blue-50/40', badge: 'bg-blue-50 text-blue-700 border-blue-200', text: 'text-blue-700', iconBg: 'bg-blue-100 text-blue-700' }
+                emerald: { border: 'border-emerald-200', bg: 'bg-emerald-50/30', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', iconBg: 'bg-emerald-100 text-emerald-700' },
+                rose: { border: 'border-rose-200', bg: 'bg-rose-50/30', badge: 'bg-rose-50 text-rose-700 border-rose-200', iconBg: 'bg-rose-100 text-rose-700' },
+                indigo: { border: 'border-indigo-200', bg: 'bg-indigo-50/30', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', iconBg: 'bg-indigo-100 text-indigo-700' },
+                amber: { border: 'border-amber-200', bg: 'bg-amber-50/30', badge: 'bg-amber-50 text-amber-700 border-amber-200', iconBg: 'bg-amber-100 text-amber-700' },
+                slate: { border: 'border-slate-300', bg: 'bg-slate-50/50', badge: 'bg-slate-100 text-slate-700 border-slate-200', iconBg: 'bg-slate-200 text-slate-700' },
+                blue: { border: 'border-blue-200', bg: 'bg-blue-50/30', badge: 'bg-blue-50 text-blue-700 border-blue-200', iconBg: 'bg-blue-100 text-blue-700' }
             };
             const c = colorMap[group.color] || colorMap.indigo;
 
             return `
                 <div class="bg-white rounded-2xl border ${c.border} p-4 sm:p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                     <div>
-                        <!-- Header Nhóm -->
-                        <div class="flex items-start justify-between gap-3 mb-2.5">
+                        <!-- Header Nhóm: Tên + Icon + Nút Copy + Nút Sửa -->
+                        <div class="flex items-start justify-between gap-2.5 mb-2.5">
                             <div class="flex items-center gap-2.5 min-w-0">
                                 <div class="w-8 h-8 rounded-xl ${c.iconBg} flex items-center justify-center shrink-0">
                                     <i data-lucide="${group.icon || 'tag'}" class="w-4 h-4"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">${this.escapeHtml(group.name)}</h4>
-                                    <span class="text-[10px] text-slate-400 font-mono">${group.keywords.length} từ khóa</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">${(group.keywords || []).length} từ khóa</span>
                                 </div>
                             </div>
-                            <button onclick="window.callbotHub.copyGroupKeywords('common', '${group.id}')"
-                                class="px-2.5 py-1 rounded-lg ${c.badge} border text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1 shrink-0"
-                                title="Sao chép toàn bộ từ khóa trong nhóm này">
-                                <i data-lucide="copy" class="w-3 h-3"></i>
-                                <span>Copy</span>
-                            </button>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="window.callbotHub.copyGroupKeywords('common', '${group.id}')"
+                                    class="px-2.5 py-1 rounded-lg ${c.badge} border text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1"
+                                    title="Sao chép toàn bộ từ khóa trong nhóm này">
+                                    <i data-lucide="copy" class="w-3 h-3"></i>
+                                    <span>Copy</span>
+                                </button>
+                                <button onclick="window.callbotHub.openEditGroupModal('common', '${group.id}')"
+                                    class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                    title="Chỉnh sửa nhóm từ khóa">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
                         </div>
 
-                        <!-- Mô tả & Hướng dẫn bot -->
+                        <!-- Mô tả nhóm -->
                         <p class="text-[11px] text-slate-500 mb-3 line-clamp-2">${this.escapeHtml(group.description || '')}</p>
 
-                        <!-- Danh sách Keywords tags -->
-                        <div class="flex flex-wrap gap-1 max-h-48 overflow-y-auto pr-1">
-                            ${group.keywords.map(kw => {
+                        <!-- Trình bày từ khóa dạng text block sạch sẽ, dễ đọc, không rối mắt -->
+                        <div class="bg-slate-50 hover:bg-slate-100/60 border border-slate-200/90 rounded-xl p-3 max-h-40 overflow-y-auto leading-relaxed select-all text-xs text-slate-700 font-mono transition-colors">
+                            ${(group.keywords || []).map((kw, idx) => {
                                 const isHighlight = query && kw.toLowerCase().includes(query);
-                                return `
-                                    <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${isHighlight ? 'bg-amber-300 text-slate-900 font-bold ring-2 ring-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'}">
-                                        ${this.escapeHtml(kw)}
-                                    </span>
-                                `;
+                                const kwHtml = isHighlight 
+                                    ? `<mark class="bg-amber-200 text-slate-900 font-bold px-1 rounded">${this.escapeHtml(kw)}</mark>` 
+                                    : `<span class="hover:text-indigo-600 transition-colors">${this.escapeHtml(kw)}</span>`;
+                                return kwHtml + (idx < group.keywords.length - 1 ? '<span class="text-slate-300 font-sans mx-1">,</span> ' : '');
                             }).join('')}
                         </div>
                     </div>
-
-                    ${group.actionGuide ? `
-                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-start gap-1.5 text-[10px] text-slate-400">
-                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5"></i>
-                            <span class="line-clamp-1"><b class="text-slate-600">Bot action:</b> ${this.escapeHtml(group.actionGuide)}</span>
-                        </div>
-                    ` : ''}
                 </div>
             `;
         }).join('');
@@ -233,7 +238,7 @@ class CallbotHub {
             filteredGroups = filteredGroups.filter(g => {
                 const matchName = g.name.toLowerCase().includes(query);
                 const matchDesc = (g.description || '').toLowerCase().includes(query);
-                const matchKw = g.keywords.some(k => k.toLowerCase().includes(query));
+                const matchKw = (g.keywords || []).some(k => k.toLowerCase().includes(query));
                 return matchName || matchDesc || matchKw;
             });
         }
@@ -295,7 +300,7 @@ class CallbotHub {
                             </div>
                             <div class="min-w-0">
                                 <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">${this.escapeHtml(group.name)}</h4>
-                                <span class="text-[10px] text-slate-400 font-mono">${group.keywords.length} từ khóa</span>
+                                <span class="text-[10px] text-slate-400 font-mono">${(group.keywords || []).length} từ khóa</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
@@ -315,15 +320,14 @@ class CallbotHub {
 
                     <p class="text-[11px] text-slate-500 mb-3 line-clamp-2">${this.escapeHtml(group.description || '')}</p>
 
-                    <!-- Danh sách từ khóa -->
-                    <div class="flex flex-wrap gap-1 max-h-52 overflow-y-auto pr-1">
-                        ${group.keywords.map(kw => {
+                    <!-- Danh sách từ khóa dạng text block sạch sẽ, dễ đọc -->
+                    <div class="bg-slate-50 hover:bg-slate-100/60 border border-slate-200/90 rounded-xl p-3 max-h-44 overflow-y-auto leading-relaxed select-all text-xs text-slate-700 font-mono transition-colors">
+                        ${(group.keywords || []).map((kw, idx) => {
                             const isHighlight = query && kw.toLowerCase().includes(query);
-                            return `
-                                <span class="inline-block px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${isHighlight ? 'bg-amber-300 text-slate-900 font-bold ring-2 ring-amber-400' : 'bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700'}">
-                                    ${this.escapeHtml(kw)}
-                                </span>
-                            `;
+                            const kwHtml = isHighlight 
+                                ? `<mark class="bg-amber-200 text-slate-900 font-bold px-1 rounded">${this.escapeHtml(kw)}</mark>` 
+                                : `<span class="hover:text-indigo-600 transition-colors">${this.escapeHtml(kw)}</span>`;
+                            return kwHtml + (idx < group.keywords.length - 1 ? '<span class="text-slate-300 font-sans mx-1">,</span> ' : '');
                         }).join('')}
                     </div>
                 </div>
@@ -407,7 +411,8 @@ class CallbotHub {
     }
 
     // ==========================================
-    // 2. PHÂN KHU KHO KỊCH BẢN MẪU (EXCEL / DRIVE)
+    // 3. PHÂN KHU KHO KỊCH BẢN MẪU (EXCEL / DRIVE)
+    // Tối giản: Chỉ tên kịch bản, ngành nghề, đính kèm link/file
     // ==========================================
     renderTemplates() {
         const container = document.getElementById('cb-templates-grid');
@@ -448,95 +453,92 @@ class CallbotHub {
                 <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="file-question" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                     <p class="font-bold text-slate-700 text-sm">Chưa có kịch bản mẫu nào trong danh mục này</p>
-                    <p class="text-xs text-slate-400 mt-1">Bấm nút "+ Thêm Kịch Bản Mới" để tải lên file Excel hoặc dán link Google Sheets.</p>
+                    <p class="text-xs text-slate-400 mt-1">Bấm nút "+ Thêm Kịch Bản Mới" để tải lên file Excel hoặc dán link Google Sheets/Drive.</p>
                 </div>
             `;
             return;
         }
 
         container.innerHTML = filtered.map(tpl => {
-            const isPlaying = this.playingTemplateId === tpl.id;
+            const hasUrl = Boolean(tpl.scriptUrl && tpl.scriptUrl.trim());
+            const hasFile = Boolean(tpl.scriptFileName && tpl.scriptFileName.trim());
 
             return `
                 <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all flex flex-col justify-between group">
-                    <div>
-                        <!-- Header Card -->
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    ${this.escapeHtml(tpl.industryName || 'Ngành khác')}
-                                </span>
-                                ${tpl.pinned ? '<span class="text-amber-500 text-xs" title="Kịch bản mẫu trọng điểm">⭐ Trọng điểm</span>' : ''}
-                            </div>
+                    <div class="space-y-3">
+                        <!-- Header Card: Ngành nghề + Ngày cập nhật -->
+                        <div class="flex items-start justify-between gap-3">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                ${this.escapeHtml(tpl.industryName || 'Ngành khác')}
+                            </span>
                             <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
                                 <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
                                 ${tpl.updatedAt || 'Mới cập nhật'}
                             </span>
                         </div>
 
-                        <!-- Tiêu đề & Khách hàng -->
-                        <h4 class="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-indigo-600 transition-colors cursor-pointer leading-snug"
-                            onclick="window.open('${tpl.scriptUrl}', '_blank')">
+                        <!-- Tiêu đề Kịch bản -->
+                        <h4 class="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-indigo-600 transition-colors leading-snug cursor-pointer"
+                            onclick="${hasUrl ? `window.open('${this.escapeHtml(tpl.scriptUrl)}', '_blank')` : ''}">
                             ${this.escapeHtml(tpl.title)}
                         </h4>
-                        <p class="text-xs text-indigo-600 font-semibold mt-1 flex items-center gap-1.5">
-                            <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                            <span>Dự án / KH: ${this.escapeHtml(tpl.client || 'Dùng chung')}</span>
-                        </p>
 
-                        <!-- Đính kèm Kịch bản File / Sheet -->
-                        <div class="mt-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs shrink-0">
-                                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-xs font-bold text-slate-800 truncate">${this.escapeHtml(tpl.scriptFileName || 'Kich_ban_Callbot.xlsx')}</p>
-                                    <p class="text-[10px] text-slate-400">Google Sheets / Excel • ${this.escapeHtml(tpl.keywordsCount || 'Đầy đủ từ khóa')}</p>
-                                </div>
-                            </div>
-                            <a href="${tpl.scriptUrl}" target="_blank" rel="noopener noreferrer"
-                                class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shrink-0 flex items-center gap-1"
-                                title="Mở trực tiếp trên Google Sheets / Drive">
-                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                <span>Mở Sheet</span>
-                            </a>
-                        </div>
+                        <!-- Khách hàng / Dự án nếu có -->
+                        ${tpl.client ? `
+                            <p class="text-xs text-indigo-600 font-semibold flex items-center gap-1.5">
+                                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+                                <span>Dự án / KH: ${this.escapeHtml(tpl.client)}</span>
+                            </p>
+                        ` : ''}
 
-                        <!-- Trình Nghe Giọng Đọc Mẫu (Voice Demo) -->
-                        ${tpl.audioTextSample ? `
-                            <div class="mt-3 p-3 rounded-xl bg-indigo-50/60 border border-indigo-100">
-                                <div class="flex items-center justify-between gap-2 mb-1.5">
-                                    <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-900">
-                                        <i data-lucide="mic" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                        <span>Giọng đọc AI: ${this.escapeHtml(tpl.audioVoice || 'Nữ miền Nam')}</span>
+                        <!-- Đính kèm: Link hoặc File hoặc Cả hai -->
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                            ${hasUrl ? `
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                            <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                        <span class="text-xs font-semibold text-slate-700 truncate">Link Google Sheets / Drive</span>
                                     </div>
-                                    <span class="text-[10px] text-indigo-500 font-mono">${tpl.audioDuration || '0:20'}</span>
+                                    <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
+                                        class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shrink-0 flex items-center gap-1"
+                                        title="Mở liên kết">
+                                        <i data-lucide="external-link" class="w-3 h-3"></i>
+                                        <span>Mở Link</span>
+                                    </a>
                                 </div>
-                                <p class="text-[11px] text-slate-600 italic line-clamp-2 mb-2">"${this.escapeHtml(tpl.audioTextSample)}"</p>
-                                <button onclick="window.callbotHub.playSampleVoice('${tpl.id}')"
-                                    class="w-full py-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${isPlaying ? 'bg-rose-600 text-white animate-pulse' : 'bg-indigo-600 text-white hover:bg-indigo-700'}">
-                                    <i data-lucide="${isPlaying ? 'square' : 'volume-2'}" class="w-3.5 h-3.5"></i>
-                                    <span>${isPlaying ? 'Dừng phát âm thanh' : 'Nghe Thử Giọng Đọc AI Mẫu'}</span>
-                                </button>
-                            </div>
-                        ` : ''}
+                            ` : ''}
 
-                        <!-- Lưu ý thực chiến / Sales Tips -->
-                        ${tpl.salesTips && tpl.salesTips.length > 0 ? `
-                            <div class="mt-3.5 space-y-1">
-                                <p class="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                                    <i data-lucide="zap" class="w-3 h-3 text-amber-500"></i>
-                                    <span>Kinh nghiệm & Lưu ý triển khai:</span>
-                                </p>
-                                <ul class="text-[11px] text-slate-500 space-y-0.5 list-disc list-inside">
-                                    ${tpl.salesTips.map(tip => `<li>${this.escapeHtml(tip)}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
+                            ${hasFile ? `
+                                <div class="flex items-center justify-between gap-2 ${hasUrl ? 'pt-2 border-t border-slate-200/60' : ''}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                        <span class="text-xs font-semibold text-slate-700 truncate" title="${this.escapeHtml(tpl.scriptFileName)}">
+                                            ${this.escapeHtml(tpl.scriptFileName)}
+                                        </span>
+                                    </div>
+                                    ${hasUrl ? `
+                                        <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
+                                            class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors shrink-0 flex items-center gap-1">
+                                            <i data-lucide="download" class="w-3 h-3"></i>
+                                            <span>Xem File</span>
+                                        </a>
+                                    ` : `
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-600">File Excel</span>
+                                    `}
+                                </div>
+                            ` : ''}
+
+                            ${!hasUrl && !hasFile ? `
+                                <p class="text-xs text-slate-400 italic">Chưa đính kèm link hoặc file</p>
+                            ` : ''}
+                        </div>
                     </div>
 
-                    <!-- Footer Thao Tác -->
+                    <!-- Footer Thao Tác: Chỉnh sửa & Xóa -->
                     <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                         <button onclick="window.callbotHub.viewIndustryKeywords('${tpl.industry}')"
                             class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
@@ -572,58 +574,6 @@ class CallbotHub {
         this.switchSubTab('keywords');
     }
 
-    playSampleVoice(tplId) {
-        const templates = window.salesStore.getCallbotTemplates();
-        const tpl = templates.find(t => t.id === tplId);
-        if (!tpl || !tpl.audioTextSample) return;
-
-        // Nếu đang phát chính template này -> dừng lại
-        if (this.playingTemplateId === tplId) {
-            window.speechSynthesis.cancel();
-            this.playingTemplateId = null;
-            this.renderTemplates();
-            if (window.lucide) lucide.createIcons();
-            return;
-        }
-
-        // Dừng giọng trước đó
-        window.speechSynthesis.cancel();
-
-        if (!('speechSynthesis' in window)) {
-            window.salesApp.showNotification('Trình duyệt không hỗ trợ phát giọng đọc tự động!', 'warning');
-            return;
-        }
-
-        const utterance = new SpeechSynthesisUtterance(tpl.audioTextSample);
-        utterance.lang = 'vi-VN';
-        utterance.rate = 0.95; // Tốc độ tự nhiên, rõ ràng
-        utterance.pitch = 1.05;
-
-        // Chọn giọng nữ tiếng Việt nếu có trong OS
-        const voices = window.speechSynthesis.getVoices();
-        const viVoice = voices.find(v => v.lang === 'vi-VN' || v.lang.startsWith('vi'));
-        if (viVoice) utterance.voice = viVoice;
-
-        this.playingTemplateId = tplId;
-        this.renderTemplates();
-        if (window.lucide) lucide.createIcons();
-
-        utterance.onend = () => {
-            this.playingTemplateId = null;
-            this.renderTemplates();
-            if (window.lucide) lucide.createIcons();
-        };
-
-        utterance.onerror = () => {
-            this.playingTemplateId = null;
-            this.renderTemplates();
-            if (window.lucide) lucide.createIcons();
-        };
-
-        window.speechSynthesis.speak(utterance);
-        window.salesApp.showNotification(`Đang phát giọng đọc mẫu: ${tpl.audioVoice || 'Nữ miền Nam'}...`, 'info');
-    }
-
     deleteTemplate(id) {
         if (confirm('Bạn có chắc chắn muốn xóa kịch bản mẫu này khỏi kho?')) {
             window.salesStore.deleteCallbotTemplate(id);
@@ -633,41 +583,288 @@ class CallbotHub {
     }
 
     // ==========================================
-    // 3. PHÂN KHU MEDIA AUDIO & VIDEO
+    // 4. PHÂN KHU THƯ VIỆN (AUDIO, VIDEO, MEDIA)
+    // Upload link, audio (mp3, wav), video, có tên và ngành nghề
     // ==========================================
     renderMedia() {
         const container = document.getElementById('cb-media-container');
+        const filterContainer = document.getElementById('cb-media-filters');
         if (!container) return;
 
-        const templates = window.salesStore.getCallbotTemplates();
+        const mediaList = window.salesStore.getCallbotMedia();
+        const industries = (window.salesStore.getCallbotKeywords().industries || []);
+
+        // Filter Bar (Ngành nghề & Loại media)
+        if (filterContainer) {
+            filterContainer.innerHTML = `
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-xs font-bold text-slate-500 shrink-0">Ngành:</span>
+                    <button onclick="window.callbotHub.filterMediaByIndustry('all')"
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${this.mediaFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                        Tất Cả (${mediaList.length})
+                    </button>
+                    ${industries.map(ind => {
+                        const count = mediaList.filter(m => m.industry === ind.id).length;
+                        const isActive = this.mediaFilter === ind.id;
+                        return `
+                            <button onclick="window.callbotHub.filterMediaByIndustry('${ind.id}')"
+                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border flex items-center gap-1 ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                                <span>${this.escapeHtml(ind.name)}</span>
+                                <span class="text-[10px] opacity-80">(${count})</span>
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-500 shrink-0">Định dạng:</span>
+                    <button onclick="window.callbotHub.filterMediaByType('all')"
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold border ${this.mediaTypeFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                        Tất Cả
+                    </button>
+                    <button onclick="window.callbotHub.filterMediaByType('audio')"
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 ${this.mediaTypeFilter === 'audio' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                        <i data-lucide="music" class="w-3.5 h-3.5"></i>
+                        <span>Audio / Giọng đọc</span>
+                    </button>
+                    <button onclick="window.callbotHub.filterMediaByType('video')"
+                        class="px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 ${this.mediaTypeFilter === 'video' ? 'bg-purple-600 text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                        <i data-lucide="video" class="w-3.5 h-3.5"></i>
+                        <span>Video Demo</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        let filtered = mediaList;
+        if (this.mediaFilter !== 'all') {
+            filtered = filtered.filter(m => m.industry === this.mediaFilter);
+        }
+        if (this.mediaTypeFilter !== 'all') {
+            filtered = filtered.filter(m => m.type === this.mediaTypeFilter);
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
+                    <i data-lucide="folder-search" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
+                    <p class="font-bold text-slate-700 text-sm">Chưa có file audio hoặc video mẫu nào</p>
+                    <p class="text-xs text-slate-400 mt-1">Bấm "+ Thêm Media Mới" để lưu link demo, file audio (MP3, WAV) hoặc video cho ngành này.</p>
+                </div>
+            `;
+            return;
+        }
 
         container.innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                ${templates.map(tpl => `
-                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700">
-                                ${this.escapeHtml(tpl.industryName)}
-                            </span>
-                            <span class="text-xs font-mono text-slate-400">${tpl.audioDuration || '0:20'}</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                ${filtered.map(item => {
+                    const isAudio = item.type === 'audio';
+                    const hasUrl = Boolean(item.mediaUrl && item.mediaUrl.trim());
+
+                    return `
+                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                            <div class="space-y-3">
+                                <!-- Header: Ngành + Loại Media + Ngày -->
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700">
+                                        ${this.escapeHtml(item.industryName || 'Ngành khác')}
+                                    </span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${isAudio ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-purple-50 text-purple-700 border border-purple-200'}">
+                                        <i data-lucide="${isAudio ? 'music' : 'video'}" class="w-3 h-3"></i>
+                                        <span>${isAudio ? 'Audio MP3/WAV' : 'Video Demo'}</span>
+                                    </span>
+                                </div>
+
+                                <!-- Tiêu đề Media -->
+                                <h4 class="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
+                                    ${this.escapeHtml(item.title)}
+                                </h4>
+
+                                ${item.fileName ? `
+                                    <p class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
+                                        <i data-lucide="paperclip" class="w-3 h-3"></i>
+                                        <span class="truncate">${this.escapeHtml(item.fileName)}</span>
+                                    </p>
+                                ` : ''}
+
+                                <!-- Trình phát Audio hoặc Video Preview -->
+                                ${isAudio ? `
+                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+                                        ${hasUrl ? `
+                                            <audio controls class="w-full h-8" preload="none">
+                                                <source src="${this.escapeHtml(item.mediaUrl)}" type="audio/mpeg">
+                                                <source src="${this.escapeHtml(item.mediaUrl)}" type="audio/wav">
+                                                Trình duyệt không hỗ trợ phát audio.
+                                            </audio>
+                                            <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/50">
+                                                <span class="text-slate-400">Nghe trực tiếp</span>
+                                                <a href="${this.escapeHtml(item.mediaUrl)}" target="_blank" rel="noopener noreferrer"
+                                                    class="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">
+                                                    <i data-lucide="external-link" class="w-3 h-3"></i>
+                                                    <span>Mở File Audio</span>
+                                                </a>
+                                            </div>
+                                        ` : `
+                                            <p class="text-xs text-slate-400 italic">Chưa có file hoặc link audio</p>
+                                        `}
+                                    </div>
+                                ` : `
+                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+                                        ${hasUrl ? `
+                                            <a href="${this.escapeHtml(item.mediaUrl)}" target="_blank" rel="noopener noreferrer"
+                                                class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm">
+                                                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                                                <span>Xem Video Demo Trực Tiếp</span>
+                                            </a>
+                                        ` : `
+                                            <p class="text-xs text-slate-400 italic">Chưa có link video</p>
+                                        `}
+                                    </div>
+                                `}
+                            </div>
+
+                            <!-- Footer Card: Edit & Delete -->
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                                <span class="text-[11px] text-slate-400 font-mono">${item.updatedAt || '2026-10-14'}</span>
+                                <div class="flex items-center gap-1">
+                                    <button onclick="window.callbotHub.openEditMediaModal('${item.id}')"
+                                        class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                        title="Chỉnh sửa media">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="window.callbotHub.deleteMedia('${item.id}')"
+                                        class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                        title="Xóa file media này">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <h4 class="font-bold text-slate-900 text-sm line-clamp-1">${this.escapeHtml(tpl.audioTitle || tpl.title)}</h4>
-                        <p class="text-xs text-slate-500 line-clamp-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100 italic">
-                            "${this.escapeHtml(tpl.audioTextSample || 'Chưa có nội dung demo')}"
-                        </p>
-                        <button onclick="window.callbotHub.playSampleVoice('${tpl.id}')"
-                            class="w-full py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-all flex items-center justify-center gap-2 shadow-sm">
-                            <i data-lucide="${this.playingTemplateId === tpl.id ? 'square' : 'play'}" class="w-4 h-4"></i>
-                            <span>${this.playingTemplateId === tpl.id ? 'Dừng phát' : 'Nghe Demo Giọng Đọc'}</span>
-                        </button>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    filterMediaByIndustry(indId) {
+        this.mediaFilter = indId;
+        this.renderMedia();
+    }
+
+    filterMediaByType(type) {
+        this.mediaTypeFilter = type;
+        this.renderMedia();
+    }
+
+    openAddMediaModal() {
+        const modal = document.getElementById('modal-callbot-media');
+        if (!modal) return;
+
+        document.getElementById('cb-med-form').reset();
+        document.getElementById('cb-med-id').value = '';
+        document.getElementById('cb-med-modal-title').textContent = 'Thêm Audio / Video Demo Mới';
+
+        this.updateMediaIndustrySelectOptions();
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    openEditMediaModal(id) {
+        const modal = document.getElementById('modal-callbot-media');
+        if (!modal) return;
+
+        const mediaList = window.salesStore.getCallbotMedia();
+        const item = mediaList.find(m => m.id === id);
+        if (!item) return;
+
+        this.updateMediaIndustrySelectOptions();
+
+        document.getElementById('cb-med-id').value = item.id;
+        document.getElementById('cb-med-title').value = item.title || '';
+        document.getElementById('cb-med-industry').value = item.industry || '';
+        document.getElementById('cb-med-type').value = item.type || 'audio';
+        document.getElementById('cb-med-url').value = item.mediaUrl || '';
+        document.getElementById('cb-med-filename').value = item.fileName || '';
+
+        document.getElementById('cb-med-modal-title').textContent = 'Chỉnh Sửa Audio / Video Demo';
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    updateMediaIndustrySelectOptions() {
+        const sel = document.getElementById('cb-med-industry');
+        if (!sel) return;
+
+        const industries = (window.salesStore.getCallbotKeywords().industries || []);
+        sel.innerHTML = industries.map(ind => `
+            <option value="${ind.id}">${this.escapeHtml(ind.name)}</option>
+        `).join('');
+    }
+
+    saveMediaFromModal(e) {
+        e.preventDefault();
+        const id = document.getElementById('cb-med-id').value;
+        const title = document.getElementById('cb-med-title').value.trim();
+        const industry = document.getElementById('cb-med-industry').value;
+        const type = document.getElementById('cb-med-type').value;
+        const mediaUrl = document.getElementById('cb-med-url').value.trim();
+        const fileName = document.getElementById('cb-med-filename').value.trim();
+        const fileInput = document.getElementById('cb-med-file');
+
+        if (!title) {
+            window.salesApp.showNotification('Vui lòng nhập tên media demo!', 'warning');
+            return;
+        }
+
+        const industries = (window.salesStore.getCallbotKeywords().industries || []);
+        const targetInd = industries.find(i => i.id === industry);
+
+        const finalizeSave = (resolvedUrl, resolvedFileName) => {
+            const mediaData = {
+                id: id || null,
+                title,
+                industry,
+                industryName: targetInd ? targetInd.name : 'Ngành khác',
+                type,
+                mediaUrl: resolvedUrl || mediaUrl,
+                fileName: resolvedFileName || fileName || (type === 'audio' ? 'demo_audio.mp3' : 'demo_video.mp4'),
+                fileSize: type === 'audio' ? 'Audio MP3/WAV' : 'Video MP4/Web'
+            };
+
+            window.salesStore.saveCallbotMedia(mediaData);
+            document.getElementById('modal-callbot-media').classList.add('hidden');
+            this.renderMedia();
+            this.renderStats();
+            window.salesApp.showNotification(id ? 'Đã cập nhật media thành công!' : 'Đã thêm media mới vào thư viện!', 'success');
+        };
+
+        // Nếu người dùng chọn file trực tiếp từ máy
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            // Nếu file dưới 2MB có thể đọc DataURL, nếu không thì lấy link đã điền hoặc lưu tên file
+            if (file.size < 2.5 * 1024 * 1024) {
+                const reader = new FileReader();
+                reader.onload = (re) => finalizeSave(re.target.result, file.name);
+                reader.readAsDataURL(file);
+            } else {
+                finalizeSave(mediaUrl, file.name);
+            }
+        } else {
+            finalizeSave(mediaUrl, fileName);
+        }
+    }
+
+    deleteMedia(id) {
+        if (confirm('Bạn có chắc chắn muốn xóa file media này khỏi thư viện?')) {
+            window.salesStore.deleteCallbotMedia(id);
+            this.renderMedia();
+            this.renderStats();
+            window.salesApp.showNotification('Đã xóa media khỏi thư viện!', 'info');
+        }
     }
 
     // ==========================================
-    // 4. MODALS QUẢN LÝ KỊCH BẢN & TỪ KHÓA
+    // 5. MODALS QUẢN LÝ KỊCH BẢN & TỪ KHÓA
     // ==========================================
     openAddTemplateModal() {
         const modal = document.getElementById('modal-callbot-template');
@@ -675,7 +872,7 @@ class CallbotHub {
 
         document.getElementById('cb-tpl-form').reset();
         document.getElementById('cb-tpl-id').value = '';
-        document.getElementById('cb-tpl-modal-title').textContent = 'Thêm Kịch Bản & Media Mẫu Mới';
+        document.getElementById('cb-tpl-modal-title').textContent = 'Thêm Kịch Bản Mẫu Mới';
 
         this.updateIndustrySelectOptions();
         modal.classList.remove('hidden');
@@ -698,10 +895,6 @@ class CallbotHub {
         document.getElementById('cb-tpl-industry').value = tpl.industry || '';
         document.getElementById('cb-tpl-url').value = tpl.scriptUrl || '';
         document.getElementById('cb-tpl-filename').value = tpl.scriptFileName || '';
-        document.getElementById('cb-tpl-voice').value = tpl.audioVoice || '';
-        document.getElementById('cb-tpl-duration').value = tpl.audioDuration || '';
-        document.getElementById('cb-tpl-audiosample').value = tpl.audioTextSample || '';
-        document.getElementById('cb-tpl-tips').value = (tpl.salesTips || []).join('\n');
 
         document.getElementById('cb-tpl-modal-title').textContent = 'Chỉnh Sửa Kịch Bản Mẫu';
         modal.classList.remove('hidden');
@@ -726,20 +919,19 @@ class CallbotHub {
         const industry = document.getElementById('cb-tpl-industry').value;
         const scriptUrl = document.getElementById('cb-tpl-url').value.trim();
         const scriptFileName = document.getElementById('cb-tpl-filename').value.trim();
-        const audioVoice = document.getElementById('cb-tpl-voice').value.trim();
-        const audioDuration = document.getElementById('cb-tpl-duration').value.trim();
-        const audioTextSample = document.getElementById('cb-tpl-audiosample').value.trim();
-        const tipsRaw = document.getElementById('cb-tpl-tips').value.trim();
 
-        if (!title || !scriptUrl) {
-            window.salesApp.showNotification('Vui lòng nhập tên kịch bản và liên kết Google Sheets/Excel!', 'warning');
+        if (!title) {
+            window.salesApp.showNotification('Vui lòng nhập tên kịch bản mẫu!', 'warning');
+            return;
+        }
+
+        if (!scriptUrl && !scriptFileName) {
+            window.salesApp.showNotification('Vui lòng điền link Google Sheets/Drive hoặc tên file Excel (hoặc cả hai)!', 'warning');
             return;
         }
 
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
         const targetInd = industries.find(i => i.id === industry);
-
-        const salesTips = tipsRaw ? tipsRaw.split('\n').map(t => t.trim()).filter(Boolean) : [];
 
         const tplData = {
             id: id || null,
@@ -748,12 +940,7 @@ class CallbotHub {
             industry,
             industryName: targetInd ? targetInd.name : 'Ngành khác',
             scriptUrl,
-            scriptFileName: scriptFileName || 'Kich_ban_mau.xlsx',
-            audioVoice: audioVoice || 'Nữ miền Nam',
-            audioDuration: audioDuration || '0:20',
-            audioTextSample,
-            salesTips,
-            keywordsCount: 'Kịch bản chuẩn',
+            scriptFileName: scriptFileName || (scriptUrl ? 'Kich_ban.xlsx' : ''),
             pinned: false
         };
 
@@ -768,10 +955,15 @@ class CallbotHub {
         if (!modal) return;
 
         const data = window.salesStore.getCallbotKeywords();
-        const ind = (data.industries || []).find(i => i.id === indId);
-        if (!ind) return;
+        let group = null;
 
-        const group = (ind.groups || []).find(g => g.id === groupId);
+        if (indId === 'common') {
+            group = (data.common || []).find(g => g.id === groupId);
+        } else {
+            const ind = (data.industries || []).find(i => i.id === indId);
+            if (ind) group = (ind.groups || []).find(g => g.id === groupId);
+        }
+
         if (!group) return;
 
         document.getElementById('cb-grp-ind-id').value = indId;
@@ -792,7 +984,7 @@ class CallbotHub {
         document.getElementById('cb-grp-form').reset();
         document.getElementById('cb-grp-ind-id').value = indId;
         document.getElementById('cb-grp-id').value = '';
-        document.getElementById('cb-grp-modal-title').textContent = 'Thêm Nhóm Từ Khóa Mới';
+        document.getElementById('cb-grp-modal-title').textContent = indId === 'common' ? 'Thêm Nhóm Từ Khóa Dùng Chung' : 'Thêm Nhóm Từ Khóa Mới';
 
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
@@ -812,26 +1004,45 @@ class CallbotHub {
         }
 
         const keywords = kwRaw.split(/[,;\n]+/).map(k => k.trim()).filter(Boolean);
-
         const data = window.salesStore.getCallbotKeywords();
-        const ind = (data.industries || []).find(i => i.id === indId);
-        if (!ind) return;
 
-        if (!ind.groups) ind.groups = [];
-
-        if (groupId) {
-            const idx = ind.groups.findIndex(g => g.id === groupId);
-            if (idx !== -1) {
-                ind.groups[idx] = { ...ind.groups[idx], name, description, keywords };
+        if (indId === 'common') {
+            if (!data.common) data.common = [];
+            if (groupId) {
+                const idx = data.common.findIndex(g => g.id === groupId);
+                if (idx !== -1) {
+                    data.common[idx] = { ...data.common[idx], name, description, keywords };
+                }
+            } else {
+                data.common.push({
+                    id: 'grp-cmn-' + Date.now(),
+                    name,
+                    icon: 'tag',
+                    color: 'indigo',
+                    description,
+                    keywords
+                });
             }
         } else {
-            ind.groups.push({
-                id: 'grp-' + Date.now(),
-                name,
-                icon: 'tag',
-                description,
-                keywords
-            });
+            const ind = (data.industries || []).find(i => i.id === indId);
+            if (!ind) return;
+
+            if (!ind.groups) ind.groups = [];
+
+            if (groupId) {
+                const idx = ind.groups.findIndex(g => g.id === groupId);
+                if (idx !== -1) {
+                    ind.groups[idx] = { ...ind.groups[idx], name, description, keywords };
+                }
+            } else {
+                ind.groups.push({
+                    id: 'grp-' + Date.now(),
+                    name,
+                    icon: 'tag',
+                    description,
+                    keywords
+                });
+            }
         }
 
         window.salesStore.saveCallbotKeywords(data);
@@ -866,13 +1077,19 @@ class CallbotHub {
         if (confirm('Khôi phục toàn bộ kho từ khóa và kịch bản mẫu về dữ liệu gốc chuẩn Palm River?')) {
             localStorage.removeItem('saleshub_callbot_keywords');
             localStorage.removeItem('saleshub_callbot_templates');
+            localStorage.removeItem('saleshub_callbot_media');
             const kw = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : window.DEFAULT_CALLBOT_KEYWORDS;
             const tpl = (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') ? DEFAULT_CALLBOT_TEMPLATES : window.DEFAULT_CALLBOT_TEMPLATES;
+            const med = (typeof DEFAULT_CALLBOT_MEDIA !== 'undefined') ? DEFAULT_CALLBOT_MEDIA : window.DEFAULT_CALLBOT_MEDIA;
+
             if (kw) window.salesStore.saveCallbotKeywords(kw);
             if (tpl) localStorage.setItem('saleshub_callbot_templates', JSON.stringify(tpl));
+            if (med) localStorage.setItem('saleshub_callbot_media', JSON.stringify(med));
+
             if (window.firebaseDb) {
                 if (kw) window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: kw }).catch(() => {});
                 if (tpl) tpl.forEach(t => window.firebaseDb.collection('callbot_templates').doc(t.id).set(t).catch(() => {}));
+                if (med) med.forEach(m => window.firebaseDb.collection('callbot_media').doc(m.id).set(m).catch(() => {}));
             }
             this.selectedIndustry = 'ind-bds';
             this.render();

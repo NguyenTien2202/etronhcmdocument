@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
     DOCUMENT_CATEGORIES: 'saleshub_document_categories',
     CALLBOT_KEYWORDS: 'saleshub_callbot_keywords',
     CALLBOT_TEMPLATES: 'saleshub_callbot_templates',
+    CALLBOT_MEDIA: 'saleshub_callbot_media',
     QUOTES: 'saleshub_quotes',
     CUSTOMERS: 'saleshub_customers',
     INITIALIZED: 'saleshub_etron_salekit_v2026_pricing_v9'
@@ -1003,6 +1004,60 @@ class SalesStore {
         }
     }
 
+    // ==========================================
+    // Quản lý Thư Viện Media (Audio & Video)
+    // ==========================================
+    getCallbotMedia() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_MEDIA);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+
+        const def = (typeof DEFAULT_CALLBOT_MEDIA !== 'undefined') ? DEFAULT_CALLBOT_MEDIA : (window.DEFAULT_CALLBOT_MEDIA || []);
+        if (def && def.length > 0) {
+            localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(def));
+            return def;
+        }
+        return [];
+    }
+
+    saveCallbotMedia(media) {
+        const list = this.getCallbotMedia();
+        let target = null;
+        if (media.id) {
+            const idx = list.findIndex(m => m.id === media.id);
+            if (idx !== -1) {
+                target = { ...list[idx], ...media, updatedAt: new Date().toISOString().split('T')[0] };
+                list[idx] = target;
+            } else {
+                target = { ...media, updatedAt: new Date().toISOString().split('T')[0] };
+                list.unshift(target);
+            }
+        } else {
+            target = { ...media, id: 'cb-med-' + Date.now(), updatedAt: new Date().toISOString().split('T')[0] };
+            list.unshift(target);
+        }
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(list));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('callbot_media').doc(target.id).set(target)
+                .catch(err => console.warn('Lỗi ghi media Firestore:', err));
+        }
+        return target;
+    }
+
+    deleteCallbotMedia(mediaId) {
+        let list = this.getCallbotMedia();
+        list = list.filter(m => m.id !== mediaId);
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(list));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('callbot_media').doc(mediaId).delete()
+                .catch(err => console.warn('Lỗi xóa media Firestore:', err));
+        }
+    }
+
     setupCloudSync() {
         if (!window.firebaseDb) return;
 
@@ -1100,9 +1155,26 @@ class SalesStore {
                     const cloudTpls = [];
                     snapshot.forEach(docSnap => cloudTpls.push({ id: docSnap.id, ...docSnap.data() }));
                     localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(cloudTpls));
-                    if (window.callbotHub) window.callbotHub.render();
+                    if (window.callbotHub && window.callbotHub.activeSubTab === 'templates') window.callbotHub.render();
                 }
             }, (err) => console.warn('Lỗi đồng bộ kịch bản Firestore:', err));
+
+            // 5. Đồng bộ Thư Viện Media Callbot Real-time
+            window.firebaseDb.collection('callbot_media').onSnapshot((snapshot) => {
+                if (snapshot.empty) {
+                    const initialMedia = this.getCallbotMedia();
+                    initialMedia.forEach(m => {
+                        window.firebaseDb.collection('callbot_media').doc(m.id).set(m).catch(() => {});
+                    });
+                } else {
+                    const cloudMedia = [];
+                    snapshot.forEach(docSnap => cloudMedia.push({ id: docSnap.id, ...docSnap.data() }));
+                    localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(cloudMedia));
+                    if (window.callbotHub && window.callbotHub.activeSubTab === 'media') {
+                        window.callbotHub.renderMedia();
+                    }
+                }
+            }, (err) => console.warn('Lỗi đồng bộ media Firestore:', err));
 
         } catch (err) {
             console.warn('Lỗi thiết lập lắng nghe Firestore:', err);
