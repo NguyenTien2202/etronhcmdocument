@@ -1,0 +1,374 @@
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary: #4338ca;
+    --primary-light: #e0e7ff;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(135deg, #edf5ff 0%, #ffffff 45%, #e1effe 100%) fixed;
+    min-height: 100vh;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ======================================================== */
+/* A4 Sheet Dimensions & Typography: Times New Roman & Black */
+/* ======================================================== */
+.a4-sheet {
+    width: 210mm;
+    min-height: 297mm;
+    height: auto !important;
+    max-height: none !important;
+    padding: 12mm 16mm;
+    margin: 0 auto;
+    background: #ffffff !important;
+    box-sizing: border-box;
+    position: relative;
+    font-family: 'Times New Roman', Times, serif !important;
+    color: #000000 !important;
+    line-height: 1.3;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+    overflow: visible !important;
+}
+
+.a4-page {
+    page-break-after: auto;
+    break-after: auto;
+}
+
+.a4-page:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+#a4-quotation-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: flex-start;   /* không bị kéo giãn/ép theo chiều cao khung cuộn */
+    flex-shrink: 0;
+    height: auto;
+    gap: 28px;
+    padding-bottom: 40px;
+    transition: transform 0.2s ease;
+}
+
+#a4-quotation-preview .a4-sheet {
+    flex-shrink: 0;           /* giấy trắng luôn cao theo nội dung, không bị ép về 297mm */
+}
+
+/* Viền bảng: đen, mảnh 1px (= 0.75pt) */
+.a4-sheet table {
+    border-collapse: collapse !important;
+    border: none !important; /* viền ngoài do các ô tự tạo, tránh khung trống khi ngắt trang PDF */
+    width: 100% !important;
+    font-family: 'Times New Roman', Times, serif !important;
+}
+
+.a4-sheet th, 
+.a4-sheet td {
+    border: 1px solid #000000 !important;
+    color: #000000 !important;
+    font-family: 'Times New Roman', Times, serif !important;
+}
+
+.a4-sheet hr,
+.a4-sheet .divider-black {
+    display: none !important;
+}
+
+/* Floating Dock & Drawer animations */
+#floating-preview-dock {
+    animation: slideUpDock 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 12px 35px -5px rgba(30, 58, 138, 0.18), 0 0 0 1px rgba(191, 219, 254, 0.8);
+}
+
+@keyframes slideUpDock {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Dedicated Print & html2pdf Element */
+#quotation-print-sheet {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 210mm;
+    background: #ffffff;
+    z-index: -9999;
+    pointer-events: none;
+    opacity: 1;
+    visibility: visible;
+}
+
+#quotation-print-sheet .a4-sheet {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 12mm 16mm !important;
+    margin: 0 auto 24px auto !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+    font-family: 'Times New Roman', Times, serif !important;
+}
+
+/* HTML2PDF export container styles */
+.html2pdf__container {
+    background: #ffffff !important;
+    width: 210mm !important;
+    box-sizing: border-box !important;
+}
+
+.html2pdf__container .a4-sheet {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    height: auto !important;
+    max-height: none !important;
+    margin: 0 auto !important;
+    padding: 10mm 15mm !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+}
+
+/* ======================================================== */
+/* Print Stylesheet (Khổ A4 chuẩn, Hỗ trợ đa trang)        */
+/* ======================================================== */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 0;
+    }
+
+    html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 210mm !important;
+        height: auto !important;
+        overflow: visible !important;
+        font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    /* Ẩn toàn bộ giao diện điều khiển */
+    header,
+    nav,
+    aside,
+    footer,
+    #sidebar,
+    #top-nav,
+    .no-print,
+    button,
+    #toast-container,
+    .tab-view,
+    #qb-form-container,
+    #floating-preview-dock,
+    #a4-preview-drawer,
+    .modal-backdrop,
+    [role="dialog"] {
+        display: none !important;
+    }
+
+    /* CHỈ HIỂN THỊ DUY NHẤT BẢNG BÁO GIÁ IN CHUẨN A4 */
+    #quotation-print-sheet {
+        position: static !important;
+        left: auto !important;
+        top: auto !important;
+        width: 210mm !important;
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        z-index: auto !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        display: block !important;
+        pointer-events: auto !important;
+        overflow: visible !important;
+    }
+
+    #quotation-print-sheet .a4-sheet {
+        width: 210mm !important;
+        min-height: 297mm !important;
+        height: auto !important;
+        max-height: none !important;
+        padding: 12mm 16mm !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        transform: none !important;
+        overflow: visible !important;
+        page-break-after: auto !important;
+        break-after: auto !important;
+        font-family: 'Times New Roman', Times, serif !important;
+    }
+
+    #quotation-print-sheet .a4-sheet:last-child {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    /* Tránh ngắt trang giữa chừng các dòng bảng, đề mục và chữ ký */
+    tr,
+    thead,
+    tfoot,
+    li,
+    .break-inside-avoid,
+    .signature-section {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Đảm bảo giữ màu nền khi in */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+
+/* Bỏ viền đen (focus ring) nhấp nháy khi bấm qua lại các nút */
+button, a, [role="button"] { -webkit-tap-highlight-color: transparent; }
+button:focus, button:focus-visible, button:active,
+a:focus, a:focus-visible { outline: none !important; }
+[data-tab-target], #drawer-zoom-buttons button {
+    transition-property: color, background-color !important;
+}
+
+/* Ô số Thời hạn / Số lượng: ẩn mũi tên mặc định của trình duyệt, dùng mũi tên riêng */
+.qb-stepper-input { -moz-appearance: textfield; appearance: textfield; }
+.qb-stepper-input::-webkit-outer-spin-button,
+.qb-stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* ================= ĐIỆN THOẠI (≤ 767px) ================= */
+.qb-zoom-fit { display: none; }
+
+@media (max-width: 767px) {
+    /* Thẻ (card) gọn hơn */
+    main .p-6 { padding: 16px !important; }
+    main { padding-bottom: 110px !important; }
+
+    /* ----- Bảng hạng mục -> dạng thẻ từng dòng ----- */
+    .qb-items-wrap { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; overflow: visible !important; }
+    .qb-items-table, .qb-items-table tbody, .qb-items-table tr, .qb-items-table td { display: block; width: auto !important; }
+    .qb-items-table thead { display: none; }
+    .qb-items-table td { padding: 0 !important; }
+    .qb-items-table tr.qb-row-main {
+        display: grid;
+        grid-template-columns: 22px 1fr 1fr 32px;
+        grid-template-areas:
+            "stt name name del"
+            "price price amt amt"
+            "dur dur qty qty";
+        gap: 10px 10px;
+        align-items: center;
+        padding: 14px 0 10px;
+        border-top: 1px solid #e2e8f0;
+    }
+    .qb-items-table tr.qb-row-main:first-child { border-top: none; }
+    .qb-items-table .qb-c-stt { grid-area: stt; text-align: left !important; }
+    .qb-items-table .qb-c-name { grid-area: name; }
+    .qb-items-table .qb-c-del { grid-area: del; }
+    .qb-items-table .qb-c-price { grid-area: price; align-self: start; }
+    .qb-items-table .qb-c-amt { grid-area: amt; align-self: start; text-align: right !important; }
+    .qb-items-table .qb-c-dur { grid-area: dur; align-self: start; }
+    .qb-items-table .qb-c-qty { grid-area: qty; align-self: start; }
+    .qb-items-table td[data-label]::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .03em;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+    .qb-items-table .qb-c-dur > div { align-items: flex-start !important; }
+    .qb-items-table .qb-c-dur > div > div { justify-content: flex-start !important; }
+    .qb-items-table .qb-c-amt .line-amount { display: inline-block; padding-top: 8px; font-size: 15px; }
+    .qb-items-table tr:not(.qb-row-main) > td { padding: 0 0 12px !important; }
+
+    /* ----- Thanh tổng tiền dưới đáy: trải ngang màn hình ----- */
+    #floating-preview-dock {
+        left: 8px !important; right: 8px !important; bottom: 8px !important;
+        padding: 8px 10px !important; gap: 8px !important;
+        justify-content: space-between;
+        border-radius: 16px;
+    }
+    #floating-preview-dock > div:first-child > div:first-child,
+    #floating-preview-dock #dock-quote-num { display: none !important; }
+    #floating-preview-dock #dock-cust-name { max-width: 130px !important; }
+    #floating-preview-dock div:has(> #dock-grand-total) > span:first-child { display: none; }
+    #floating-preview-dock button { padding: 9px 11px !important; white-space: nowrap; }
+
+    /* ----- Xem trước A4: toàn màn hình, tự vừa chiều ngang ----- */
+    #a4-preview-drawer { padding: 0 !important; }
+    #a4-preview-drawer > div { max-height: 100% !important; height: 100%; border-radius: 0 !important; }
+    #a4-preview-drawer > div > div:first-child { padding: 10px 12px !important; gap: 8px; }
+    #a4-preview-drawer > div > div:first-child > div:first-child > div:first-child,
+    #a4-preview-drawer > div > div:first-child p { display: none; }
+    #drawer-preview-title { max-width: 34vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #drawer-zoom-buttons { margin-right: 0 !important; }
+    #drawer-zoom-buttons [data-zoom="0.85"], #drawer-zoom-buttons [data-zoom="1.15"] { display: none; }
+    #drawer-zoom-buttons .qb-zoom-fit { display: inline-block; }
+    #a4-preview-drawer button[title] span:not(.pdf-spinner) { display: none; }
+    #preview-wrapper { padding: 10px !important; justify-content: safe center; overflow-x: auto; }
+}
+@media (max-width: 767px) {
+    .qb-cb-opts > div { flex-wrap: wrap; width: 100%; }
+    .qb-cb-opts > div > span { white-space: nowrap; }
+    .qb-cb-opts > div > div { display: flex; width: 100%; }
+    .qb-cb-opts > div > div > button { flex: 1 1 auto; }
+    .qb-cb-opts select { width: 100%; min-width: 0; }
+    .qb-cb-quota { flex-wrap: wrap; align-items: flex-start !important; }
+    .qb-cb-quota > span:first-child { white-space: nowrap; }
+}
+/* Nút Tải PDF đang xử lý */
+.pdf-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation: pdfspin .8s linear infinite; vertical-align:middle; }
+.pdf-busy-text { margin-left:6px; }
+@keyframes pdfspin { to { transform: rotate(360deg); } }
+@media (max-width: 767px) { #a4-preview-drawer button[title] .pdf-busy-text { display:none; } }
+/* Ô đổi đơn vị (dòng tự nhập): trông như chữ thường, có gạch chân mờ */
+.qb-unit-input {
+    border: 0; border-bottom: 1px dashed #94a3b8; border-radius: 0;
+    background: transparent; padding: 2px 0; min-width: 4ch; max-width: 10ch;
+    font-size: 12px; line-height: 1.2; color: #475569; cursor: pointer; outline: none; box-shadow: none;
+}
+.qb-unit-input:hover { border-bottom-color: #3b82f6; color: #1e3a8a; }
+.qb-unit-input:focus { border-bottom: 1px solid #3b82f6; color: #0f172a; cursor: text; box-shadow: none; }
+.qb-unit-input::placeholder { color: #94a3b8; }
+.qb-unit-input::-webkit-calendar-picker-indicator { display: none !important; opacity: 0; }
+@media (max-width: 767px) { .qb-unit-input { font-size: 14px; max-width: 12ch; } }

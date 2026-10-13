@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etron SalesHub - Báo Giá & Quản Lý Tài Liệu Bán Hàng</title>
+    <!-- Tailwind CSS (Offline & Online) -->
+    <script src="js/tailwindcss.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons (Local) -->
+    <script src="js/lucide.min.js"></script>
+    <!-- html2pdf.js (Local) -->
+    <script src="js/html2pdf.bundle.min.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css?v=20261013_v32">
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-blue-100 shadow-sm sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-2.5">
+                <!-- Brand Logo & Title (Logo tròn 3D ETRON SALE HCM kèm tên hệ thống và chú thích) -->
+                <div class="flex items-center gap-3">
+                    <img src="assets/logo.png" alt="ETRON SALE HCM" class="h-11 w-11 rounded-full object-cover shadow-sm shrink-0 ring-1 ring-slate-200">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight">Etron SalesHub</span>
+                            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">ETRON HCM</span>
+                        </div>
+                        <p class="text-xs text-slate-500 hidden sm:block">Hệ thống lập báo giá Callbot AI & Quản lý tài liệu Sales</p>
+                    </div>
+                </div>
+
+                <!-- Main Navigation Tabs -->
+                <nav id="main-nav-tabs" class="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200">
+                    <button data-tab-target="quote-builder" 
+                        class="px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 nav-active text-indigo-600 bg-white shadow-sm focus:outline-none">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>Tạo Báo Giá</span>
+                    </button>
+                    <button data-tab-target="documents" 
+                        class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 focus:outline-none">
+                        <i data-lucide="folder" class="w-4 h-4"></i>
+                        <span>Kho Tài Liệu</span>
+                    </button>
+                    <button data-tab-target="settings" 
+                        class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 focus:outline-none">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span>Cài Đặt</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Mobile Navigation Tabs -->
+            <div class="flex md:hidden overflow-x-auto py-2 gap-1 border-t border-slate-100">
+                <button data-tab-target="quote-builder" class="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-white shadow-sm whitespace-nowrap focus:outline-none">Báo Giá</button>
+                <button data-tab-target="documents" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Tài Liệu</button>
+                <button data-tab-target="settings" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Cài Đặt</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: TẠO BÁO GIÁ (QUOTE BUILDER)       -->
+        <!-- ========================================== -->
+        <!-- VIEW 1: TẠO BÁO GIÁ (QUOTE BUILDER)       -->
+        <!-- ========================================== -->
+        <div id="view-quote-builder" class="tab-view">
+            <!-- Gợi ý giải pháp bán hàng phổ biến Etron Salekit (Callbot AI, CRM, Tổng Đài) -->
+            <div class="bg-white/95 backdrop-blur-md border border-blue-200/80 rounded-2xl p-4 shadow-sm no-print mb-6 space-y-3">
+                <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-100 pb-2.5">
+                    <div class="flex items-center gap-2">
+                        <span class="flex h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+                        <span class="text-xs font-extrabold text-blue-950 uppercase tracking-wider">2 Nhóm Sản Phẩm Bán Phổ Biến (Nạp 1-Click):</span>
+                        <span class="text-[11px] text-slate-500 hidden md:inline">Tự động cấu hình chuẩn theo bảng giá và điều khoản Etron</span>
+                    </div>
+                    <button type="button" onclick="window.quoteBuilder.resetToBlankQuote()"
+                        class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs"
+                        title="Xóa trắng toàn bộ thông tin hoặc làm mới báo giá">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Làm mới / Xóa toàn bộ</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- Nhóm 1: Callbot AI UCALL -->
+                    <div class="bg-amber-50/40 border border-amber-200/70 rounded-xl p-2.5 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                                <i data-lucide="bot" class="w-4 h-4 text-amber-600"></i>
+                                Gói Callbot AI UCALL
+                            </span>
+                            <span class="text-[10px] font-semibold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded">3 phiên bản bot</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('cb2')"
+                                class="px-2 py-1.5 bg-white hover:bg-amber-100/70 text-amber-950 border border-amber-200/80 rounded-lg text-xs font-semibold flex items-center justify-between transition-all hover:scale-[1.02] shadow-2xs">
+                                <span>CB2 (45N)</span>
+                                <span class="font-extrabold text-amber-900 text-[11px]">2Tr</span>
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('cb5')"
+                                class="px-2 py-1.5 bg-white hover:bg-amber-100/70 text-amber-950 border border-amber-200/80 rounded-lg text-xs font-semibold flex items-center justify-between transition-all hover:scale-[1.02] shadow-2xs">
+                                <span>CB5 (3T)</span>
+                                <span class="font-extrabold text-amber-900 text-[11px]">5Tr</span>
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('cb20')"
+                                class="px-2 py-1.5 bg-white hover:bg-amber-100/70 text-amber-950 border border-amber-200/80 rounded-lg text-xs font-semibold flex items-center justify-between transition-all hover:scale-[1.02] shadow-2xs">
+                                <span>CB20 (6T)</span>
+                                <span class="font-extrabold text-amber-900 text-[11px]">20Tr</span>
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('cb50')"
+                                class="px-2 py-1.5 bg-white hover:bg-amber-100/70 text-amber-950 border border-amber-200/80 rounded-lg text-xs font-semibold flex items-center justify-between transition-all hover:scale-[1.02] shadow-2xs">
+                                <span>CB50 (6T)</span>
+                                <span class="font-extrabold text-amber-900 text-[11px]">50Tr</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Nhóm 2: Phần mềm Adahub CRM -->
+                    <div class="bg-blue-50/40 border border-blue-200/70 rounded-xl p-2.5 flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-blue-950 flex items-center gap-1.5">
+                                <i data-lucide="layout-grid" class="w-4 h-4 text-blue-600"></i>
+                                Phần Mềm Adahub CRM
+                            </span>
+                            <span class="text-[10px] font-semibold text-blue-800 bg-blue-100/80 px-1.5 py-0.5 rounded">Gói 1 năm</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('crm-td')"
+                                class="px-1.5 py-1.5 bg-white hover:bg-blue-100/70 text-blue-950 border border-blue-200/80 rounded-lg text-xs font-semibold flex flex-col items-center justify-center transition-all hover:scale-[1.02] shadow-2xs text-center"
+                                title="Gói CRM Tổng Đài (40k/user/tháng)">
+                                <span class="text-[11px] truncate w-full">Tổng Đài</span>
+                                <span class="font-extrabold text-blue-900 text-[11px]">40k/th</span>
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('crm-std')"
+                                class="px-1.5 py-1.5 bg-white hover:bg-blue-100/70 text-blue-950 border border-blue-200/80 rounded-lg text-xs font-semibold flex flex-col items-center justify-center transition-all hover:scale-[1.02] shadow-2xs text-center"
+                                title="Gói CRM Standard (80k/user/tháng)">
+                                <span class="text-[11px] truncate w-full">Standard</span>
+                                <span class="font-extrabold text-blue-900 text-[11px]">80k/th</span>
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.loadPreset('crm-adv')"
+                                class="px-1.5 py-1.5 bg-white hover:bg-blue-100/70 text-blue-950 border border-blue-200/80 rounded-lg text-xs font-semibold flex flex-col items-center justify-center transition-all hover:scale-[1.02] shadow-2xs text-center"
+                                title="Gói CRM Advanced (150k/user/tháng)">
+                                <span class="text-[11px] truncate w-full">Advanced</span>
+                                <span class="font-extrabold text-blue-900 text-[11px]">150k/th</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spacious Form Layout -->
+            <div id="qb-form-container" class="max-w-5xl mx-auto space-y-6 no-print pb-28">
+
+                <!-- Card 1: Thông tin báo giá -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+                            1. Thông Tin Báo Giá
+                        </h2>
+                        <button type="button" onclick="window.quoteBuilder.clearCustomerInfo()"
+                            class="text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-rose-200 flex items-center gap-1.5 transition-colors"
+                            title="Xóa nhanh thông tin khách hàng">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            <span>Xóa thông tin</span>
+                        </button>
+                    </div>
+
+                    <!-- Hàng 1: Ngày lập, Hạn hiệu lực -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Ngày Lập</label>
+                            <input type="date" id="qb-date" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Hạn Hiệu Lực (Mặc định cuối tháng)</label>
+                            <input type="date" id="qb-validUntil" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        </div>
+                    </div>
+
+                    <!-- Hàng 2: Tên khách hàng & Đại diện -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tên Cá Nhân / Công Ty Khách Hàng (Mục Kính Gửi)</label>
+                            <input type="text" id="qb-custCompany" placeholder="VD: CÔNG TY CỔ PHẦN ABC..." class="w-full text-xs font-bold p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-600 mb-1">Người Nhận / Người Đại Diện</label>
+                            <input type="text" id="qb-custContact" placeholder="VD: Anh/Chị Nguyễn Văn A..." class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Danh sách sản phẩm trong báo giá -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <h2 class="text-xs font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-2">
+                            <i data-lucide="shopping-cart" class="w-4 h-4 text-blue-600"></i>
+                            2. Chi Tiết Hạng Mục / Gói Cước
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="window.productCatalog.openPickerModal()"
+                                class="text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                Chọn từ danh mục
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.addCustomItem()"
+                                class="text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                Thêm dòng
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.clearAllItems()"
+                                class="text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1 transition-colors"
+                                title="Xóa toàn bộ dòng sản phẩm">
+                                <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                                <span>Xóa hết dòng</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Table of items -->
+                    <div class="qb-items-wrap overflow-x-auto -mx-6 px-6">
+                        <table class="qb-items-table w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase bg-slate-50">
+                                    <th class="py-2.5 px-2 text-center w-10">STT</th>
+                                    <th class="py-2.5 px-3">Hạng mục</th>
+                                    <th class="py-2.5 px-2 text-right w-32">Đơn Giá</th>
+                                    <th class="py-2.5 px-2 text-center w-40">Thời Hạn</th>
+                                    <th class="py-2.5 px-2 text-center w-36">Số Lượng</th>
+                                    <th class="py-2.5 px-3 text-right w-36">Thành Tiền</th>
+                                    <th class="py-2.5 px-2 text-center w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="qb-items-table-body">
+                                <!-- Rendered dynamically by quote-builder.js -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Summary & VAT calculation -->
+                    <div class="mt-6 pt-5 border-t border-slate-200 flex flex-col items-end gap-3 text-xs">
+                        <div class="flex items-center justify-between w-full max-w-sm">
+                            <span class="text-slate-600 font-medium">Cộng (chưa VAT):</span>
+                            <span id="qb-display-subtotal" class="font-bold text-slate-900 text-sm">0 ₫</span>
+                        </div>
+
+                        <div class="flex items-center justify-between w-full max-w-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-600 font-medium">Chiết khấu (%):</span>
+                                <input type="number" id="qb-overallDiscount" min="0" max="100" value="0" class="w-16 p-1 text-center font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
+                            </div>
+                            <span id="qb-display-discount" class="font-bold text-amber-800 text-sm">0 ₫</span>
+                        </div>
+
+                        <div class="flex items-center justify-between w-full max-w-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-slate-600 font-medium">Thuế GTGT (VAT):</span>
+                                <select id="qb-vatRate" class="p-1 font-semibold text-slate-700 border border-slate-200 rounded-lg bg-white text-xs">
+                                    <option value="0">0% (Không thuế)</option>
+                                    <option value="5">5%</option>
+                                    <option value="8" selected>8% (Mặc định Etron)</option>
+                                    <option value="10">10%</option>
+                                </select>
+                            </div>
+                            <span id="qb-display-vat" class="font-bold text-slate-900 text-sm">0 ₫</span>
+                        </div>
+
+                        <!-- Đầu số & Cước viễn thông trả trước (đã gồm VAT 10%) -->
+                        <div id="qb-display-telecom-row" class="flex items-center justify-between w-full max-w-sm hidden">
+                            <span class="text-slate-600 font-medium">Đầu số & Cước viễn thông (đã gồm VAT 10%):</span>
+                            <span id="qb-display-telecom" class="font-bold text-slate-900 text-sm">0 ₫</span>
+                        </div>
+
+                        <div class="flex items-center justify-between w-full max-w-sm pt-3 border-t border-slate-200">
+                            <span class="text-blue-950 font-extrabold uppercase text-xs">TỔNG THANH TOÁN:</span>
+                            <span id="qb-display-grandtotal" class="font-black text-rose-700 text-lg">0 ₫</span>
+                        </div>
+
+                        <div class="w-full text-right text-slate-500 italic text-[11px] mt-1">
+                            <b>Bằng chữ:</b> <span id="qb-display-inwords" class="font-semibold text-slate-800">Không đồng chẵn.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Chi tiết gói & Điều khoản thương mại -->
+                <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                    <h2 class="text-xs font-extrabold uppercase tracking-wider text-blue-900 mb-4 flex items-center gap-2">
+                        <i data-lucide="file-check" class="w-4 h-4 text-blue-600"></i>
+                        3. Chi Tiết Gói & Điều Khoản Thương Mại
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                Chi tiết gói (Mỗi dòng một gạch đầu dòng - Hiển thị ngay dưới bảng báo giá):
+                            </label>
+                            <textarea id="qb-packageDetails" rows="3" placeholder="VD: Callbot CB5 (Advanced): 260₫/block 6 giây (đã chiết khấu 10₫ so với giá gốc 270₫), 19.230 block, thời hạn 3 tháng. Tặng 1 kịch bản, 1 ghi âm, 1 tài khoản CRM." class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 leading-relaxed font-sans bg-white"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-700 mb-1">
+                                Ghi chú & Điều khoản (Mỗi dòng là một gạch đầu dòng):
+                            </label>
+                            <textarea id="qb-terms" rows="4" class="w-full text-xs p-3 border border-slate-200 rounded-xl focus:ring-1 focus:ring-blue-500 focus:border-blue-500 leading-relaxed font-sans bg-white"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Mini Preview Dock (Góc dưới bên phải màn hình) -->
+            <div id="floating-preview-dock" class="fixed bottom-6 right-6 z-40 bg-white/95 backdrop-blur-md border border-blue-200/90 shadow-2xl rounded-2xl p-3 sm:px-5 sm:py-3.5 flex items-center gap-3 sm:gap-5 no-print transition-all hover:shadow-indigo-200/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-200 shrink-0">
+                        <i data-lucide="receipt" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="dock-quote-num" class="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">BÁO GIÁ</span>
+                            <span id="dock-cust-name" class="text-xs font-bold text-slate-800 truncate max-w-[140px] sm:max-w-[200px]">Khách hàng mới</span>
+                        </div>
+                        <div class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                            <span>Tổng thanh toán:</span>
+                            <span id="dock-grand-total" class="font-black text-rose-700 text-sm sm:text-base">0 ₫</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-8 w-px bg-slate-200 hidden sm:block"></div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button type="button" onclick="window.quoteBuilder.openDrawerPreview()"
+                        class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-200 flex items-center gap-1.5 transition-all hover:scale-105">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                        <span>Xem Trước A4</span>
+                    </button>
+                    <button type="button" onclick="window.pdfExporter.downloadPdf()"
+                        class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all" title="Tải PDF">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Tải PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Slide-over / Modal Drawer: A4 Live Preview -->
+            <div id="a4-preview-drawer" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center p-2 sm:p-4 hidden print:static print:p-0 print:bg-transparent print:z-auto print:block">
+                <div class="bg-slate-100 rounded-3xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-slate-200 print:border-none print:shadow-none print:max-h-none print:bg-white print:w-full print:rounded-none">
+                    <!-- Drawer Header (no-print) -->
+                    <div class="px-6 py-3.5 bg-white border-b border-slate-200 flex items-center justify-between no-print">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 id="drawer-preview-title" class="text-sm font-extrabold text-slate-900">Xem trước báo giá</h3>
+                                <p class="text-[11px] text-slate-500">Mẫu chuẩn Etron</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <!-- Zoom Scale Buttons -->
+                            <div id="drawer-zoom-buttons" class="flex items-center bg-slate-100 rounded-xl p-0.5 border border-slate-200 mr-2 text-xs">
+                                <button type="button" data-zoom="fit" onclick="window.quoteBuilder.setPreviewScale('fit')" class="qb-zoom-fit px-2.5 py-1 text-slate-600 hover:text-slate-900 rounded-lg transition-all focus:outline-none">Vừa</button>
+                                <button type="button" data-zoom="0.85" onclick="window.quoteBuilder.setPreviewScale(0.85)" class="px-2.5 py-1 text-slate-600 hover:text-slate-900 rounded-lg transition-all focus:outline-none">85%</button>
+                                <button type="button" data-zoom="1" onclick="window.quoteBuilder.setPreviewScale(1)" class="px-2.5 py-1 text-slate-900 font-bold bg-white rounded-lg shadow-sm transition-all focus:outline-none">100%</button>
+                                <button type="button" data-zoom="1.15" onclick="window.quoteBuilder.setPreviewScale(1.15)" class="px-2.5 py-1 text-slate-600 hover:text-slate-900 rounded-lg transition-all focus:outline-none">115%</button>
+                            </div>
+
+                            <button type="button" onclick="window.pdfExporter.downloadPdf()"
+                                class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all" title="Tải file PDF trực tiếp">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>Tải PDF</span>
+                            </button>
+                            <button type="button" onclick="window.quoteBuilder.closeDrawerPreview()"
+                                class="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 ml-1 transition-colors">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Paper Area -->
+                    <div id="preview-wrapper" class="overflow-y-auto p-4 sm:p-8 flex-1 flex justify-center bg-slate-200/80 print:p-0 print:bg-white print:overflow-visible">
+                        <div id="a4-quotation-preview">
+                            <!-- Rendered dynamically by quote-builder.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: KHO TÀI LIỆU SALES (DOCUMENTS)     -->
+        <!-- ========================================== -->
+        <div id="view-documents" class="tab-view hidden">
+            <!-- Header bar -->
+            <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="folder-git-2" class="w-5 h-5 text-indigo-600"></i>
+                        Kho Tài Liệu Bán Hàng (Sales Hub)
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-1">Lưu trữ chính sách, brochure, catalogue, hợp đồng mẫu và tài liệu đào tạo cho đội ngũ kinh doanh.</p>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="document.getElementById('document-add-modal').classList.remove('hidden')"
+                        class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 flex items-center gap-2 transition-all">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Thêm Tài Liệu Mới</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filter & Search Bar -->
+            <div class="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-slate-200 space-y-3">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                    <input type="text" id="doc-search-input" 
+                        oninput="window.documentHub.setSearchQuery(this.value)"
+                        placeholder="Tìm kiếm tài liệu theo tên, từ khóa tag hoặc nội dung..."
+                        class="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+
+                <!-- Category Pills -->
+                <div id="doc-categories-container" class="flex flex-wrap items-center gap-2 pt-1">
+                    <!-- Rendered dynamically by document-hub.js -->
+                </div>
+            </div>
+
+            <!-- Documents Grid -->
+            <div id="documents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Rendered dynamically by document-hub.js -->
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW: LỊCH SỬ BÁO GIÁ (HISTORY)            -->
+        <!-- ========================================== -->
+        <div id="view-history" class="tab-view hidden">
+            <!-- Header bar -->
+            <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="archive" class="w-5 h-5 text-indigo-600"></i>
+                        Lịch Sử Báo Giá Đã Lập
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-1">Quản lý toàn bộ danh sách báo giá đã tạo, tải lại bản in, nhân bản làm mới hoặc theo dõi trạng thái.</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500">Số báo giá đã tạo</div>
+                        <div id="stat-quotes-count" class="text-lg font-extrabold text-slate-900">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                        <i data-lucide="circle-dollar-sign" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500">Tổng giá trị báo giá</div>
+                        <div id="stat-quotes-val" class="text-lg font-extrabold text-emerald-700">0 ₫</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+                        <i data-lucide="folder-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500">Tài liệu trong kho</div>
+                        <div id="stat-docs-count" class="text-lg font-extrabold text-slate-900">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Table -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase bg-slate-50/50">
+                            <th class="py-3 px-4">Số Báo Giá</th>
+                            <th class="py-3 px-4">Khách Hàng</th>
+                            <th class="py-3 px-4">Ngày Lập / Hạn</th>
+                            <th class="py-3 px-4 text-right">Tổng Tiền (VNĐ)</th>
+                            <th class="py-3 px-4 text-center">Trạng Thái</th>
+                            <th class="py-3 px-4">Chuyên Viên</th>
+                            <th class="py-3 px-4 text-right">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- Rendered dynamically by app.js -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: CÀI ĐẶT DOANH NGHIỆP (SETTINGS)    -->
+        <!-- ========================================== -->
+        <div id="view-settings" class="tab-view hidden">
+            <div class="max-w-4xl mx-auto bg-white rounded-2xl p-8 shadow-sm border border-slate-200">
+                <div class="border-b border-slate-200 pb-5 mb-6">
+                    <h1 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-5 h-5 text-indigo-600"></i>
+                        Cấu Hình Doanh Nghiệp & Mẫu Báo Giá
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-1">Thông tin này sẽ được tự động hiển thị trên tiêu đề và phần ký duyệt của mọi bảng báo giá xuất PDF.</p>
+                </div>
+
+                <form id="company-settings-form" onsubmit="window.salesApp.saveCompanySettings(event)" class="space-y-6">
+                    <!-- Logo Upload -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Logo Doanh Nghiệp (Logo Etron Solutions)</label>
+                        <div class="flex items-center gap-6">
+                            <div class="w-40 h-16 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 shadow-sm p-2">
+                                <img id="set-logo-preview" src="assets/logo_etron_new.png" alt="Logo Preview" class="max-h-12 w-auto object-contain">
+                            </div>
+                            <div>
+                                <label class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer shadow-sm inline-flex items-center gap-2">
+                                    <i data-lucide="image-plus" class="w-4 h-4 text-indigo-600"></i>
+                                    Chọn ảnh Logo (PNG/JPG)
+                                    <input type="file" accept="image/*" class="hidden" onchange="window.salesApp.handleLogoUpload(this.files[0])">
+                                </label>
+                                <p class="text-[11px] text-slate-400 mt-1">Logo Etron chữ ngang chuẩn nền trong suốt (PNG).</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Info -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Tên Đầy Đủ Của Doanh Nghiệp</label>
+                            <input type="text" id="set-comp-name" class="w-full text-xs font-bold p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Tên Giao Dịch Viết Tắt</label>
+                            <input type="text" id="set-comp-tradeName" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Mã Số Thuế (MST)</label>
+                            <input type="text" id="set-comp-taxCode" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Hotline / Số Điện Thoại</label>
+                            <input type="text" id="set-comp-phone" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Email Doanh Nghiệp</label>
+                            <input type="email" id="set-comp-email" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Địa Chỉ Trụ Sở</label>
+                            <input type="text" id="set-comp-address" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Website</label>
+                            <input type="text" id="set-comp-website" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <!-- Bank Account Info -->
+                    <div class="border-t border-slate-200 pt-5">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-4">Thông Tin Tài Khoản Ngân Hàng Nhận Thanh Toán</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="sm:col-span-3">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Tên Ngân Hàng & Chi Nhánh</label>
+                                <input type="text" id="set-comp-bankName" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Số Tài Khoản</label>
+                                <input type="text" id="set-comp-bankAccount" class="w-full text-xs font-mono font-bold p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Tên Chủ Tài Khoản (In hoa không dấu)</label>
+                                <input type="text" id="set-comp-bankAccountName" class="w-full text-xs font-semibold uppercase p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Signee Info -->
+                    <div class="border-t border-slate-200 pt-5">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-indigo-900 mb-4">Người Ký Đại Diện Công Ty</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Họ Tên Người Ký Duyệt</label>
+                                <input type="text" id="set-comp-directorName" class="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Chức Danh / Vị Trí</label>
+                                <input type="text" id="set-comp-directorTitle" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Default Terms -->
+                    <div class="border-t border-slate-200 pt-5">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Điều Khoản Thương Mại Mặc Định</label>
+                        <textarea id="set-comp-terms" rows="4" class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 leading-relaxed"></textarea>
+                    </div>
+
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 flex items-center gap-2">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                            <span>Lưu Toàn Bộ Cấu Hình Doanh Nghiệp</span>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </main>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL 1: CHỌN SẢN PHẨM VÀO BÁO GIÁ         -->
+    <!-- ("Chỉ cần chọn là tự động điền")           -->
+    <!-- ========================================== -->
+    <div id="product-picker-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <!-- Modal Header -->
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                        Chọn Sản Phẩm / Dịch Vụ Vào Báo Giá
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Tích chọn sản phẩm để hệ thống tự động điền đầy đủ mã, tên, đơn giá và mô tả.</p>
+                </div>
+                <button onclick="window.productCatalog.closePickerModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Search box & Category Filter -->
+            <div class="p-4 bg-slate-50 border-b border-slate-200 space-y-3">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                    <input type="text" id="picker-search-input" 
+                        oninput="window.productCatalog.filterPicker(this.value)"
+                        placeholder="Gõ tên hoặc mã sản phẩm: CRM, CB5, Kịch bản, Tích hợp..."
+                        class="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl bg-white focus:ring-1 focus:ring-blue-500">
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                    <button type="button" data-picker-cat="all" onclick="window.productCatalog.filterPickerCategory('all')"
+                        class="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white shadow-sm shrink-0">
+                        Tất cả
+                    </button>
+                    <button type="button" data-picker-cat="Phần mềm CRM" onclick="window.productCatalog.filterPickerCategory('Phần mềm CRM')"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
+                        Phần mềm CRM
+                    </button>
+                    <button type="button" data-picker-cat="Callbot AI" onclick="window.productCatalog.filterPickerCategory('Callbot AI')"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
+                        Callbot AI
+                    </button>
+                    <button type="button" data-picker-cat="Đầu số" onclick="window.productCatalog.filterPickerCategory('Đầu số')"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
+                        Đầu số
+                    </button>
+                    <button type="button" data-picker-cat="Ví cước viễn thông" onclick="window.productCatalog.filterPickerCategory('Ví cước viễn thông')"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
+                        Ví cước viễn thông
+                    </button>
+                    <button type="button" data-picker-cat="Dịch vụ đi kèm" onclick="window.productCatalog.filterPickerCategory('Dịch vụ đi kèm')"
+                        class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 shrink-0">
+                        Dịch vụ đi kèm
+                    </button>
+                </div>
+            </div>
+
+            <!-- Products List -->
+            <div id="picker-items-container" class="p-4 overflow-y-auto flex-1 space-y-2">
+                <!-- Rendered dynamically by product-catalog.js -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-200 bg-white flex items-center justify-between">
+                <span class="text-xs text-slate-500">
+                    Đã chọn: <b id="picker-selected-count" class="text-indigo-600">0</b> sản phẩm
+                </span>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.productCatalog.closePickerModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl">
+                        Đóng
+                    </button>
+                    <button id="picker-confirm-btn" onclick="window.productCatalog.confirmPickerSelection()" disabled
+                        class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 flex items-center gap-2 opacity-50">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Thêm Vào Báo Giá</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+    <!-- ========================================== -->
+    <!-- MODAL 3: THÊM TÀI LIỆU SALES MỚI           -->
+    <!-- ========================================== -->
+    <div id="document-add-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 overflow-hidden">
+            <div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-3">
+                <h3 class="text-sm font-bold text-slate-900">Thêm Tài Liệu Mới Vào Kho</h3>
+                <button onclick="document.getElementById('document-add-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="
+                event.preventDefault();
+                const title = document.getElementById('new-doc-title').value.trim();
+                const category = document.getElementById('new-doc-category').value;
+                const fileUrl = document.getElementById('new-doc-url').value.trim();
+                const desc = document.getElementById('new-doc-desc').value.trim();
+                const tagsStr = document.getElementById('new-doc-tags').value.trim();
+                const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+                if(!title || !fileUrl) {
+                    alert('Vui lòng điền đầy đủ tiêu đề và liên kết tài liệu!');
+                    return;
+                }
+
+                window.documentHub.saveNewDocument({
+                    title, category, fileUrl, description: desc, tags,
+                    type: 'link', fileType: 'pdf'
+                });
+                document.getElementById('document-add-modal').classList.add('hidden');
+                this.reset();
+            " class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tiêu Đề Tài Liệu</label>
+                    <input type="text" id="new-doc-title" required placeholder="VD: Bảng giá đại lý 2026, Brochure sản phẩm X..." class="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-lg">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Phân Loại Danh Mục</label>
+                        <select id="new-doc-category" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-white">
+                            <option value="Báo giá & Mẫu biểu">Báo giá & Mẫu biểu</option>
+                            <option value="Bảng giá chính thức">Bảng giá PDF chính thức</option>
+                            <option value="Chính sách bán hàng">Chính sách bán hàng</option>
+                            <option value="Hỗ trợ & Chăm sóc khách hàng">Hỗ trợ & Chăm sóc khách hàng</option>
+                            <option value="Tài liệu đào tạo">Tài liệu đào tạo & Tổng hợp</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tags (Phân cách bởi dấu phẩy)</label>
+                        <input type="text" id="new-doc-tags" placeholder="Chiết khấu, 2026, Sales" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Đường Dẫn Tài Liệu (Google Drive / OneDrive / Dropbox / URL)</label>
+                    <input type="url" id="new-doc-url" required placeholder="https://drive.google.com/..." class="w-full text-xs p-2.5 border border-slate-200 rounded-lg font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Mô Tả Ngắn Về Tài Liệu</label>
+                    <textarea id="new-doc-desc" rows="3" placeholder="Tóm tắt nội dung tài liệu để sales dễ dàng nắm bắt..." class="w-full text-xs p-2 border border-slate-200 rounded-lg"></textarea>
+                </div>
+
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-200">
+                    <button type="button" onclick="document.getElementById('document-add-modal').classList.add('hidden')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm">Lưu Tài Liệu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DEDICATED PRINT & PDF EXPORT SHEET (Always rendered, offscreen on desktop, standard A4 in print) -->
+    <div id="quotation-print-sheet">
+        <!-- Rendered dynamically by quote-builder.js -->
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none no-print">
+        <!-- Toast items rendered here -->
+    </div>
+
+    <!-- Scripts in proper order -->
+    <script src="js/logo-data.js?v=20261013_v32"></script>
+    <script src="js/number-to-words.js?v=20261013_v32"></script>
+    <script src="js/store.js?v=20261013_v32"></script>
+    <script src="js/quote-builder.js?v=20261013_v32"></script>
+    <script src="js/document-hub.js?v=20261013_v32"></script>
+    <script src="js/product-catalog.js?v=20261013_v32"></script>
+    <script src="js/pdf-export.js?v=20261013_v32"></script>
+    <script src="js/app.js?v=20261013_v32"></script>
+</body>
+</html>

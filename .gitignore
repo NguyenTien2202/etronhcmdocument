@@ -1,0 +1,12 @@
+# OS & Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.tmp
+*~
+
+# Temporary test files
+_*.html
+_*.txt
+_*.png
+_*.ps1
