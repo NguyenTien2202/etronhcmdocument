@@ -9,6 +9,8 @@ const STORAGE_KEYS = {
     PRODUCTS: 'saleshub_products',
     DOCUMENTS: 'saleshub_documents',
     DOCUMENT_CATEGORIES: 'saleshub_document_categories',
+    CALLBOT_KEYWORDS: 'saleshub_callbot_keywords',
+    CALLBOT_TEMPLATES: 'saleshub_callbot_templates',
     QUOTES: 'saleshub_quotes',
     CUSTOMERS: 'saleshub_customers',
     INITIALIZED: 'saleshub_etron_salekit_v2026_pricing_v9'
@@ -527,6 +529,19 @@ const DEFAULT_DOCUMENTS = [
         updatedAt: '2026-10-13',
         tags: ['Video Demo', 'Callbot', 'Trực quan', 'Salekit'],
         pinned: false
+    },
+    {
+        id: 'doc-etron-009',
+        title: '[BĐS] Kịch Bản Callbot Mở Bán Palm River - Palm City (Hướng Việt)',
+        category: 'Hỗ trợ & Chăm sóc khách hàng',
+        type: 'link',
+        fileUrl: 'https://docs.google.com/spreadsheets/d/16iV1wXVjmqLlsfkqf8mZQghTS3SUWxExRiYcy9_PPyw/edit?gid=329686546#gid=329686546',
+        fileSize: 'Google Sheets',
+        fileType: 'xlsx',
+        description: 'File kịch bản Callbot AI bóc tách thực tế cho dự án BĐS Palm River: câu chào, xử lý từ chối, hỏi giá, pháp lý, sa bàn và hơn 550 từ khóa nhận diện.',
+        updatedAt: '2026-10-14',
+        tags: ['Kịch bản', 'Callbot AI', 'Bất động sản', 'Palm River', 'Từ khóa'],
+        pinned: true
     }
 ];
 
@@ -647,6 +662,10 @@ class SalesStore {
                     if (!currentDocs.some(d => d.id === 'doc-etron-008')) {
                         const d8 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-008');
                         if (d8) { currentDocs.push(d8); hasChanges = true; }
+                    }
+                    if (!currentDocs.some(d => d.id === 'doc-etron-009')) {
+                        const d9 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-009');
+                        if (d9) { currentDocs.unshift(d9); hasChanges = true; }
                     }
                     if (hasChanges) {
                         localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(currentDocs));
@@ -899,6 +918,82 @@ class SalesStore {
         }
     }
 
+    // ==========================================
+    // Quản lý Bộ Từ Khóa & Kịch Bản Callbot
+    // ==========================================
+    getCallbotKeywords() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_KEYWORDS);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && (parsed.common || parsed.industries)) return parsed;
+            }
+        } catch {}
+        if (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') {
+            localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(DEFAULT_CALLBOT_KEYWORDS));
+            return DEFAULT_CALLBOT_KEYWORDS;
+        }
+        return { common: [], industries: [] };
+    }
+
+    saveCallbotKeywords(keywords) {
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(keywords));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: keywords })
+                .catch(err => console.warn('Lỗi ghi bộ từ khóa Firestore:', err));
+        }
+        return keywords;
+    }
+
+    getCallbotTemplates() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_TEMPLATES);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            }
+        } catch {}
+        if (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') {
+            localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(DEFAULT_CALLBOT_TEMPLATES));
+            return DEFAULT_CALLBOT_TEMPLATES;
+        }
+        return [];
+    }
+
+    saveCallbotTemplate(tpl) {
+        const templates = this.getCallbotTemplates();
+        let target = null;
+        if (tpl.id) {
+            const idx = templates.findIndex(t => t.id === tpl.id);
+            if (idx !== -1) {
+                target = { ...templates[idx], ...tpl, updatedAt: new Date().toISOString().split('T')[0] };
+                templates[idx] = target;
+            } else {
+                target = { ...tpl, updatedAt: new Date().toISOString().split('T')[0] };
+                templates.unshift(target);
+            }
+        } else {
+            target = { ...tpl, id: 'cb-tpl-' + Date.now(), updatedAt: new Date().toISOString().split('T')[0] };
+            templates.unshift(target);
+        }
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(templates));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('callbot_templates').doc(target.id).set(target)
+                .catch(err => console.warn('Lỗi ghi kịch bản mẫu Firestore:', err));
+        }
+        return target;
+    }
+
+    deleteCallbotTemplate(tplId) {
+        let templates = this.getCallbotTemplates();
+        templates = templates.filter(t => t.id !== tplId);
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(templates));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('callbot_templates').doc(tplId).delete()
+                .catch(err => console.warn('Lỗi xóa kịch bản mẫu Firestore:', err));
+        }
+    }
+
     setupCloudSync() {
         if (!window.firebaseDb) return;
 
@@ -958,6 +1053,36 @@ class SalesStore {
             }, (error) => {
                 console.warn('Lỗi đồng bộ danh mục Firestore:', error);
             });
+
+            // 3. Đồng bộ Bộ Từ Khóa Callbot Real-time
+            window.firebaseDb.collection('config').doc('callbot_keywords').onSnapshot((docSnap) => {
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    if (data && data.data) {
+                        localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(data.data));
+                        if (window.callbotHub) window.callbotHub.renderKeywords();
+                    }
+                } else {
+                    const localKw = this.getCallbotKeywords();
+                    window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: localKw })
+                        .catch(() => {});
+                }
+            }, (err) => console.warn('Lỗi đồng bộ từ khóa Firestore:', err));
+
+            // 4. Đồng bộ Kịch Bản Mẫu Callbot Real-time
+            window.firebaseDb.collection('callbot_templates').onSnapshot((snapshot) => {
+                if (snapshot.empty) {
+                    const initialTpls = this.getCallbotTemplates();
+                    initialTpls.forEach(t => {
+                        window.firebaseDb.collection('callbot_templates').doc(t.id).set(t).catch(() => {});
+                    });
+                } else {
+                    const cloudTpls = [];
+                    snapshot.forEach(docSnap => cloudTpls.push({ id: docSnap.id, ...docSnap.data() }));
+                    localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(cloudTpls));
+                    if (window.callbotHub) window.callbotHub.renderTemplates();
+                }
+            }, (err) => console.warn('Lỗi đồng bộ kịch bản Firestore:', err));
 
         } catch (err) {
             console.warn('Lỗi thiết lập lắng nghe Firestore:', err);

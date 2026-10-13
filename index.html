@@ -62,6 +62,11 @@
                         <i data-lucide="folder" class="w-4 h-4"></i>
                         <span>Kho Tài Liệu</span>
                     </button>
+                    <button data-tab-target="callbot-hub" 
+                        class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 focus:outline-none">
+                        <i data-lucide="bot" class="w-4 h-4"></i>
+                        <span>Callbot & Kịch Bản</span>
+                    </button>
                     <button data-tab-target="settings" 
                         class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 focus:outline-none">
                         <i data-lucide="settings" class="w-4 h-4"></i>
@@ -74,6 +79,7 @@
             <div class="flex md:hidden overflow-x-auto py-2 gap-1 border-t border-slate-100">
                 <button data-tab-target="quote-builder" class="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-white shadow-sm whitespace-nowrap focus:outline-none">Báo Giá</button>
                 <button data-tab-target="documents" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Tài Liệu</button>
+                <button data-tab-target="callbot-hub" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Callbot</button>
                 <button data-tab-target="settings" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Cài Đặt</button>
             </div>
         </div>
@@ -428,7 +434,12 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                    <button onclick="window.salesApp.switchTab('callbot-hub')"
+                        class="w-full sm:w-auto px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
+                        <i data-lucide="bot" class="w-4 h-4"></i>
+                        <span>Kho Callbot & Kịch Bản</span>
+                    </button>
                     <button onclick="window.documentHub.openAddModal()"
                         class="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition-all">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -517,6 +528,193 @@
             <!-- MAIN DOCUMENTS VIEW CONTAINER (Table or Grid) -->
             <div id="documents-view-container">
                 <!-- Rendered dynamically by document-hub.js -->
+            </div>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: KHO CALLBOT & KỊCH BẢN (CALLBOT HUB) -->
+        <!-- ========================================== -->
+        <div id="view-callbot-hub" class="tab-view hidden space-y-4 sm:space-y-6">
+            <!-- Header bar with Stats & Actions -->
+            <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+                <div class="space-y-1">
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="bot" class="w-5 h-5 text-indigo-600"></i>
+                        <span>Kho Kịch Bản & Thư Viện Callbot AI</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Etron Callbot</span>
+                    </h1>
+                    <p class="text-xs text-slate-500">Kho lưu trữ bộ từ khóa nhận diện giọng nói, kịch bản mẫu (Excel/Drive) và audio giọng đọc AI thực chiến theo từng ngành nghề.</p>
+                </div>
+
+                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    <button onclick="window.callbotHub.openAddTemplateModal()" 
+                        class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-sm shadow-indigo-100 flex items-center gap-1.5 active:scale-95">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>+ Thêm Kịch Bản Mẫu</span>
+                    </button>
+                    <button onclick="window.callbotHub.copyAllCommonKeywords()"
+                        class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+                        title="Sao chép nhanh toàn bộ từ khóa dùng chung">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>Copy Từ Khóa Chung</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="key" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-400">Từ Khóa Nhận Diện</p>
+                        <h4 id="cb-stat-total-keywords" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">1,200+ từ</h4>
+                    </div>
+                </div>
+                <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="layers" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-400">Ngành Nghề</p>
+                        <h4 id="cb-stat-total-industries" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">5 ngành</h4>
+                    </div>
+                </div>
+                <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-400">Kịch Bản Mẫu</p>
+                        <h4 id="cb-stat-total-templates" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">3 kịch bản</h4>
+                    </div>
+                </div>
+                <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="mic" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] sm:text-xs font-medium text-slate-400">Audio Voice Demo</p>
+                        <h4 class="text-xs sm:text-sm font-extrabold text-slate-800 truncate">Sẵn sàng nghe</h4>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub-tab Navigation (Chuyển đổi 3 phân khu chuyên biệt) -->
+            <div class="bg-slate-100 p-1 rounded-2xl flex items-center gap-1 border border-slate-200/80">
+                <button onclick="window.callbotHub.switchSubTab('keywords')" data-cb-tab="keywords"
+                    class="cb-subtab-btn flex-1 py-2.5 text-xs font-bold rounded-xl bg-indigo-600 text-white shadow-sm transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="tags" class="w-4 h-4"></i>
+                    <span>1. Bộ Từ Khóa Chuẩn (Chung & Theo Ngành)</span>
+                </button>
+                <button onclick="window.callbotHub.switchSubTab('templates')" data-cb-tab="templates"
+                    class="cb-subtab-btn flex-1 py-2.5 text-xs font-semibold rounded-xl bg-white text-slate-600 hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                    <span>2. Kho Kịch Bản Mẫu (Drive & Excel)</span>
+                </button>
+                <button onclick="window.callbotHub.switchSubTab('media')" data-cb-tab="media"
+                    class="cb-subtab-btn flex-1 py-2.5 text-xs font-semibold rounded-xl bg-white text-slate-600 hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="volume-2" class="w-4 h-4"></i>
+                    <span>3. Thư Viện Voice Demo & Media</span>
+                </button>
+            </div>
+
+            <!-- SUB-TAB 1: BỘ TỪ KHÓA CHUẨN -->
+            <div id="cb-tab-keywords" class="space-y-6">
+                <!-- Thanh Tìm Kiếm Từ Khóa Trực Tiếp -->
+                <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div class="relative flex-1 w-full">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="cb-keyword-search" placeholder="Gõ từ khóa bất kỳ để tra cứu (vd: zalo, giá cao, sổ đỏ, 1 phòng ngủ, implant, bận...)"
+                            class="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-xs text-slate-400">Mẹo: Bấm <b>Copy</b> ở từng nhóm để dán nhanh vào Ucall/Bot.</span>
+                    </div>
+                </div>
+
+                <!-- PHẦN A: BỘ TỪ KHÓA DÙNG CHUNG -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">A. Bộ Từ Khóa Dùng Chung (Mọi Ngành Nghề Đều Cần)</h3>
+                        </div>
+                        <button onclick="window.callbotHub.copyAllCommonKeywords()"
+                            class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            <span>Sao chép toàn bộ</span>
+                        </button>
+                    </div>
+
+                    <div id="cb-common-keywords-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- PHẦN B: BỘ TỪ KHÓA THEO DANH MỤC NGÀNH NGHỀ -->
+                <div class="space-y-3 pt-4 border-t border-slate-200">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                        <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">B. Bộ Từ Khóa Theo Từng Danh Mục Ngành Nghề</h3>
+                    </div>
+
+                    <!-- Tabs Ngành Nghề (Horizontal Scroll) -->
+                    <div id="cb-industry-tabs-container" class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- Header Thông Tin Ngành Đang Chọn & Nút Copy All -->
+                    <div id="cb-industry-header-info">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- Danh Sách Các Nhóm Từ Khóa Của Ngành -->
+                    <div id="cb-industry-groups-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 2: KHO KỊCH BẢN MẪU (DRIVE & EXCEL) -->
+            <div id="cb-tab-templates" class="hidden space-y-4 sm:space-y-6">
+                <!-- Bộ lọc ngành kịch bản -->
+                <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-slate-500 shrink-0">Lọc theo ngành:</span>
+                        <div id="cb-template-filters" class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 no-scrollbar">
+                            <!-- Rendered by JS -->
+                        </div>
+                    </div>
+                    <button onclick="window.callbotHub.openAddTemplateModal()"
+                        class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Thêm Kịch Bản Mẫu</span>
+                    </button>
+                </div>
+
+                <!-- Grid thẻ kịch bản mẫu -->
+                <div id="cb-templates-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <!-- SUB-TAB 3: THƯ VIỆN AUDIO & VIDEO MẪU -->
+            <div id="cb-tab-media" class="hidden space-y-4 sm:space-y-6">
+                <div class="bg-indigo-50/60 p-4 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                            <i data-lucide="volume-2" class="w-4 h-4 text-indigo-600"></i>
+                            <span>Nghe Thử Giọng Đọc AI & Audio Thực Chiến</span>
+                        </h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Bấm nút "Nghe Demo" trên từng thẻ để nghe phát âm thanh mẫu cho từng ngành nghề (Nữ Miền Nam, Nữ Miền Bắc...).</p>
+                    </div>
+                </div>
+                <div id="cb-media-container">
+                    <!-- Rendered by JS -->
+                </div>
             </div>
         </div>
 
@@ -1073,6 +1271,157 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MODAL: THÊM / SỬA KỊCH BẢN & MEDIA MẪU CALLBOT -->
+    <!-- ========================================== -->
+    <div id="modal-callbot-template" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h3 id="cb-tpl-modal-title" class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="file-spreadsheet" class="w-5 h-5 text-indigo-600"></i>
+                        <span>Thêm Kịch Bản & Media Mẫu Mới</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Lưu trữ kịch bản Google Sheets/Drive, file Excel và thông số voice demo cho chiến dịch.</p>
+                </div>
+                <button type="button" onclick="document.getElementById('modal-callbot-template').classList.add('hidden')"
+                    class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="cb-tpl-form" onsubmit="window.callbotHub.saveTemplateFromModal(event)" class="overflow-y-auto p-5 sm:p-6 space-y-4">
+                <input type="hidden" id="cb-tpl-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tên Kịch Bản Mẫu <span class="text-rose-500">*</span></label>
+                        <input type="text" id="cb-tpl-title" required placeholder="Ví dụ: [BĐS] Kịch Bản Callbot Mở Bán Palm River..."
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Dự Án / Khách Hàng</label>
+                        <input type="text" id="cb-tpl-client" placeholder="Ví dụ: Palm River (Hướng Việt)..."
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ngành Nghề <span class="text-rose-500">*</span></label>
+                        <select id="cb-tpl-industry" required
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Liên Kết Google Sheets / Google Drive <span class="text-rose-500">*</span></label>
+                        <input type="url" id="cb-tpl-url" required placeholder="https://docs.google.com/spreadsheets/d/..."
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tên File Hiển Thị (Nếu có)</label>
+                        <input type="text" id="cb-tpl-filename" placeholder="Kich_ban_Palm_River.xlsx"
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Giọng Đọc AI (Voice)</label>
+                        <input type="text" id="cb-tpl-voice" placeholder="Ví dụ: Nữ Miền Nam (Ấm áp, tự nhiên)"
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Thời Lượng Demo</label>
+                        <input type="text" id="cb-tpl-duration" placeholder="Ví dụ: 0:19"
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Đoạn Văn Bản Mẫu Thu Âm (Để Nghe Thử Voice Demo)</label>
+                        <textarea id="cb-tpl-audiosample" rows="2" placeholder="Dán câu chào đầu mẫu của kịch bản để nghe phát âm thanh trực tiếp trên web..."
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"></textarea>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Kinh Nghiệm Triển Khai / Ghi Chú CS (Mỗi dòng 1 ý)</label>
+                        <textarea id="cb-tpl-tips" rows="3" placeholder="- Khung giờ chạy: 9h-10h sáng&#10;- Câu chào đầu dưới 20s&#10;- Điểm chốt xin Zalo..."
+                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('modal-callbot-template').classList.add('hidden')"
+                        class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+                        Hủy
+                    </button>
+                    <button type="submit"
+                        class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm shadow-indigo-100 flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span>Lưu Kịch Bản</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: THÊM / SỬA NHÓM TỪ KHÓA CALLBOT     -->
+    <!-- ========================================== -->
+    <div id="modal-callbot-group" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+                <div>
+                    <h3 id="cb-grp-modal-title" class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="tags" class="w-5 h-5 text-indigo-600"></i>
+                        <span>Chỉnh Sửa Nhóm Từ Khóa</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Nhập các từ khóa nhận diện, phân cách nhau bằng dấu phẩy (,).</p>
+                </div>
+                <button type="button" onclick="document.getElementById('modal-callbot-group').classList.add('hidden')"
+                    class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form id="cb-grp-form" onsubmit="window.callbotHub.saveGroupFromModal(event)" class="overflow-y-auto p-5 sm:p-6 space-y-4">
+                <input type="hidden" id="cb-grp-ind-id">
+                <input type="hidden" id="cb-grp-id">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Tên Nhóm Từ Khóa <span class="text-rose-500">*</span></label>
+                    <input type="text" id="cb-grp-name" required placeholder="Ví dụ: Hỏi Giá & Chiết Khấu..."
+                        class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Mô Tả Mục Đích / Tình Huống</label>
+                    <input type="text" id="cb-grp-desc" placeholder="Khách hàng hỏi giá bán, đơn giá m2..."
+                        class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Danh Sách Từ Khóa (Cách nhau bằng dấu phẩy) <span class="text-rose-500">*</span></label>
+                    <textarea id="cb-grp-keywords" rows="6" required placeholder="giá cao, cao quá, bao nhiêu tiền, bao tỷ, đơn giá, chiết khấu, booking, đặt cọc..."
+                        class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-mono leading-relaxed"></textarea>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+                    <button type="button" onclick="document.getElementById('modal-callbot-group').classList.add('hidden')"
+                        class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+                        Hủy
+                    </button>
+                    <button type="submit"
+                        class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm shadow-indigo-100 flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-4 h-4"></i>
+                        <span>Lưu Nhóm Từ Khóa</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- DEDICATED PRINT & PDF EXPORT SHEET (Always rendered, offscreen on desktop, standard A4 in print) -->
     <div id="quotation-print-sheet">
         <!-- Rendered dynamically by quote-builder.js -->
@@ -1086,16 +1435,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261013_v41"></script>
+    <script src="js/firebase-config.js?v=20261014_v42"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261013_v41"></script>
-    <script src="js/number-to-words.js?v=20261013_v41"></script>
-    <script src="js/store.js?v=20261013_v41"></script>
-    <script src="js/quote-builder.js?v=20261013_v41"></script>
-    <script src="js/document-hub.js?v=20261013_v41"></script>
-    <script src="js/product-catalog.js?v=20261013_v41"></script>
-    <script src="js/pdf-export.js?v=20261013_v41"></script>
-    <script src="js/app.js?v=20261013_v41"></script>
+    <script src="js/logo-data.js?v=20261014_v42"></script>
+    <script src="js/callbot-data.js?v=20261014_v42"></script>
+    <script src="js/number-to-words.js?v=20261014_v42"></script>
+    <script src="js/store.js?v=20261014_v42"></script>
+    <script src="js/quote-builder.js?v=20261014_v42"></script>
+    <script src="js/document-hub.js?v=20261014_v42"></script>
+    <script src="js/callbot-hub.js?v=20261014_v42"></script>
+    <script src="js/product-catalog.js?v=20261014_v42"></script>
+    <script src="js/pdf-export.js?v=20261014_v42"></script>
+    <script src="js/app.js?v=20261014_v42"></script>
 </body>
 </html>

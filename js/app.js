@@ -18,6 +18,7 @@ class SalesApp {
         // Khởi tạo các module con
         window.documentHub.init();
         window.productCatalog.init();
+        if (window.callbotHub) window.callbotHub.init();
         window.quoteBuilder.resetForm();
 
         // Kích hoạt đồng bộ đám mây Real-time Firebase Firestore
@@ -68,6 +69,8 @@ class SalesApp {
             window.quoteBuilder.renderPreview();
         } else if (tabId === 'documents') {
             window.documentHub.renderDocumentsList();
+        } else if (tabId === 'callbot-hub') {
+            if (window.callbotHub) window.callbotHub.render();
         } else if (tabId === 'catalog') {
             window.productCatalog.renderCatalogTable();
         } else if (tabId === 'history') {
