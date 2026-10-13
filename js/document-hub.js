@@ -220,9 +220,12 @@ class DocumentHub {
                                 ${badge.label}
                             </div>
                             <div class="flex items-center gap-1">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge.bg} ${badge.color} truncate max-w-[120px]">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge.bg} ${badge.color} truncate max-w-[110px]">
                                     ${this.escapeHtml(doc.category)}
                                 </span>
+                                <button onclick="window.documentHub.openEditModal('${doc.id}')" class="text-slate-300 hover:text-indigo-600 p-1 transition-colors" title="Chỉnh sửa tài liệu">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                </button>
                                 <button onclick="window.documentHub.togglePin('${doc.id}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim khỏi mục Truy cập nhanh">
                                     <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-500"></i>
                                 </button>
@@ -579,6 +582,11 @@ class DocumentHub {
                                                     </button>
                                                 `}
 
+                                                <button onclick="window.documentHub.openEditModal('${doc.id}')"
+                                                    class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa tài liệu">
+                                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+                                                </button>
+
                                                 <button onclick="window.documentHub.togglePin('${doc.id}')"
                                                     class="p-1 sm:p-1.5 rounded-lg ${doc.pinned ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'} hover:bg-amber-50 transition-colors"
                                                     title="${doc.pinned ? 'Bỏ ghim' : 'Ghim lên đầu'}">
@@ -693,6 +701,11 @@ class DocumentHub {
                                             <i data-lucide="download" class="w-4 h-4"></i>
                                         </button>
                                     `}
+
+                                    <button onclick="window.documentHub.openEditModal('${doc.id}')"
+                                        class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa tài liệu">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </button>
 
                                     <button onclick="window.documentHub.deleteDocument('${doc.id}')"
                                         class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
@@ -985,9 +998,101 @@ class DocumentHub {
         }
     }
 
+    openAddModal() {
+        const idInput = document.getElementById('editing-doc-id');
+        if (idInput) idInput.value = '';
+
+        const titleText = document.getElementById('doc-modal-title-text');
+        if (titleText) titleText.textContent = 'Thêm Tài Nguyên Sales Mới';
+
+        const subTitle = document.getElementById('doc-modal-subtitle');
+        if (subTitle) subTitle.textContent = 'Tải tệp từ máy tính (PDF, Word, Excel, Ảnh, Video) hoặc lưu liên kết Cloud.';
+
+        const submitText = document.getElementById('doc-modal-submit-text');
+        if (submitText) submitText.textContent = 'Lưu Vào Kho Tài Nguyên';
+
+        const form = document.getElementById('document-add-form');
+        if (form) form.reset();
+        this.clearSelectedFile();
+        this.switchModalTab('upload');
+
+        const modal = document.getElementById('document-add-modal');
+        if (modal) modal.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    openEditModal(id) {
+        const docs = window.salesStore.getDocuments();
+        const doc = docs.find(d => d.id === id);
+        if (!doc) return;
+
+        const idInput = document.getElementById('editing-doc-id');
+        if (idInput) idInput.value = doc.id;
+
+        const titleText = document.getElementById('doc-modal-title-text');
+        if (titleText) titleText.textContent = 'Chỉnh Sửa Tài Liệu';
+
+        const subTitle = document.getElementById('doc-modal-subtitle');
+        if (subTitle) subTitle.textContent = 'Cập nhật tên, danh mục, liên kết hoặc thông tin mô tả.';
+
+        const submitText = document.getElementById('doc-modal-submit-text');
+        if (submitText) submitText.textContent = 'Lưu Thay Đổi';
+
+        // Điền dữ liệu cũ vào form
+        const titleInput = document.getElementById('new-doc-title');
+        if (titleInput) titleInput.value = doc.title || '';
+
+        const catSelect = document.getElementById('new-doc-category');
+        if (catSelect) catSelect.value = doc.category || 'Báo giá & Mẫu biểu';
+
+        const descInput = document.getElementById('new-doc-desc');
+        if (descInput) descInput.value = doc.description || '';
+
+        const tagsInput = document.getElementById('new-doc-tags');
+        if (tagsInput) tagsInput.value = (doc.tags || []).join(', ');
+
+        const pinnedInput = document.getElementById('new-doc-pinned');
+        if (pinnedInput) pinnedInput.checked = Boolean(doc.pinned);
+
+        this.clearSelectedFile();
+
+        if (doc.type === 'link' || doc.fileUrl) {
+            this.switchModalTab('link');
+            const urlInput = document.getElementById('new-doc-url');
+            if (urlInput) urlInput.value = doc.fileUrl || '';
+        } else {
+            this.switchModalTab('upload');
+            const dropContent = document.getElementById('doc-dropzone-content');
+            const filePreview = document.getElementById('doc-selected-file-preview');
+            const fileNameEl = document.getElementById('doc-selected-filename');
+            const fileSizeEl = document.getElementById('doc-selected-filesize');
+            if (dropContent && filePreview) {
+                dropContent.classList.add('hidden');
+                filePreview.classList.remove('hidden');
+                if (fileNameEl) fileNameEl.textContent = doc.fileName || doc.title;
+                if (fileSizeEl) fileSizeEl.textContent = `${doc.fileSize || ''} (Tệp hiện tại - Chọn tệp mới nếu muốn thay thế)`;
+            }
+        }
+
+        const modal = document.getElementById('document-add-modal');
+        if (modal) modal.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    closeModal() {
+        const modal = document.getElementById('document-add-modal');
+        if (modal) modal.classList.add('hidden');
+        const form = document.getElementById('document-add-form');
+        if (form) form.reset();
+        this.clearSelectedFile();
+        const idInput = document.getElementById('editing-doc-id');
+        if (idInput) idInput.value = '';
+    }
+
     async saveNewDocument(event) {
         event.preventDefault();
 
+        const editingId = document.getElementById('editing-doc-id') ? document.getElementById('editing-doc-id').value : '';
         const title = document.getElementById('new-doc-title').value.trim();
         const category = document.getElementById('new-doc-category').value;
         const desc = document.getElementById('new-doc-desc').value.trim();
@@ -1001,96 +1106,99 @@ class DocumentHub {
         }
 
         const nowTs = Date.now();
-        const docId = 'doc-user-' + nowTs;
-        let newDoc = {
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        const docs = window.salesStore.getDocuments();
+        const existingDoc = editingId ? docs.find(d => d.id === editingId) : null;
+        const docId = existingDoc ? existingDoc.id : ('doc-user-' + nowTs);
+
+        let targetDoc = existingDoc ? { ...existingDoc } : {
             id: docId,
-            title: title,
-            category: category,
-            description: desc,
-            tags: tags,
-            pinned: isPinned,
-            createdAt: nowTs,
-            updatedAt: new Date().toISOString().split('T')[0],
-            updatedAtTime: nowTs
+            createdAt: nowTs
         };
 
+        targetDoc.title = title;
+        targetDoc.category = category;
+        targetDoc.description = desc;
+        targetDoc.tags = tags;
+        targetDoc.pinned = isPinned;
+        targetDoc.updatedAt = todayStr;
+        targetDoc.updatedAtTime = nowTs;
+
         if (this.activeModalTab === 'upload') {
-            if (!this.selectedUploadFile) {
+            if (this.selectedUploadFile) {
+                const file = this.selectedUploadFile;
+                const ext = file.name.split('.').pop().toLowerCase();
+
+                let type = 'file';
+                if (['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
+                    type = 'image';
+                } else if (['mp4', 'webm', 'mov'].includes(ext)) {
+                    type = 'video';
+                }
+
+                targetDoc.type = type;
+                targetDoc.fileType = ext;
+                targetDoc.fileName = file.name;
+                targetDoc.fileSize = this.formatFileSize(file.size);
+                delete targetDoc.fileUrl;
+
+                if (type === 'image') {
+                    try {
+                        targetDoc.thumbnail = await this.createImageThumbnail(file);
+                    } catch (e) {}
+                }
+
+                await this.fileStore.saveFile(docId, file);
+            } else if (!existingDoc) {
                 alert('Vui lòng chọn tệp từ máy tính để tải lên!');
                 return;
             }
-
-            const file = this.selectedUploadFile;
-            const ext = file.name.split('.').pop().toLowerCase();
-
-            let type = 'file';
-            if (['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
-                type = 'image';
-            } else if (['mp4', 'webm', 'mov'].includes(ext)) {
-                type = 'video';
-            }
-
-            newDoc.type = type;
-            newDoc.fileType = ext;
-            newDoc.fileName = file.name;
-            newDoc.fileSize = this.formatFileSize(file.size);
-
-            // Nếu là ảnh, tạo thumbnail nhỏ lưu trực tiếp để tải tức thì
-            if (type === 'image') {
-                try {
-                    newDoc.thumbnail = await this.createImageThumbnail(file);
-                } catch (e) { /* bỏ qua */ }
-            }
-
-            // Lưu file vào IndexedDB
-            await this.fileStore.saveFile(docId, file);
         } else {
-            // Chế độ thêm URL Link
+            // Chế độ thêm hoặc sửa liên kết Cloud
             const fileUrl = document.getElementById('new-doc-url').value.trim();
             if (!fileUrl) {
                 alert('Vui lòng nhập đường dẫn liên kết tài liệu!');
                 return;
             }
 
-            newDoc.type = 'link';
-            newDoc.fileUrl = fileUrl;
-            newDoc.fileSize = 'Cloud Link';
+            targetDoc.type = 'link';
+            targetDoc.fileUrl = fileUrl;
+            targetDoc.fileSize = 'Cloud Link';
 
-            // Nhận diện loại link
             if (fileUrl.includes('docs.google.com/spreadsheets')) {
-                newDoc.fileType = 'xlsx';
-                newDoc.fileSize = 'Google Sheets';
+                targetDoc.fileType = 'xlsx';
+                targetDoc.fileSize = 'Google Sheets';
             } else if (fileUrl.includes('docs.google.com/document')) {
-                newDoc.fileType = 'gdoc';
-                newDoc.fileSize = 'Google Docs';
+                targetDoc.fileType = 'gdoc';
+                targetDoc.fileSize = 'Google Docs';
             } else if (fileUrl.includes('drive.google.com')) {
-                newDoc.fileType = 'drive';
-                newDoc.fileSize = 'Drive Folder';
+                targetDoc.fileType = 'drive';
+                targetDoc.fileSize = 'Drive Folder';
             } else if (fileUrl.includes('youtube.com') || fileUrl.includes('youtu.be')) {
-                newDoc.fileType = 'youtube';
-                newDoc.type = 'video';
-                newDoc.fileSize = 'Video Link';
+                targetDoc.fileType = 'youtube';
+                targetDoc.type = 'video';
+                targetDoc.fileSize = 'Video Link';
             } else if (fileUrl.endsWith('.pdf')) {
-                newDoc.fileType = 'pdf';
+                targetDoc.fileType = 'pdf';
             } else {
-                newDoc.fileType = 'link';
+                targetDoc.fileType = targetDoc.fileType || 'link';
             }
         }
 
-        // Lưu metadata vào SalesStore
-        window.salesStore.saveDocument(newDoc);
+        // Lưu metadata vào SalesStore (tự động đồng bộ lên Firebase Firestore)
+        window.salesStore.saveDocument(targetDoc);
 
         // Reset form & đóng modal
-        document.getElementById('document-add-modal').classList.add('hidden');
-        document.getElementById('document-add-form').reset();
-        this.clearSelectedFile();
+        this.closeModal();
 
         // Cập nhật lại giao diện
         this.renderStats();
         this.renderQuickAccess();
         this.renderDocumentsList();
 
-        window.salesApp.showNotification('Đã thêm tài liệu mới vào kho thành công!', 'success');
+        const notifMsg = editingId ? `Đã cập nhật tài liệu: "${title}"!` : `Đã thêm tài liệu mới: "${title}"!`;
+        window.salesApp.showNotification(notifMsg, 'success');
     }
 
     createImageThumbnail(file) {
