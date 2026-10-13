@@ -862,6 +862,24 @@ class CallbotHub {
         window.salesApp.showNotification(`Đã tạo ngành nghề mới: "${name.trim()}"!`, 'success');
     }
 
+    resetToDefaults() {
+        if (confirm('Khôi phục toàn bộ kho từ khóa và kịch bản mẫu về dữ liệu gốc chuẩn Palm River?')) {
+            localStorage.removeItem('saleshub_callbot_keywords');
+            localStorage.removeItem('saleshub_callbot_templates');
+            const kw = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : window.DEFAULT_CALLBOT_KEYWORDS;
+            const tpl = (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') ? DEFAULT_CALLBOT_TEMPLATES : window.DEFAULT_CALLBOT_TEMPLATES;
+            if (kw) window.salesStore.saveCallbotKeywords(kw);
+            if (tpl) localStorage.setItem('saleshub_callbot_templates', JSON.stringify(tpl));
+            if (window.firebaseDb) {
+                if (kw) window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: kw }).catch(() => {});
+                if (tpl) tpl.forEach(t => window.firebaseDb.collection('callbot_templates').doc(t.id).set(t).catch(() => {}));
+            }
+            this.selectedIndustry = 'ind-bds';
+            this.render();
+            window.salesApp.showNotification('Đã khôi phục dữ liệu kịch bản & từ khóa Palm River gốc!', 'success');
+        }
+    }
+
     escapeHtml(text) {
         if (!text) return '';
         return String(text)
