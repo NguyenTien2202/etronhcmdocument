@@ -537,33 +537,20 @@
         <!-- ========================================== -->
         <div id="view-callbot-hub" class="tab-view hidden space-y-4 sm:space-y-6">
             <!-- Header bar with Stats & Actions -->
-            <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                 <div class="space-y-1">
                     <h1 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
                         <i data-lucide="bot" class="w-5 h-5 text-indigo-600"></i>
                         <span>Kho Kịch Bản & Thư Viện Callbot AI</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Etron Callbot</span>
                     </h1>
                     <p class="text-xs text-slate-500">Kho lưu trữ bộ từ khóa nhận diện giọng nói, kịch bản mẫu (Excel/Drive) và audio giọng đọc AI thực chiến theo từng ngành nghề.</p>
                 </div>
 
-                <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                    <button onclick="window.callbotHub.resetToDefaults()"
-                        class="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
-                        title="Nạp lại toàn bộ bộ từ khóa & kịch bản mẫu Palm River gốc">
-                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        <span>Nạp Lại Mẫu Palm River</span>
-                    </button>
+                <div class="flex items-center gap-2">
                     <button onclick="window.callbotHub.openAddTemplateModal()" 
-                        class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-sm shadow-indigo-100 flex items-center gap-1.5 active:scale-95">
+                        class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         <span>+ Thêm Kịch Bản Mẫu</span>
-                    </button>
-                    <button onclick="window.callbotHub.copyAllCommonKeywords()"
-                        class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
-                        title="Sao chép nhanh toàn bộ từ khóa dùng chung">
-                        <i data-lucide="copy" class="w-4 h-4"></i>
-                        <span>Copy Từ Khóa Chung</span>
                     </button>
                 </div>
             </div>
@@ -608,23 +595,25 @@
                 </div>
             </div>
 
-            <!-- Sub-tab Navigation (Kiểu dáng đồng bộ với thanh điều hướng chính phía trên) -->
-            <div class="bg-slate-100/80 p-1 rounded-xl flex items-center gap-1 border border-slate-200 w-full sm:w-fit">
-                <button onclick="window.callbotHub.switchSubTab('keywords')" data-cb-tab="keywords"
-                    class="cb-subtab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm focus:outline-none">
-                    <i data-lucide="tags" class="w-4 h-4"></i>
-                    <span>Bộ từ khóa chung</span>
-                </button>
-                <button onclick="window.callbotHub.switchSubTab('templates')" data-cb-tab="templates"
-                    class="cb-subtab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none">
-                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                    <span>Kho kịch bản mẫu</span>
-                </button>
-                <button onclick="window.callbotHub.switchSubTab('media')" data-cb-tab="media"
-                    class="cb-subtab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none">
-                    <i data-lucide="film" class="w-4 h-4"></i>
-                    <span>Thư viện</span>
-                </button>
+            <!-- Sub-tab Navigation (Căn giữa trang, kiểu dáng pastel đồng bộ) -->
+            <div class="flex justify-center w-full">
+                <div class="bg-slate-100/90 p-1.5 rounded-2xl flex items-center gap-1.5 border border-slate-200/90 shadow-2xs w-full sm:w-auto max-w-lg">
+                    <button onclick="window.callbotHub.switchSubTab('keywords')" data-cb-tab="keywords"
+                        class="cb-subtab-btn flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm focus:outline-none">
+                        <i data-lucide="tags" class="w-4 h-4"></i>
+                        <span>Bộ từ khóa chung</span>
+                    </button>
+                    <button onclick="window.callbotHub.switchSubTab('templates')" data-cb-tab="templates"
+                        class="cb-subtab-btn flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        <span>Kho kịch bản mẫu</span>
+                    </button>
+                    <button onclick="window.callbotHub.switchSubTab('media')" data-cb-tab="media"
+                        class="cb-subtab-btn flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none">
+                        <i data-lucide="film" class="w-4 h-4"></i>
+                        <span>Thư viện</span>
+                    </button>
+                </div>
             </div>
 
             <!-- SUB-TAB 1: BỘ TỪ KHÓA CHUẨN -->
@@ -695,7 +684,7 @@
                         </div>
                     </div>
                     <button onclick="window.callbotHub.openAddTemplateModal()"
-                        class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0">
+                        class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
                         <i data-lucide="plus" class="w-4 h-4"></i>
                         <span>Thêm Kịch Bản Mẫu</span>
                     </button>
@@ -714,12 +703,12 @@
                     <div class="space-y-0.5">
                         <h4 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
                             <i data-lucide="film" class="w-5 h-5 text-indigo-600"></i>
-                            <span>Thư Viện Media: Audio & Video Demo Theo Ngành Nghề</span>
+                            <span>Thư Viện Media (Audio & Video)</span>
                         </h4>
                         <p class="text-xs text-slate-500">Lưu trữ các file ghi âm mẫu (.mp3, .wav), video giới thiệu giải pháp hoặc link Google Drive/YouTube để demo cho khách hàng.</p>
                     </div>
                     <button onclick="window.callbotHub.openAddMediaModal()"
-                        class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
+                        class="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 shrink-0 active:scale-95">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
                         <span>+ Thêm Media Mới</span>
                     </button>
@@ -1319,18 +1308,12 @@
                             class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                     </div>
 
-                    <div>
+                    <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ngành Nghề <span class="text-rose-500">*</span></label>
                         <select id="cb-tpl-industry" required
                             class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
                             <!-- Populated dynamically -->
                         </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Khách Hàng / Dự Án (Tùy chọn)</label>
-                        <input type="text" id="cb-tpl-client" placeholder="Ví dụ: Palm River (Hướng Việt)..."
-                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
                     </div>
 
                     <div class="sm:col-span-2">
@@ -1513,18 +1496,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v45"></script>
+    <script src="js/firebase-config.js?v=20261014_v46"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v45"></script>
-    <script src="js/callbot-data.js?v=20261014_v45"></script>
-    <script src="js/number-to-words.js?v=20261014_v45"></script>
-    <script src="js/store.js?v=20261014_v45"></script>
-    <script src="js/quote-builder.js?v=20261014_v45"></script>
-    <script src="js/document-hub.js?v=20261014_v45"></script>
-    <script src="js/callbot-hub.js?v=20261014_v45"></script>
-    <script src="js/product-catalog.js?v=20261014_v45"></script>
-    <script src="js/pdf-export.js?v=20261014_v45"></script>
-    <script src="js/app.js?v=20261014_v45"></script>
+    <script src="js/logo-data.js?v=20261014_v46"></script>
+    <script src="js/callbot-data.js?v=20261014_v46"></script>
+    <script src="js/number-to-words.js?v=20261014_v46"></script>
+    <script src="js/store.js?v=20261014_v46"></script>
+    <script src="js/quote-builder.js?v=20261014_v46"></script>
+    <script src="js/document-hub.js?v=20261014_v46"></script>
+    <script src="js/callbot-hub.js?v=20261014_v46"></script>
+    <script src="js/product-catalog.js?v=20261014_v46"></script>
+    <script src="js/pdf-export.js?v=20261014_v46"></script>
+    <script src="js/app.js?v=20261014_v46"></script>
 </body>
 </html>

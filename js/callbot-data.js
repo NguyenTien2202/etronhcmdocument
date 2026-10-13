@@ -341,41 +341,32 @@ const DEFAULT_CALLBOT_TEMPLATES = [
     {
         id: 'cb-tpl-palmriver',
         title: '[BĐS] Kịch Bản Callbot Mở Bán Phân Khu Palm River - Palm City',
-        client: 'Palm River (Hướng Việt Properties - Nam Rạch Chiếc Q2)',
         industry: 'ind-bds',
         industryName: 'Bất Động Sản & Nhà Đất',
         badgeColor: 'emerald',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/16iV1wXVjmqLlsfkqf8mZQghTS3SUWxExRiYcy9_PPyw/edit?gid=329686546#gid=329686546',
         scriptFileName: 'Kich_ban_Palm_River_Ly.xlsx',
-        fileDownloadUrl: '',
-        updatedAt: '2026-10-14',
-        pinned: true
+        updatedAt: '2026-10-14'
     },
     {
         id: 'cb-tpl-nhakhoa',
         title: '[Nha Khoa] Kịch Bản Callbot Tặng Suất Cạo Vôi & Tẩy Trắng Răng Miễn Phí',
-        client: 'Nha Khoa Quốc Tế Sài Gòn',
         industry: 'ind-nha-khoa',
         industryName: 'Nha Khoa & Thẩm Mỹ Viện',
         badgeColor: 'cyan',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Callbot_Nha_Khoa.xlsx',
-        fileDownloadUrl: '',
-        updatedAt: '2026-10-13',
-        pinned: false
+        updatedAt: '2026-10-13'
     },
     {
         id: 'cb-tpl-crm',
         title: '[CRM / B2B] Kịch Bản Giới Thiệu Giải Pháp Adahub CRM & Callbot AI',
-        client: 'Etron Solutions - Khách Hàng Doanh Nghiệp',
         industry: 'ind-crm',
         industryName: 'Phần Mềm, CRM & Tổng Đài AI',
         badgeColor: 'indigo',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Adahub_CRM_B2B.xlsx',
-        fileDownloadUrl: '',
-        updatedAt: '2026-10-12',
-        pinned: false
+        updatedAt: '2026-10-12'
     }
 ];
 

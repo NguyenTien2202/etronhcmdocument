@@ -9,8 +9,7 @@ class CallbotHub {
         this.selectedIndustry = 'ind-bds';
         this.searchQuery = '';
         this.templateFilter = 'all';
-        this.mediaFilter = 'all';
-        this.mediaTypeFilter = 'all';
+        this.mediaTypeFilter = 'all'; // 'all' | 'audio' | 'video'
     }
 
     init() {
@@ -29,16 +28,16 @@ class CallbotHub {
     }
 
     // ==========================================
-    // 1. CHUYỂN ĐỔI SUB-TAB (Đồng bộ kiểu dáng với Top Nav)
+    // 1. CHUYỂN ĐỔI SUB-TAB (Căn giữa, kiểu dáng pastel đồng bộ)
     // ==========================================
     switchSubTab(tabName) {
         this.activeSubTab = tabName;
         document.querySelectorAll('.cb-subtab-btn').forEach(btn => {
             const isMatch = btn.getAttribute('data-cb-tab') === tabName;
             if (isMatch) {
-                btn.className = 'cb-subtab-btn px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-indigo-600 shadow-sm focus:outline-none';
+                btn.className = 'cb-subtab-btn flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 bg-white text-indigo-700 shadow-sm focus:outline-none border border-slate-200/50';
             } else {
-                btn.className = 'cb-subtab-btn px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none';
+                btn.className = 'cb-subtab-btn flex-1 sm:flex-initial px-5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 focus:outline-none';
             }
         });
 
@@ -95,6 +94,7 @@ class CallbotHub {
 
     // ==========================================
     // 2. PHÂN KHU BỘ TỪ KHÓA (CHUNG & THEO NGÀNH)
+    // Tối giản: 1 hàng mô tả, 1 hàng từ khóa, có nút icon copy
     // ==========================================
     renderKeywords() {
         this.renderStats();
@@ -124,64 +124,77 @@ class CallbotHub {
             container.innerHTML = `
                 <div class="col-span-full py-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-slate-200">
                     <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
-                    <p class="text-sm font-semibold">${query ? `Không tìm thấy từ khóa chung nào khớp với "${this.escapeHtml(query)}"` : 'Đang tải dữ liệu bộ từ khóa dùng chung...'}</p>
+                    <p class="text-sm font-semibold">${query ? `Không tìm thấy từ khóa chung nào khớp với "${this.escapeHtml(query)}"` : 'Đang tải dữ liệu...'}</p>
                 </div>
             `;
             return;
         }
 
+        const colorMap = {
+            emerald: { iconBg: 'bg-emerald-100 text-emerald-700' },
+            rose: { iconBg: 'bg-rose-100 text-rose-700' },
+            indigo: { iconBg: 'bg-indigo-100 text-indigo-700' },
+            amber: { iconBg: 'bg-amber-100 text-amber-700' },
+            slate: { iconBg: 'bg-slate-200 text-slate-700' },
+            blue: { iconBg: 'bg-blue-100 text-blue-700' }
+        };
+
         container.innerHTML = filteredGroups.map(group => {
-            const colorMap = {
-                emerald: { border: 'border-emerald-200', bg: 'bg-emerald-50/30', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', iconBg: 'bg-emerald-100 text-emerald-700' },
-                rose: { border: 'border-rose-200', bg: 'bg-rose-50/30', badge: 'bg-rose-50 text-rose-700 border-rose-200', iconBg: 'bg-rose-100 text-rose-700' },
-                indigo: { border: 'border-indigo-200', bg: 'bg-indigo-50/30', badge: 'bg-indigo-50 text-indigo-700 border-indigo-200', iconBg: 'bg-indigo-100 text-indigo-700' },
-                amber: { border: 'border-amber-200', bg: 'bg-amber-50/30', badge: 'bg-amber-50 text-amber-700 border-amber-200', iconBg: 'bg-amber-100 text-amber-700' },
-                slate: { border: 'border-slate-300', bg: 'bg-slate-50/50', badge: 'bg-slate-100 text-slate-700 border-slate-200', iconBg: 'bg-slate-200 text-slate-700' },
-                blue: { border: 'border-blue-200', bg: 'bg-blue-50/30', badge: 'bg-blue-50 text-blue-700 border-blue-200', iconBg: 'bg-blue-100 text-blue-700' }
-            };
             const c = colorMap[group.color] || colorMap.indigo;
+            const kwList = group.keywords || [];
 
             return `
-                <div class="bg-white rounded-2xl border ${c.border} p-4 sm:p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
-                    <div>
-                        <!-- Header Nhóm: Tên + Icon + Nút Copy + Nút Sửa -->
-                        <div class="flex items-start justify-between gap-2.5 mb-2.5">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <div class="w-8 h-8 rounded-xl ${c.iconBg} flex items-center justify-center shrink-0">
-                                    <i data-lucide="${group.icon || 'tag'}" class="w-4 h-4"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">${this.escapeHtml(group.name)}</h4>
-                                    <span class="text-[10px] text-slate-400 font-mono">${(group.keywords || []).length} từ khóa</span>
-                                </div>
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                    <!-- Header: Tên + Icon + Số lượng từ + Nút sửa ở góc -->
+                    <div class="flex items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-8 h-8 rounded-xl ${c.iconBg} flex items-center justify-center shrink-0">
+                                <i data-lucide="${group.icon || 'tag'}" class="w-4 h-4"></i>
                             </div>
-                            <div class="flex items-center gap-1 shrink-0">
-                                <button onclick="window.callbotHub.copyGroupKeywords('common', '${group.id}')"
-                                    class="px-2.5 py-1 rounded-lg ${c.badge} border text-[11px] font-bold hover:opacity-90 active:scale-95 transition-all flex items-center gap-1"
-                                    title="Sao chép toàn bộ từ khóa trong nhóm này">
-                                    <i data-lucide="copy" class="w-3 h-3"></i>
-                                    <span>Copy</span>
-                                </button>
-                                <button onclick="window.callbotHub.openEditGroupModal('common', '${group.id}')"
-                                    class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                    title="Chỉnh sửa nhóm từ khóa">
-                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                </button>
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">${this.escapeHtml(group.name)}</h4>
+                                <span class="inline-block text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.2 rounded-full mt-0.5">
+                                    ${kwList.length} từ
+                                </span>
                             </div>
                         </div>
+                        <button onclick="window.callbotHub.openEditGroupModal('common', '${group.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors shrink-0"
+                            title="Chỉnh sửa nhóm từ khóa">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                    </div>
 
-                        <!-- Mô tả nhóm -->
-                        <p class="text-[11px] text-slate-500 mb-3 line-clamp-2">${this.escapeHtml(group.description || '')}</p>
+                    <!-- 2 Hàng: Hàng 1 Mô tả (có icon copy), Hàng 2 Từ khóa (có icon copy) -->
+                    <div class="space-y-2 mt-3">
+                        <!-- Hàng 1: Mô tả -->
+                        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 border border-slate-200/60">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                <span class="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">Mô tả:</span>
+                                <span class="text-xs text-slate-600 truncate" title="${this.escapeHtml(group.description || 'Chưa có mô tả')}">
+                                    ${this.escapeHtml(group.description || 'Chưa có mô tả')}
+                                </span>
+                            </div>
+                            <button onclick="window.callbotHub.copyText('${this.escapeJs(group.description || '')}', 'Đã sao chép mô tả!')"
+                                class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white transition-all shrink-0 active:scale-90"
+                                title="Sao chép mô tả">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
 
-                        <!-- Trình bày từ khóa dạng text block sạch sẽ, dễ đọc, không rối mắt -->
-                        <div class="bg-slate-50 hover:bg-slate-100/60 border border-slate-200/90 rounded-xl p-3 max-h-40 overflow-y-auto leading-relaxed select-all text-xs text-slate-700 font-mono transition-colors">
-                            ${(group.keywords || []).map((kw, idx) => {
-                                const isHighlight = query && kw.toLowerCase().includes(query);
-                                const kwHtml = isHighlight 
-                                    ? `<mark class="bg-amber-200 text-slate-900 font-bold px-1 rounded">${this.escapeHtml(kw)}</mark>` 
-                                    : `<span class="hover:text-indigo-600 transition-colors">${this.escapeHtml(kw)}</span>`;
-                                return kwHtml + (idx < group.keywords.length - 1 ? '<span class="text-slate-300 font-sans mx-1">,</span> ' : '');
-                            }).join('')}
+                        <!-- Hàng 2: Từ khóa -->
+                        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-indigo-50/40 border border-indigo-100/70">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                <span class="text-[10px] font-bold text-indigo-400 shrink-0 uppercase tracking-wider">Từ khóa:</span>
+                                <span class="text-xs text-indigo-900 font-mono truncate" title="${this.escapeHtml(kwList.join(', '))}">
+                                    ${this.escapeHtml(kwList.join(', '))}
+                                </span>
+                            </div>
+                            <button onclick="window.callbotHub.copyGroupKeywords('common', '${group.id}')"
+                                class="p-1 rounded-lg text-indigo-500 hover:text-indigo-700 hover:bg-white transition-all shrink-0 active:scale-90"
+                                title="Sao chép tất cả từ khóa">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -205,24 +218,24 @@ class CallbotHub {
             this.selectedIndustry = industries[0].id;
         }
 
-        // Render Tabs Ngành Nghề
+        // Render Tabs Ngành Nghề - Phong cách Pastel đồng bộ Quote Builder
         tabsContainer.innerHTML = `
             ${industries.map(ind => {
                 const isActive = ind.id === this.selectedIndustry;
                 return `
                     <button onclick="window.callbotHub.selectIndustry('${ind.id}')"
-                        class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap shrink-0 border ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'}">
-                        <i data-lucide="${ind.icon || 'layers'}" class="w-4 h-4"></i>
+                        class="px-3.5 py-2 rounded-xl text-xs transition-all flex items-center gap-2 whitespace-nowrap shrink-0 border ${isActive ? 'bg-indigo-50/90 border-indigo-300 text-indigo-800 font-bold shadow-xs ring-1 ring-indigo-200/70' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900'}">
+                        <i data-lucide="${ind.icon || 'layers'}" class="w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}"></i>
                         <span>${this.escapeHtml(ind.name)}</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-indigo-700/60 text-white' : 'bg-slate-100 text-slate-500'}">
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-slate-100 text-slate-500'}">
                             ${(ind.groups || []).length} nhóm
                         </span>
                     </button>
                 `;
             }).join('')}
             <button onclick="window.callbotHub.openAddIndustryModal()"
-                class="px-3 py-2 rounded-xl text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                class="px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 bg-emerald-50/80 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 shadow-2xs">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-600"></i>
                 <span>Thêm Ngành Mới</span>
             </button>
         `;
@@ -243,14 +256,14 @@ class CallbotHub {
             });
         }
 
-        // Header thông tin ngành + Nút Copy All
+        // Header thông tin ngành + Nút Copy All - Phong cách Pastel
         const headerInfo = document.getElementById('cb-industry-header-info');
         if (headerInfo) {
             let totalKw = 0;
             (curInd.groups || []).forEach(g => totalKw += (g.keywords ? g.keywords.length : 0));
 
             headerInfo.innerHTML = `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 mb-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-indigo-50/40 rounded-2xl p-4 border border-indigo-100/80 mb-4">
                     <div class="space-y-0.5">
                         <div class="flex items-center gap-2">
                             <h3 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
@@ -265,12 +278,12 @@ class CallbotHub {
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <button onclick="window.callbotHub.copyAllIndustryKeywords('${curInd.id}')"
-                            class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 active:scale-95 transition-all shadow-sm flex items-center gap-1.5">
+                            class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95">
                             <i data-lucide="copy-check" class="w-4 h-4"></i>
                             <span>Sao Chép Toàn Bộ Ngành</span>
                         </button>
                         <button onclick="window.callbotHub.openAddGroupModal('${curInd.id}')"
-                            class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all flex items-center gap-1">
+                            class="px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-xs flex items-center gap-1 active:scale-95">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span>Thêm Nhóm Từ Khóa</span>
                         </button>
@@ -289,55 +302,80 @@ class CallbotHub {
             return;
         }
 
-        groupsContainer.innerHTML = filteredGroups.map(group => `
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between">
-                <div>
-                    <!-- Header Nhóm -->
-                    <div class="flex items-start justify-between gap-3 mb-2.5">
+        groupsContainer.innerHTML = filteredGroups.map(group => {
+            const kwList = group.keywords || [];
+
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                    <!-- Header Nhóm: Tên + Icon + Số lượng từ + Nút sửa ở góc -->
+                    <div class="flex items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100">
                         <div class="flex items-center gap-2 min-w-0">
                             <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
                                 <i data-lucide="${group.icon || 'tag'}" class="w-4 h-4"></i>
                             </div>
                             <div class="min-w-0">
                                 <h4 class="font-bold text-slate-900 text-xs sm:text-sm truncate">${this.escapeHtml(group.name)}</h4>
-                                <span class="text-[10px] text-slate-400 font-mono">${(group.keywords || []).length} từ khóa</span>
+                                <span class="inline-block text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.2 rounded-full mt-0.5">
+                                    ${kwList.length} từ
+                                </span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <button onclick="window.callbotHub.copyGroupKeywords('${curInd.id}', '${group.id}')"
-                                class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-bold hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-1"
-                                title="Sao chép từ khóa nhóm này">
-                                <i data-lucide="copy" class="w-3 h-3"></i>
-                                <span>Copy</span>
+                        <button onclick="window.callbotHub.openEditGroupModal('${curInd.id}', '${group.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50/80 transition-colors shrink-0"
+                            title="Chỉnh sửa nhóm từ khóa">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- 2 Hàng: Hàng 1 Mô tả (có icon copy), Hàng 2 Từ khóa (có icon copy) -->
+                    <div class="space-y-2 mt-3">
+                        <!-- Hàng 1: Mô tả -->
+                        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50/90 border border-slate-200/60">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                <span class="text-[10px] font-bold text-slate-400 shrink-0 uppercase tracking-wider">Mô tả:</span>
+                                <span class="text-xs text-slate-600 truncate" title="${this.escapeHtml(group.description || 'Chưa có mô tả')}">
+                                    ${this.escapeHtml(group.description || 'Chưa có mô tả')}
+                                </span>
+                            </div>
+                            <button onclick="window.callbotHub.copyText('${this.escapeJs(group.description || '')}', 'Đã sao chép mô tả!')"
+                                class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white transition-all shrink-0 active:scale-90"
+                                title="Sao chép mô tả">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                             </button>
-                            <button onclick="window.callbotHub.openEditGroupModal('${curInd.id}', '${group.id}')"
-                                class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                title="Chỉnh sửa nhóm từ khóa">
-                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        </div>
+
+                        <!-- Hàng 2: Từ khóa -->
+                        <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-indigo-50/40 border border-indigo-100/70">
+                            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+                                <span class="text-[10px] font-bold text-indigo-400 shrink-0 uppercase tracking-wider">Từ khóa:</span>
+                                <span class="text-xs text-indigo-900 font-mono truncate" title="${this.escapeHtml(kwList.join(', '))}">
+                                    ${this.escapeHtml(kwList.join(', '))}
+                                </span>
+                            </div>
+                            <button onclick="window.callbotHub.copyGroupKeywords('${curInd.id}', '${group.id}')"
+                                class="p-1 rounded-lg text-indigo-500 hover:text-indigo-700 hover:bg-white transition-all shrink-0 active:scale-90"
+                                title="Sao chép tất cả từ khóa">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                             </button>
                         </div>
                     </div>
-
-                    <p class="text-[11px] text-slate-500 mb-3 line-clamp-2">${this.escapeHtml(group.description || '')}</p>
-
-                    <!-- Danh sách từ khóa dạng text block sạch sẽ, dễ đọc -->
-                    <div class="bg-slate-50 hover:bg-slate-100/60 border border-slate-200/90 rounded-xl p-3 max-h-44 overflow-y-auto leading-relaxed select-all text-xs text-slate-700 font-mono transition-colors">
-                        ${(group.keywords || []).map((kw, idx) => {
-                            const isHighlight = query && kw.toLowerCase().includes(query);
-                            const kwHtml = isHighlight 
-                                ? `<mark class="bg-amber-200 text-slate-900 font-bold px-1 rounded">${this.escapeHtml(kw)}</mark>` 
-                                : `<span class="hover:text-indigo-600 transition-colors">${this.escapeHtml(kw)}</span>`;
-                            return kwHtml + (idx < group.keywords.length - 1 ? '<span class="text-slate-300 font-sans mx-1">,</span> ' : '');
-                        }).join('')}
-                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     selectIndustry(indId) {
         this.selectedIndustry = indId;
         this.renderKeywords();
+    }
+
+    copyText(text, msg) {
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+            window.salesApp.showNotification(msg || 'Đã sao chép!', 'success');
+        }).catch(() => {
+            this.fallbackCopy(text, msg || 'Đã sao chép!');
+        });
     }
 
     copyGroupKeywords(indId, groupId) {
@@ -353,27 +391,8 @@ class CallbotHub {
 
         if (targetGroup && targetGroup.keywords) {
             const textToCopy = targetGroup.keywords.join(', ');
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                window.salesApp.showNotification(`Đã sao chép ${targetGroup.keywords.length} từ khóa nhóm "${targetGroup.name}"!`, 'success');
-            }).catch(() => {
-                this.fallbackCopy(textToCopy, `Đã sao chép ${targetGroup.keywords.length} từ khóa`);
-            });
+            this.copyText(textToCopy, `Đã sao chép ${targetGroup.keywords.length} từ khóa nhóm "${targetGroup.name}"!`);
         }
-    }
-
-    copyAllCommonKeywords() {
-        const data = window.salesStore.getCallbotKeywords();
-        const allKw = [];
-        (data.common || []).forEach(g => {
-            if (g.keywords) allKw.push(...g.keywords);
-        });
-
-        const textToCopy = Array.from(new Set(allKw)).join(', ');
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            window.salesApp.showNotification(`Đã sao chép toàn bộ ${allKw.length} từ khóa dùng chung!`, 'success');
-        }).catch(() => {
-            this.fallbackCopy(textToCopy, `Đã sao chép ${allKw.length} từ khóa dùng chung`);
-        });
     }
 
     copyAllIndustryKeywords(indId) {
@@ -387,11 +406,7 @@ class CallbotHub {
         });
 
         const textToCopy = Array.from(new Set(allKw)).join(', ');
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            window.salesApp.showNotification(`Đã sao chép toàn bộ ${allKw.length} từ khóa ngành "${ind.name}"!`, 'success');
-        }).catch(() => {
-            this.fallbackCopy(textToCopy, `Đã sao chép ${allKw.length} từ khóa ngành`);
-        });
+        this.copyText(textToCopy, `Đã sao chép toàn bộ ${allKw.length} từ khóa ngành "${ind.name}"!`);
     }
 
     fallbackCopy(text, msg) {
@@ -412,7 +427,7 @@ class CallbotHub {
 
     // ==========================================
     // 3. PHÂN KHU KHO KỊCH BẢN MẪU (EXCEL / DRIVE)
-    // Tối giản: Chỉ tên kịch bản, ngành nghề, đính kèm link/file
+    // Tối giản: Không trường dự án, không link xem từ khóa, nút mở link & xem file chỉ để icon kèm icon copy
     // ==========================================
     renderTemplates() {
         const container = document.getElementById('cb-templates-grid');
@@ -422,11 +437,11 @@ class CallbotHub {
         const templates = window.salesStore.getCallbotTemplates();
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
 
-        // Render Filter Buttons
+        // Render Filter Buttons - Phong cách Pastel đồng bộ Quote Builder
         if (filterContainer) {
             filterContainer.innerHTML = `
                 <button onclick="window.callbotHub.filterTemplates('all')"
-                    class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${this.templateFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                    class="px-3 py-1.5 rounded-xl text-xs transition-all border ${this.templateFilter === 'all' ? 'bg-indigo-50/90 border-indigo-300 text-indigo-800 font-bold shadow-xs ring-1 ring-indigo-200/70' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900'}">
                     Tất Cả (${templates.length})
                 </button>
                 ${industries.map(ind => {
@@ -434,8 +449,8 @@ class CallbotHub {
                     const isActive = this.templateFilter === ind.id;
                     return `
                         <button onclick="window.callbotHub.filterTemplates('${ind.id}')"
-                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-                            <i data-lucide="${ind.icon || 'folder'}" class="w-3.5 h-3.5"></i>
+                            class="px-3 py-1.5 rounded-xl text-xs transition-all border flex items-center gap-1.5 ${isActive ? 'bg-indigo-50/90 border-indigo-300 text-indigo-800 font-bold shadow-xs ring-1 ring-indigo-200/70' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900'}">
+                            <i data-lucide="${ind.icon || 'folder'}" class="w-3.5 h-3.5 ${isActive ? 'text-indigo-600' : 'text-slate-400'}"></i>
                             <span>${this.escapeHtml(ind.name)} (${count})</span>
                         </button>
                     `;
@@ -453,7 +468,7 @@ class CallbotHub {
                 <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="file-question" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                     <p class="font-bold text-slate-700 text-sm">Chưa có kịch bản mẫu nào trong danh mục này</p>
-                    <p class="text-xs text-slate-400 mt-1">Bấm nút "+ Thêm Kịch Bản Mới" để tải lên file Excel hoặc dán link Google Sheets/Drive.</p>
+                    <p class="text-xs text-slate-400 mt-1">Bấm nút "+ Thêm Kịch Bản Mẫu" để lưu link Google Sheets/Drive hoặc file Excel.</p>
                 </div>
             `;
             return;
@@ -464,11 +479,11 @@ class CallbotHub {
             const hasFile = Boolean(tpl.scriptFileName && tpl.scriptFileName.trim());
 
             return `
-                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-lg hover:border-indigo-200 transition-all flex flex-col justify-between group">
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between group">
                     <div class="space-y-3">
                         <!-- Header Card: Ngành nghề + Ngày cập nhật -->
-                        <div class="flex items-start justify-between gap-3">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-50 text-indigo-700 border border-indigo-200">
                                 ${this.escapeHtml(tpl.industryName || 'Ngành khác')}
                             </span>
                             <span class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
@@ -477,86 +492,78 @@ class CallbotHub {
                             </span>
                         </div>
 
-                        <!-- Tiêu đề Kịch bản -->
-                        <h4 class="font-extrabold text-slate-900 text-sm sm:text-base group-hover:text-indigo-600 transition-colors leading-snug cursor-pointer"
+                        <!-- Tiêu đề Kịch bản (Bỏ hoàn toàn trường dự án) -->
+                        <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm leading-snug group-hover:text-indigo-600 transition-colors cursor-pointer"
                             onclick="${hasUrl ? `window.open('${this.escapeHtml(tpl.scriptUrl)}', '_blank')` : ''}">
                             ${this.escapeHtml(tpl.title)}
                         </h4>
 
-                        <!-- Khách hàng / Dự án nếu có -->
-                        ${tpl.client ? `
-                            <p class="text-xs text-indigo-600 font-semibold flex items-center gap-1.5">
-                                <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
-                                <span>Dự án / KH: ${this.escapeHtml(tpl.client)}</span>
-                            </p>
-                        ` : ''}
-
-                        <!-- Đính kèm: Link hoặc File hoặc Cả hai -->
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <!-- Đính kèm: Link hoặc File hoặc Cả hai - Nút chỉ để Icon kèm Icon Copy bên cạnh -->
+                        <div class="p-2.5 rounded-xl bg-slate-50/80 border border-slate-200/70 space-y-2">
                             ${hasUrl ? `
                                 <div class="flex items-center justify-between gap-2">
                                     <div class="flex items-center gap-2 min-w-0">
-                                        <div class="w-7 h-7 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                                            <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                                        <div class="w-6 h-6 rounded-lg bg-emerald-100/80 text-emerald-700 flex items-center justify-center shrink-0">
+                                            <i data-lucide="link" class="w-3 h-3"></i>
                                         </div>
-                                        <span class="text-xs font-semibold text-slate-700 truncate">Link Google Sheets / Drive</span>
+                                        <span class="text-xs font-semibold text-slate-700 truncate">Google Sheets / Drive</span>
                                     </div>
-                                    <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
-                                        class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shrink-0 flex items-center gap-1"
-                                        title="Mở liên kết">
-                                        <i data-lucide="external-link" class="w-3 h-3"></i>
-                                        <span>Mở Link</span>
-                                    </a>
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
+                                            class="p-1.5 rounded-lg bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 hover:border-emerald-300 transition-colors shadow-2xs"
+                                            title="Mở liên kết">
+                                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                        </a>
+                                        <button onclick="window.callbotHub.copyText('${this.escapeJs(tpl.scriptUrl)}', 'Đã sao chép liên kết!')"
+                                            class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
+                                            title="Sao chép link">
+                                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             ` : ''}
 
                             ${hasFile ? `
                                 <div class="flex items-center justify-between gap-2 ${hasUrl ? 'pt-2 border-t border-slate-200/60' : ''}">
                                     <div class="flex items-center gap-2 min-w-0">
-                                        <div class="w-7 h-7 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-                                            <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                                        <div class="w-6 h-6 rounded-lg bg-indigo-100/80 text-indigo-700 flex items-center justify-center shrink-0">
+                                            <i data-lucide="file-spreadsheet" class="w-3 h-3"></i>
                                         </div>
                                         <span class="text-xs font-semibold text-slate-700 truncate" title="${this.escapeHtml(tpl.scriptFileName)}">
                                             ${this.escapeHtml(tpl.scriptFileName)}
                                         </span>
                                     </div>
-                                    ${hasUrl ? `
-                                        <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
-                                            class="px-2.5 py-1 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs transition-colors shrink-0 flex items-center gap-1">
-                                            <i data-lucide="download" class="w-3 h-3"></i>
-                                            <span>Xem File</span>
-                                        </a>
-                                    ` : `
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-slate-200 text-slate-600">File Excel</span>
-                                    `}
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        ${hasUrl ? `
+                                            <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
+                                                class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
+                                                title="Xem / Tải file">
+                                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                            </a>
+                                        ` : ''}
+                                        <button onclick="window.callbotHub.copyText('${this.escapeJs(tpl.scriptFileName)}', 'Đã sao chép tên file!')"
+                                            class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
+                                            title="Sao chép tên file">
+                                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                            ` : ''}
-
-                            ${!hasUrl && !hasFile ? `
-                                <p class="text-xs text-slate-400 italic">Chưa đính kèm link hoặc file</p>
                             ` : ''}
                         </div>
                     </div>
 
-                    <!-- Footer Thao Tác: Chỉnh sửa & Xóa -->
-                    <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                        <button onclick="window.callbotHub.viewIndustryKeywords('${tpl.industry}')"
-                            class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
-                            <i data-lucide="tag" class="w-3.5 h-3.5"></i>
-                            <span>Xem bộ từ khóa</span>
+                    <!-- Footer Thao Tác: Bỏ hoàn toàn xem từ khóa, chỉ còn icon sửa và xóa -->
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-end gap-1">
+                        <button onclick="window.callbotHub.openEditTemplateModal('${tpl.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            title="Chỉnh sửa kịch bản mẫu">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                         </button>
-                        <div class="flex items-center gap-1">
-                            <button onclick="window.callbotHub.openEditTemplateModal('${tpl.id}')"
-                                class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-                                title="Chỉnh sửa kịch bản mẫu">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="window.callbotHub.deleteTemplate('${tpl.id}')"
-                                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                title="Xóa kịch bản mẫu">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
+                        <button onclick="window.callbotHub.deleteTemplate('${tpl.id}')"
+                            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Xóa kịch bản mẫu">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
                     </div>
                 </div>
             `;
@@ -569,11 +576,6 @@ class CallbotHub {
         if (window.lucide) lucide.createIcons();
     }
 
-    viewIndustryKeywords(indId) {
-        this.selectedIndustry = indId;
-        this.switchSubTab('keywords');
-    }
-
     deleteTemplate(id) {
         if (confirm('Bạn có chắc chắn muốn xóa kịch bản mẫu này khỏi kho?')) {
             window.salesStore.deleteCallbotTemplate(id);
@@ -583,8 +585,8 @@ class CallbotHub {
     }
 
     // ==========================================
-    // 4. PHÂN KHU THƯ VIỆN (AUDIO, VIDEO, MEDIA)
-    // Upload link, audio (mp3, wav), video, có tên và ngành nghề
+    // 4. PHÂN KHU THƯ VIỆN (CHỈ CẦN AUDIO HOẶC VIDEO)
+    // Tối giản: Bộ lọc chuyển đổi giữa Audio hoặc Video, thẻ hiển thị gọn gàng
     // ==========================================
     renderMedia() {
         const container = document.getElementById('cb-media-container');
@@ -592,43 +594,24 @@ class CallbotHub {
         if (!container) return;
 
         const mediaList = window.salesStore.getCallbotMedia();
-        const industries = (window.salesStore.getCallbotKeywords().industries || []);
 
-        // Filter Bar (Ngành nghề & Loại media)
+        // Filter Bar - Phong cách Pastel đồng bộ Quote Builder
         if (filterContainer) {
             filterContainer.innerHTML = `
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-xs font-bold text-slate-500 shrink-0">Ngành:</span>
-                    <button onclick="window.callbotHub.filterMediaByIndustry('all')"
-                        class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border ${this.mediaFilter === 'all' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-500 shrink-0">Loại Media:</span>
+                    <button onclick="window.callbotHub.filterMediaByType('all')"
+                        class="px-3 py-1.5 rounded-xl text-xs transition-all border ${this.mediaTypeFilter === 'all' ? 'bg-slate-100 border-slate-300 text-slate-800 font-bold shadow-xs' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-slate-50'}">
                         Tất Cả (${mediaList.length})
                     </button>
-                    ${industries.map(ind => {
-                        const count = mediaList.filter(m => m.industry === ind.id).length;
-                        const isActive = this.mediaFilter === ind.id;
-                        return `
-                            <button onclick="window.callbotHub.filterMediaByIndustry('${ind.id}')"
-                                class="px-2.5 py-1 rounded-lg text-xs font-bold transition-all border flex items-center gap-1 ${isActive ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-                                <span>${this.escapeHtml(ind.name)}</span>
-                                <span class="text-[10px] opacity-80">(${count})</span>
-                            </button>
-                        `;
-                    }).join('')}
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold text-slate-500 shrink-0">Định dạng:</span>
-                    <button onclick="window.callbotHub.filterMediaByType('all')"
-                        class="px-2.5 py-1 rounded-lg text-xs font-bold border ${this.mediaTypeFilter === 'all' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-                        Tất Cả
-                    </button>
                     <button onclick="window.callbotHub.filterMediaByType('audio')"
-                        class="px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 ${this.mediaTypeFilter === 'audio' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-                        <i data-lucide="music" class="w-3.5 h-3.5"></i>
+                        class="px-3 py-1.5 rounded-xl text-xs transition-all border flex items-center gap-1.5 ${this.mediaTypeFilter === 'audio' ? 'bg-amber-50 border-amber-300 text-amber-800 font-bold shadow-xs ring-1 ring-amber-200' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-amber-50/50 hover:border-amber-200'}">
+                        <i data-lucide="music" class="w-3.5 h-3.5 text-amber-600"></i>
                         <span>Audio / Giọng đọc</span>
                     </button>
                     <button onclick="window.callbotHub.filterMediaByType('video')"
-                        class="px-2.5 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 ${this.mediaTypeFilter === 'video' ? 'bg-purple-600 text-white' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}">
-                        <i data-lucide="video" class="w-3.5 h-3.5"></i>
+                        class="px-3 py-1.5 rounded-xl text-xs transition-all border flex items-center gap-1.5 ${this.mediaTypeFilter === 'video' ? 'bg-purple-50 border-purple-300 text-purple-800 font-bold shadow-xs ring-1 ring-purple-200' : 'bg-white border-slate-200 text-slate-600 font-medium hover:bg-purple-50/50 hover:border-purple-200'}">
+                        <i data-lucide="video" class="w-3.5 h-3.5 text-purple-600"></i>
                         <span>Video Demo</span>
                     </button>
                 </div>
@@ -636,9 +619,6 @@ class CallbotHub {
         }
 
         let filtered = mediaList;
-        if (this.mediaFilter !== 'all') {
-            filtered = filtered.filter(m => m.industry === this.mediaFilter);
-        }
         if (this.mediaTypeFilter !== 'all') {
             filtered = filtered.filter(m => m.type === this.mediaTypeFilter);
         }
@@ -648,7 +628,7 @@ class CallbotHub {
                 <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
                     <i data-lucide="folder-search" class="w-10 h-10 mx-auto mb-2 text-slate-300"></i>
                     <p class="font-bold text-slate-700 text-sm">Chưa có file audio hoặc video mẫu nào</p>
-                    <p class="text-xs text-slate-400 mt-1">Bấm "+ Thêm Media Mới" để lưu link demo, file audio (MP3, WAV) hoặc video cho ngành này.</p>
+                    <p class="text-xs text-slate-400 mt-1">Bấm "+ Thêm Media Mới" để lưu link demo, file audio (MP3, WAV) hoặc video.</p>
                 </div>
             `;
             return;
@@ -661,60 +641,66 @@ class CallbotHub {
                     const hasUrl = Boolean(item.mediaUrl && item.mediaUrl.trim());
 
                     return `
-                        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between">
                             <div class="space-y-3">
-                                <!-- Header: Ngành + Loại Media + Ngày -->
+                                <!-- Header: Ngành + Badge Audio / Video -->
                                 <div class="flex items-center justify-between gap-2">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700">
+                                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                         ${this.escapeHtml(item.industryName || 'Ngành khác')}
                                     </span>
                                     <span class="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${isAudio ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-purple-50 text-purple-700 border border-purple-200'}">
                                         <i data-lucide="${isAudio ? 'music' : 'video'}" class="w-3 h-3"></i>
-                                        <span>${isAudio ? 'Audio MP3/WAV' : 'Video Demo'}</span>
+                                        <span>${isAudio ? 'Audio' : 'Video'}</span>
                                     </span>
                                 </div>
 
                                 <!-- Tiêu đề Media -->
-                                <h4 class="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
+                                <h4 class="font-bold text-slate-900 text-xs sm:text-sm leading-snug line-clamp-2">
                                     ${this.escapeHtml(item.title)}
                                 </h4>
 
-                                ${item.fileName ? `
-                                    <p class="text-[11px] text-slate-400 font-mono flex items-center gap-1">
-                                        <i data-lucide="paperclip" class="w-3 h-3"></i>
-                                        <span class="truncate">${this.escapeHtml(item.fileName)}</span>
-                                    </p>
-                                ` : ''}
-
-                                <!-- Trình phát Audio hoặc Video Preview -->
+                                <!-- Trình phát Audio hoặc Nút Video -->
                                 ${isAudio ? `
-                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+                                    <div class="p-2.5 bg-slate-50/90 rounded-xl border border-slate-200/70 space-y-2">
                                         ${hasUrl ? `
                                             <audio controls class="w-full h-8" preload="none">
                                                 <source src="${this.escapeHtml(item.mediaUrl)}" type="audio/mpeg">
                                                 <source src="${this.escapeHtml(item.mediaUrl)}" type="audio/wav">
-                                                Trình duyệt không hỗ trợ phát audio.
                                             </audio>
                                             <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/50">
-                                                <span class="text-slate-400">Nghe trực tiếp</span>
-                                                <a href="${this.escapeHtml(item.mediaUrl)}" target="_blank" rel="noopener noreferrer"
-                                                    class="text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1">
-                                                    <i data-lucide="external-link" class="w-3 h-3"></i>
-                                                    <span>Mở File Audio</span>
-                                                </a>
+                                                <span class="text-slate-400 font-mono text-[10px] truncate max-w-[140px]">${this.escapeHtml(item.fileName || 'Audio demo')}</span>
+                                                <div class="flex items-center gap-1">
+                                                    <a href="${this.escapeHtml(item.mediaUrl)}" target="_blank" rel="noopener noreferrer"
+                                                        class="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white transition-colors"
+                                                        title="Mở file trực tiếp">
+                                                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                                    </a>
+                                                    <button onclick="window.callbotHub.copyText('${this.escapeJs(item.mediaUrl)}', 'Đã sao chép link audio!')"
+                                                        class="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white transition-colors"
+                                                        title="Sao chép link">
+                                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         ` : `
-                                            <p class="text-xs text-slate-400 italic">Chưa có file hoặc link audio</p>
+                                            <p class="text-xs text-slate-400 italic">Chưa có link audio</p>
                                         `}
                                     </div>
                                 ` : `
-                                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-2">
+                                    <div class="p-2.5 bg-slate-50/90 rounded-xl border border-slate-200/70 space-y-2">
                                         ${hasUrl ? `
-                                            <a href="${this.escapeHtml(item.mediaUrl)}" target="_blank" rel="noopener noreferrer"
-                                                class="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-sm">
-                                                <i data-lucide="play-circle" class="w-4 h-4"></i>
-                                                <span>Xem Video Demo Trực Tiếp</span>
-                                            </a>
+                                            <div class="flex items-center gap-2">
+                                                <a href="${this.escapeHtml(item.mediaUrl)}" target="_blank" rel="noopener noreferrer"
+                                                    class="flex-1 py-2 px-3 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs">
+                                                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                                                    <span>Xem Video Demo</span>
+                                                </a>
+                                                <button onclick="window.callbotHub.copyText('${this.escapeJs(item.mediaUrl)}', 'Đã sao chép link video!')"
+                                                    class="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 transition-colors shadow-2xs"
+                                                    title="Sao chép link video">
+                                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                </button>
+                                            </div>
                                         ` : `
                                             <p class="text-xs text-slate-400 italic">Chưa có link video</p>
                                         `}
@@ -722,19 +708,19 @@ class CallbotHub {
                                 `}
                             </div>
 
-                            <!-- Footer Card: Edit & Delete -->
-                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                            <!-- Footer Card: Ngày cập nhật + Sửa & Xóa bằng icon -->
+                            <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs">
                                 <span class="text-[11px] text-slate-400 font-mono">${item.updatedAt || '2026-10-14'}</span>
                                 <div class="flex items-center gap-1">
                                     <button onclick="window.callbotHub.openEditMediaModal('${item.id}')"
                                         class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
                                         title="Chỉnh sửa media">
-                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                     </button>
                                     <button onclick="window.callbotHub.deleteMedia('${item.id}')"
                                         class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                                        title="Xóa file media này">
-                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        title="Xóa media này">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                     </button>
                                 </div>
                             </div>
@@ -744,11 +730,6 @@ class CallbotHub {
             </div>
         `;
         if (window.lucide) lucide.createIcons();
-    }
-
-    filterMediaByIndustry(indId) {
-        this.mediaFilter = indId;
-        this.renderMedia();
     }
 
     filterMediaByType(type) {
@@ -841,7 +822,6 @@ class CallbotHub {
         // Nếu người dùng chọn file trực tiếp từ máy
         if (fileInput && fileInput.files && fileInput.files[0]) {
             const file = fileInput.files[0];
-            // Nếu file dưới 2MB có thể đọc DataURL, nếu không thì lấy link đã điền hoặc lưu tên file
             if (file.size < 2.5 * 1024 * 1024) {
                 const reader = new FileReader();
                 reader.onload = (re) => finalizeSave(re.target.result, file.name);
@@ -891,7 +871,6 @@ class CallbotHub {
 
         document.getElementById('cb-tpl-id').value = tpl.id;
         document.getElementById('cb-tpl-title').value = tpl.title || '';
-        document.getElementById('cb-tpl-client').value = tpl.client || '';
         document.getElementById('cb-tpl-industry').value = tpl.industry || '';
         document.getElementById('cb-tpl-url').value = tpl.scriptUrl || '';
         document.getElementById('cb-tpl-filename').value = tpl.scriptFileName || '';
@@ -915,7 +894,6 @@ class CallbotHub {
         e.preventDefault();
         const id = document.getElementById('cb-tpl-id').value;
         const title = document.getElementById('cb-tpl-title').value.trim();
-        const client = document.getElementById('cb-tpl-client').value.trim();
         const industry = document.getElementById('cb-tpl-industry').value;
         const scriptUrl = document.getElementById('cb-tpl-url').value.trim();
         const scriptFileName = document.getElementById('cb-tpl-filename').value.trim();
@@ -936,7 +914,6 @@ class CallbotHub {
         const tplData = {
             id: id || null,
             title,
-            client,
             industry,
             industryName: targetInd ? targetInd.name : 'Ngành khác',
             scriptUrl,
@@ -1073,30 +1050,6 @@ class CallbotHub {
         window.salesApp.showNotification(`Đã tạo ngành nghề mới: "${name.trim()}"!`, 'success');
     }
 
-    resetToDefaults() {
-        if (confirm('Khôi phục toàn bộ kho từ khóa và kịch bản mẫu về dữ liệu gốc chuẩn Palm River?')) {
-            localStorage.removeItem('saleshub_callbot_keywords');
-            localStorage.removeItem('saleshub_callbot_templates');
-            localStorage.removeItem('saleshub_callbot_media');
-            const kw = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : window.DEFAULT_CALLBOT_KEYWORDS;
-            const tpl = (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') ? DEFAULT_CALLBOT_TEMPLATES : window.DEFAULT_CALLBOT_TEMPLATES;
-            const med = (typeof DEFAULT_CALLBOT_MEDIA !== 'undefined') ? DEFAULT_CALLBOT_MEDIA : window.DEFAULT_CALLBOT_MEDIA;
-
-            if (kw) window.salesStore.saveCallbotKeywords(kw);
-            if (tpl) localStorage.setItem('saleshub_callbot_templates', JSON.stringify(tpl));
-            if (med) localStorage.setItem('saleshub_callbot_media', JSON.stringify(med));
-
-            if (window.firebaseDb) {
-                if (kw) window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: kw }).catch(() => {});
-                if (tpl) tpl.forEach(t => window.firebaseDb.collection('callbot_templates').doc(t.id).set(t).catch(() => {}));
-                if (med) med.forEach(m => window.firebaseDb.collection('callbot_media').doc(m.id).set(m).catch(() => {}));
-            }
-            this.selectedIndustry = 'ind-bds';
-            this.render();
-            window.salesApp.showNotification('Đã khôi phục dữ liệu kịch bản & từ khóa Palm River gốc!', 'success');
-        }
-    }
-
     escapeHtml(text) {
         if (!text) return '';
         return String(text)
@@ -1105,6 +1058,16 @@ class CallbotHub {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    escapeJs(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '');
     }
 }
 
