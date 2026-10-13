@@ -111,6 +111,7 @@ class DocumentHub {
         this.selectedCategory = 'all';
         this.selectedType = 'all'; // 'all', 'doc', 'sheet', 'image', 'video', 'link'
         this.searchQuery = '';
+        this.sortBy = localStorage.getItem('etron_doc_sort_by') || 'date-desc'; // 'date-desc', 'date-asc', 'title-asc', 'title-desc'
         this.viewMode = localStorage.getItem('etron_doc_view_mode') || 'table'; // 'table' hoặc 'grid'
         this.selectedUploadFile = null;
         this.activeModalTab = 'upload'; // 'upload' hoặc 'link'
@@ -121,6 +122,12 @@ class DocumentHub {
         this.renderQuickAccess();
         this.renderTypePills();
         this.renderCategoryPills();
+        
+        const sortSelect = document.getElementById('doc-sort-select');
+        if (sortSelect) {
+            sortSelect.value = this.sortBy;
+        }
+
         this.renderDocumentsList();
         this.setupModalEventListeners();
     }
@@ -338,20 +345,42 @@ class DocumentHub {
         const btnGrid = document.getElementById('btn-mode-grid');
         if (btnTable && btnGrid) {
             if (mode === 'table') {
-                btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm flex items-center gap-1.5";
-                btnGrid.className = "px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-900 flex items-center gap-1.5";
+                btnTable.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm flex items-center gap-1.5";
+                btnGrid.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-900 flex items-center gap-1.5";
             } else {
-                btnGrid.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm flex items-center gap-1.5";
-                btnTable.className = "px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-900 flex items-center gap-1.5";
+                btnGrid.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm flex items-center gap-1.5";
+                btnTable.className = "px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-900 flex items-center gap-1.5";
             }
         }
 
         this.renderDocumentsList();
     }
 
+    setSortBy(sortKey) {
+        this.sortBy = sortKey;
+        localStorage.setItem('etron_doc_sort_by', sortKey);
+
+        const sortSelect = document.getElementById('doc-sort-select');
+        if (sortSelect && sortSelect.value !== sortKey) {
+            sortSelect.value = sortKey;
+        }
+
+        this.renderDocumentsList();
+    }
+
+    toggleSort(type) {
+        if (type === 'date') {
+            const nextSort = this.sortBy === 'date-desc' ? 'date-asc' : 'date-desc';
+            this.setSortBy(nextSort);
+        } else if (type === 'title') {
+            const nextSort = this.sortBy === 'title-asc' ? 'title-desc' : 'title-asc';
+            this.setSortBy(nextSort);
+        }
+    }
+
     getFilteredDocuments() {
         const docs = window.salesStore.getDocuments();
-        return docs.filter(doc => {
+        const filtered = docs.filter(doc => {
             // Lọc danh mục
             const matchesCat = this.selectedCategory === 'all' || doc.category === this.selectedCategory;
 
@@ -377,6 +406,39 @@ class DocumentHub {
                 (doc.tags && doc.tags.some(t => t.toLowerCase().includes(this.searchQuery)));
 
             return matchesCat && matchesType && matchesSearch;
+        });
+
+        // Hàm trích xuất mốc thời gian chính xác (timestamp millisecond)
+        const getDocTimestamp = (d) => {
+            if (d.updatedAtTime) return Number(d.updatedAtTime);
+            if (d.createdAt && typeof d.createdAt === 'number') return d.createdAt;
+            if (d.id && d.id.startsWith('doc-user-')) {
+                const parts = d.id.split('-');
+                const ts = Number(parts[parts.length - 1]);
+                if (!isNaN(ts) && ts > 0) return ts;
+            }
+            if (d.updatedAt) {
+                const t = new Date(d.updatedAt).getTime();
+                if (!isNaN(t)) return t;
+            }
+            return 0;
+        };
+
+        // Sắp xếp dữ liệu theo lựa chọn (Mặc định: Mới nhất lên đầu)
+        return filtered.sort((a, b) => {
+            if (this.sortBy === 'date-asc') {
+                const diff = getDocTimestamp(a) - getDocTimestamp(b);
+                return diff !== 0 ? diff : (a.id || '').localeCompare(b.id || '');
+            }
+            if (this.sortBy === 'title-asc') {
+                return (a.title || '').localeCompare(b.title || '', 'vi');
+            }
+            if (this.sortBy === 'title-desc') {
+                return (b.title || '').localeCompare(a.title || '', 'vi');
+            }
+            // 'date-desc' (Mặc định: Mới nhất trước)
+            const diff = getDocTimestamp(b) - getDocTimestamp(a);
+            return diff !== 0 ? diff : (b.id || '').localeCompare(a.id || '');
         });
     }
 
@@ -416,13 +478,23 @@ class DocumentHub {
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs border-collapse">
-                        <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200">
+                        <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider border-b border-slate-200 select-none">
                             <tr>
-                                <th class="py-3 px-3 sm:px-4">Tên Tài Liệu & Nội Dung</th>
+                                <th class="py-3 px-3 sm:px-4 cursor-pointer hover:bg-slate-100 hover:text-indigo-600 transition-colors" onclick="window.documentHub.toggleSort('title')" title="Bấm để sắp xếp theo tên tài liệu">
+                                    <div class="flex items-center gap-1.5">
+                                        <span>Tên Tài Liệu & Nội Dung</span>
+                                        ${this.sortBy === 'title-asc' ? '<i data-lucide="arrow-up" class="w-3 h-3 text-indigo-600 inline"></i>' : (this.sortBy === 'title-desc' ? '<i data-lucide="arrow-down" class="w-3 h-3 text-indigo-600 inline"></i>' : '<i data-lucide="arrow-up-down" class="w-3 h-3 text-slate-400 opacity-60 inline"></i>')}
+                                    </div>
+                                </th>
                                 <th class="py-3 px-2 sm:px-3 hidden sm:table-cell">Định Dạng</th>
                                 <th class="py-3 px-2 sm:px-3 hidden md:table-cell">Phân Loại Danh Mục</th>
                                 <th class="py-3 px-2 sm:px-3 hidden lg:table-cell">Dung Lượng / Nguồn</th>
-                                <th class="py-3 px-2 sm:px-3 hidden sm:table-cell">Cập Nhật</th>
+                                <th class="py-3 px-2 sm:px-3 hidden sm:table-cell cursor-pointer hover:bg-slate-100 hover:text-indigo-600 transition-colors" onclick="window.documentHub.toggleSort('date')" title="Bấm để sắp xếp theo ngày cập nhật">
+                                    <div class="flex items-center gap-1.5">
+                                        <span>Cập Nhật</span>
+                                        ${this.sortBy === 'date-asc' ? '<i data-lucide="arrow-up" class="w-3 h-3 text-indigo-600 inline"></i>' : (this.sortBy === 'date-desc' ? '<i data-lucide="arrow-down" class="w-3 h-3 text-indigo-600 inline"></i>' : '<i data-lucide="arrow-up-down" class="w-3 h-3 text-slate-400 opacity-60 inline"></i>')}
+                                    </div>
+                                </th>
                                 <th class="py-3 px-3 sm:px-4 text-right">Thao Tác</th>
                             </tr>
                         </thead>
@@ -928,7 +1000,8 @@ class DocumentHub {
             return;
         }
 
-        const docId = 'doc-user-' + Date.now();
+        const nowTs = Date.now();
+        const docId = 'doc-user-' + nowTs;
         let newDoc = {
             id: docId,
             title: title,
@@ -936,7 +1009,9 @@ class DocumentHub {
             description: desc,
             tags: tags,
             pinned: isPinned,
-            updatedAt: new Date().toISOString().split('T')[0]
+            createdAt: nowTs,
+            updatedAt: new Date().toISOString().split('T')[0],
+            updatedAtTime: nowTs
         };
 
         if (this.activeModalTab === 'upload') {

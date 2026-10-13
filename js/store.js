@@ -683,17 +683,35 @@ class SalesStore {
     saveDocument(doc) {
         const docs = this.getDocuments();
         let targetDoc = null;
+        const nowTs = Date.now();
+        const todayStr = new Date().toISOString().split('T')[0];
         if (doc.id) {
             const index = docs.findIndex(d => d.id === doc.id);
             if (index !== -1) {
-                targetDoc = { ...docs[index], ...doc, updatedAt: new Date().toISOString().split('T')[0] };
+                targetDoc = { 
+                    ...docs[index], 
+                    ...doc, 
+                    updatedAt: todayStr, 
+                    updatedAtTime: nowTs 
+                };
                 docs[index] = targetDoc;
             } else {
-                targetDoc = { ...doc, updatedAt: doc.updatedAt || new Date().toISOString().split('T')[0] };
+                targetDoc = { 
+                    ...doc, 
+                    createdAt: doc.createdAt || nowTs,
+                    updatedAt: doc.updatedAt || todayStr, 
+                    updatedAtTime: doc.updatedAtTime || nowTs 
+                };
                 docs.unshift(targetDoc);
             }
         } else {
-            targetDoc = { ...doc, id: 'doc-' + Date.now(), updatedAt: new Date().toISOString().split('T')[0] };
+            targetDoc = { 
+                ...doc, 
+                id: 'doc-' + nowTs, 
+                createdAt: nowTs,
+                updatedAt: todayStr, 
+                updatedAtTime: nowTs 
+            };
             docs.unshift(targetDoc);
         }
         localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
@@ -747,9 +765,9 @@ class SalesStore {
                     });
                     
                     cloudDocs.sort((a, b) => {
-                        if (a.pinned && !b.pinned) return -1;
-                        if (!a.pinned && b.pinned) return 1;
-                        return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+                        const tsA = a.updatedAtTime || (a.createdAt && typeof a.createdAt === 'number' ? a.createdAt : (a.updatedAt ? new Date(a.updatedAt).getTime() : 0));
+                        const tsB = b.updatedAtTime || (b.createdAt && typeof b.createdAt === 'number' ? b.createdAt : (b.updatedAt ? new Date(b.updatedAt).getTime() : 0));
+                        return tsB - tsA;
                     });
 
                     localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(cloudDocs));
