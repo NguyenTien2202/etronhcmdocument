@@ -118,6 +118,8 @@ class DocumentHub {
         this.selectedNewCategoryIcon = 'folder';
         this.userPickedAddIcon = false;
         this.activeCategoryForIconPicker = null;
+        this.isModalCatDropdownOpen = false;
+        this.selectedModalCategory = null;
     }
 
     init() {
@@ -135,6 +137,16 @@ class DocumentHub {
 
         this.renderDocumentsList();
         this.setupModalEventListeners();
+
+        // Đóng dropdown phân loại danh mục trong modal khi click ra ngoài
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#doc-modal-cat-dropdown-wrapper')) {
+                if (this.isModalCatDropdownOpen) {
+                    this.isModalCatDropdownOpen = false;
+                    this.renderModalCategoryDropdown();
+                }
+            }
+        });
     }
 
     getCategories() {
@@ -1008,13 +1020,13 @@ class DocumentHub {
         const sectionLink = document.getElementById('modal-section-link');
 
         if (tab === 'upload') {
-            tabUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all";
-            tabLink.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all";
+            tabUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5";
+            tabLink.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
             sectionUpload.classList.remove('hidden');
             sectionLink.classList.add('hidden');
         } else {
-            tabLink.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all";
-            tabUpload.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all";
+            tabLink.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5";
+            tabUpload.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
             sectionLink.classList.remove('hidden');
             sectionUpload.classList.add('hidden');
         }
@@ -1053,10 +1065,9 @@ class DocumentHub {
 
             // Tự động nhận diện danh mục & loại tệp
             const ext = file.name.split('.').pop().toLowerCase();
-            const categorySelect = document.getElementById('new-doc-category');
             if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'mp4', 'webm'].includes(ext)) {
-                if (categorySelect && categorySelect.value === 'Báo giá & Mẫu biểu') {
-                    categorySelect.value = 'Salekit & Giới thiệu';
+                if (this.selectedModalCategory === 'Báo giá & Mẫu biểu' || (!this.selectedModalCategory && this.getCategories()[1]?.name === 'Báo giá & Mẫu biểu')) {
+                    this.selectModalCategory('Salekit & Giới thiệu');
                 }
             }
         }
@@ -1075,18 +1086,105 @@ class DocumentHub {
         }
     }
 
-    updateCategorySelectOptions(selectedValue = null) {
-        const selectEl = document.getElementById('new-doc-category');
-        if (!selectEl) return;
+    // ==========================================
+    // DROPDOWN PHÂN LOẠI DANH MỤC (STYLE CALLBOT HUB PASTEL + QUẢN LÝ DANH MỤC TRONG DROPDOWN)
+    // ==========================================
+    renderModalCategoryDropdown(selectedValue = null) {
+        const wrapper = document.getElementById('doc-modal-cat-dropdown-wrapper');
+        if (!wrapper) return;
 
         const categories = window.salesStore.getDocumentCategories();
-        selectEl.innerHTML = categories.map(cat => `
-            <option value="${this.escapeHtml(cat.name)}">${this.escapeHtml(cat.name)}</option>
-        `).join('');
+        if (!categories || categories.length === 0) {
+            categories.push({ id: 'cat-default', name: 'Báo giá & Mẫu biểu', icon: 'file-text' });
+        }
 
         if (selectedValue) {
-            selectEl.value = selectedValue;
+            this.selectedModalCategory = selectedValue;
+        } else if (!this.selectedModalCategory) {
+            const hiddenVal = document.getElementById('new-doc-category')?.value;
+            if (hiddenVal && categories.some(c => c.name === hiddenVal)) {
+                this.selectedModalCategory = hiddenVal;
+            } else {
+                this.selectedModalCategory = categories[0]?.name || 'Báo giá & Mẫu biểu';
+            }
+        } else {
+            // Kiểm tra xem danh mục hiện tại còn tồn tại trong kho không
+            if (!categories.some(c => c.name === this.selectedModalCategory)) {
+                this.selectedModalCategory = categories[0]?.name || 'Báo giá & Mẫu biểu';
+            }
         }
+
+        const currentCat = categories.find(c => c.name === this.selectedModalCategory) || categories[0];
+        const currentIcon = currentCat ? (currentCat.icon || 'folder') : 'folder';
+        const currentName = currentCat ? currentCat.name : this.selectedModalCategory;
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="new-doc-category" value="${this.escapeHtml(currentName)}">
+            <button type="button" onclick="window.documentHub.toggleModalCategoryDropdown(event)"
+                class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${currentIcon}" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span class="truncate">${this.escapeHtml(currentName)}</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${this.isModalCatDropdownOpen ? 'rotate-180' : ''}"></i>
+                </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isModalCatDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto">
+                ${categories.map(cat => {
+                    const isSelected = (cat.name === currentName);
+                    return `
+                        <button type="button" onclick="window.documentHub.selectModalCategory('${this.escapeJs(cat.name)}')"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${cat.icon || 'folder'}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${this.escapeHtml(cat.name)}</span>
+                            </span>
+                            ${cat.pinned ? '<span class="text-[10px] text-amber-500 font-mono">⭐</span>' : ''}
+                        </button>
+                    `;
+                }).join('')}
+
+                <!-- Action Quản lý danh mục ở dòng cuối theo yêu cầu đồng bộ với ngành nghề -->
+                <div class="border-t border-slate-100 my-1 pt-1"></div>
+                <button type="button" onclick="window.documentHub.openCategoryManagerFromDropdown()"
+                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 transition-colors">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="settings-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+                        <span>Quản lý danh mục...</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-indigo-400"></i>
+                </button>
+            </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleModalCategoryDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isModalCatDropdownOpen = !this.isModalCatDropdownOpen;
+        this.renderModalCategoryDropdown();
+    }
+
+    selectModalCategory(catName) {
+        this.selectedModalCategory = catName;
+        this.isModalCatDropdownOpen = false;
+        this.renderModalCategoryDropdown(catName);
+    }
+
+    openCategoryManagerFromDropdown() {
+        this.isModalCatDropdownOpen = false;
+        this.renderModalCategoryDropdown();
+        this.openCategoryManagerModal();
+    }
+
+    updateCategorySelectOptions(selectedValue = null) {
+        this.renderModalCategoryDropdown(selectedValue);
     }
 
     openCategoryManagerModal() {
@@ -1102,6 +1200,7 @@ class DocumentHub {
         if (modal) modal.classList.add('hidden');
         const input = document.getElementById('new-category-name-input');
         if (input) input.value = '';
+        this.renderModalCategoryDropdown();
     }
 
     getCuratedCategoryIcons() {
@@ -1443,6 +1542,8 @@ class DocumentHub {
         const submitText = document.getElementById('doc-modal-submit-text');
         if (submitText) submitText.textContent = 'Lưu Vào Kho Tài Nguyên';
 
+        this.selectedModalCategory = null;
+        this.isModalCatDropdownOpen = false;
         this.updateCategorySelectOptions();
 
         const form = document.getElementById('document-add-form');
@@ -1472,6 +1573,7 @@ class DocumentHub {
         const submitText = document.getElementById('doc-modal-submit-text');
         if (submitText) submitText.textContent = 'Lưu Thay Đổi';
 
+        this.isModalCatDropdownOpen = false;
         this.updateCategorySelectOptions(doc.category);
 
         // Điền dữ liệu cũ vào form
@@ -1518,6 +1620,7 @@ class DocumentHub {
         const form = document.getElementById('document-add-form');
         if (form) form.reset();
         this.clearSelectedFile();
+        this.isModalCatDropdownOpen = false;
         const idInput = document.getElementById('editing-doc-id');
         if (idInput) idInput.value = '';
     }
@@ -1760,6 +1863,16 @@ class DocumentHub {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;');
+    }
+
+    escapeJs(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/\\/g, '\\\\')
+            .replace(/'/g, "\\'")
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '');
     }
 }
 
