@@ -414,44 +414,88 @@
         <!-- ========================================== -->
         <!-- VIEW 2: KHO TÀI LIỆU SALES (DOCUMENTS)     -->
         <!-- ========================================== -->
-        <div id="view-documents" class="tab-view hidden">
-            <!-- Header bar -->
-            <div class="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div id="view-documents" class="tab-view hidden space-y-6">
+            <!-- Header bar with Stats & Actions -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
                         <i data-lucide="folder-git-2" class="w-5 h-5 text-indigo-600"></i>
-                        Kho Tài Liệu Bán Hàng (Sales Hub)
+                        Kho Tài Liệu & Tài Nguyên Bán Hàng (Sales Hub)
                     </h1>
-                    <p class="text-xs text-slate-500 mt-1">Lưu trữ chính sách, brochure, catalogue, hợp đồng mẫu và tài liệu đào tạo cho đội ngũ kinh doanh.</p>
+                    <p class="text-xs text-slate-500 mt-1">Lưu trữ bảng giá, template Google Sheets, slide thuyết trình, hình ảnh Salekit, video demo và chính sách bán hàng Etron.</p>
+                    <div id="doc-hub-stats" class="mt-2.5">
+                        <!-- Rendered dynamically by document-hub.js -->
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-3">
                     <button onclick="document.getElementById('document-add-modal').classList.remove('hidden')"
                         class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 flex items-center gap-2 transition-all">
-                        <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Thêm Tài Liệu Mới</span>
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>Thêm Tài Liệu / Media Mới</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Filter & Search Bar -->
-            <div class="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-slate-200 space-y-3">
-                <div class="relative">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
-                    <input type="text" id="doc-search-input" 
-                        oninput="window.documentHub.setSearchQuery(this.value)"
-                        placeholder="Tìm kiếm tài liệu theo tên, từ khóa tag hoặc nội dung..."
-                        class="w-full pl-10 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+            <!-- TOP SECTION: ⭐ TÀI LIỆU DÙNG THƯỜNG XUYÊN (TRUY CẬP NHANH) -->
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">⭐ Tài Liệu Dùng Thường Xuyên (Truy Cập Nhanh)</h2>
+                    </div>
+                    <span class="text-[11px] text-slate-400">Các tài liệu quan trọng được ghim để mở và gửi khách nhanh nhất</span>
                 </div>
 
-                <!-- Category Pills -->
-                <div id="doc-categories-container" class="flex flex-wrap items-center gap-2 pt-1">
+                <!-- 4 Quick Access Cards -->
+                <div id="doc-quick-access-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <!-- Rendered dynamically by document-hub.js -->
                 </div>
             </div>
 
-            <!-- Documents Grid -->
-            <div id="documents-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- FILTER, SEARCH & VIEW TOGGLE TOOLBAR -->
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-3">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <!-- Search Box -->
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-3 text-slate-400"></i>
+                        <input type="text" id="doc-search-input" 
+                            oninput="window.documentHub.setSearchQuery(this.value)"
+                            placeholder="Tìm kiếm tài liệu, hình ảnh, video theo tên, tags hoặc nội dung..."
+                            class="w-full pl-10 pr-10 py-2 text-xs border border-slate-200 rounded-xl focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
+                        <button onclick="window.documentHub.clearSearch()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600">
+                            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+
+                    <!-- View Mode Switcher -->
+                    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl shrink-0 self-end sm:self-auto">
+                        <button id="btn-mode-table" onclick="window.documentHub.setViewMode('table')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold bg-white text-indigo-600 shadow-sm flex items-center gap-1.5 transition-all">
+                            <i data-lucide="list" class="w-3.5 h-3.5"></i>
+                            <span>Dạng Bảng (List)</span>
+                        </button>
+                        <button id="btn-mode-grid" onclick="window.documentHub.setViewMode('grid')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-900 flex items-center gap-1.5 transition-all">
+                            <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                            <span>Dạng Lưới (Grid)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resource Type Filters -->
+                <div id="doc-type-pills-container" class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+                    <!-- Rendered dynamically by document-hub.js -->
+                </div>
+
+                <!-- Category Pills -->
+                <div id="doc-categories-container" class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+                    <!-- Rendered dynamically by document-hub.js -->
+                </div>
+            </div>
+
+            <!-- MAIN DOCUMENTS VIEW CONTAINER (Table or Grid) -->
+            <div id="documents-view-container">
                 <!-- Rendered dynamically by document-hub.js -->
             </div>
         </div>
@@ -731,75 +775,163 @@
 
 
     <!-- ========================================== -->
-    <!-- MODAL 3: THÊM TÀI LIỆU SALES MỚI           -->
+    <!-- MODAL 3: THÊM TÀI LIỆU / MEDIA SALES MỚI   -->
     <!-- ========================================== -->
     <div id="document-add-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 overflow-hidden">
-            <div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-3">
-                <h3 class="text-sm font-bold text-slate-900">Thêm Tài Liệu Mới Vào Kho</h3>
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 overflow-hidden max-h-[90vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-3 border-b border-slate-200 shrink-0">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-600"></i>
+                        Thêm Tài Nguyên Sales Mới
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Tải tệp từ máy tính (PDF, Word, Excel, Ảnh, Video) hoặc lưu liên kết Cloud.</p>
+                </div>
                 <button onclick="document.getElementById('document-add-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <form onsubmit="
-                event.preventDefault();
-                const title = document.getElementById('new-doc-title').value.trim();
-                const category = document.getElementById('new-doc-category').value;
-                const fileUrl = document.getElementById('new-doc-url').value.trim();
-                const desc = document.getElementById('new-doc-desc').value.trim();
-                const tagsStr = document.getElementById('new-doc-tags').value.trim();
-                const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : [];
-
-                if(!title || !fileUrl) {
-                    alert('Vui lòng điền đầy đủ tiêu đề và liên kết tài liệu!');
-                    return;
-                }
-
-                window.documentHub.saveNewDocument({
-                    title, category, fileUrl, description: desc, tags,
-                    type: 'link', fileType: 'pdf'
-                });
-                document.getElementById('document-add-modal').classList.add('hidden');
-                this.reset();
-            " class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tiêu Đề Tài Liệu</label>
-                    <input type="text" id="new-doc-title" required placeholder="VD: Bảng giá đại lý 2026, Brochure sản phẩm X..." class="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-lg">
+            <!-- Modal Content (Scrollable) -->
+            <form id="document-add-form" onsubmit="window.documentHub.saveNewDocument(event)" class="space-y-3.5 pt-3 overflow-y-auto pr-1 flex-1">
+                
+                <!-- Phương thức nhập (Tab switcher) -->
+                <div class="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+                    <button type="button" id="modal-tab-upload" onclick="window.documentHub.switchModalTab('upload')"
+                        class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5">
+                        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+                        <span>Tải Tệp Lên Từ Máy Tính</span>
+                    </button>
+                    <button type="button" id="modal-tab-link" onclick="window.documentHub.switchModalTab('link')"
+                        class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5">
+                        <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+                        <span>Dán Liên Kết Trực Tuyến</span>
+                    </button>
                 </div>
 
+                <!-- SECTION 1: UPLOAD TỆP TỪ MÁY (Kéo thả) -->
+                <div id="modal-section-upload" class="space-y-2">
+                    <div id="doc-dropzone" class="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center hover:border-indigo-400 hover:bg-slate-50/60 transition-all cursor-pointer relative">
+                        <input type="file" id="doc-file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.svg,.mp4,.webm,.mov">
+                        
+                        <div id="doc-dropzone-content" class="space-y-1.5 pointer-events-none">
+                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center">
+                                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                            </div>
+                            <p class="text-xs font-bold text-slate-800">Kéo thả tệp vào đây hoặc <span class="text-indigo-600 underline">bấm để chọn</span></p>
+                            <p class="text-[10px] text-slate-400">Hỗ trợ: PDF, Word, Excel, Slide, Ảnh (PNG/JPG), Video (MP4) • Tối đa 100MB</p>
+                        </div>
+
+                        <!-- Preview khi đã chọn tệp -->
+                        <div id="doc-selected-file-preview" class="hidden items-center justify-between p-2.5 bg-indigo-50/70 border border-indigo-200 rounded-lg text-left">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div id="doc-selected-fileicon" class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+                                    <i data-lucide="file-check" class="w-4 h-4"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p id="doc-selected-filename" class="text-xs font-bold text-slate-800 truncate"></p>
+                                    <p id="doc-selected-filesize" class="text-[10px] text-slate-500 font-mono"></p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="window.documentHub.clearSelectedFile()" class="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-white" title="Bỏ chọn tệp">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: DÁN LIÊN KẾT CLOUD -->
+                <div id="modal-section-link" class="hidden space-y-1">
+                    <label class="block text-[11px] font-semibold text-slate-600">Đường Dẫn Tài Liệu (Google Drive / Docs / Sheets / YouTube / URL)</label>
+                    <div class="relative">
+                        <i data-lucide="link" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+                        <input type="url" id="new-doc-url" placeholder="https://drive.google.com/... hoặc https://youtube.com/..." class="w-full pl-9 pr-3 py-2 text-xs font-mono border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <p class="text-[10px] text-slate-400">Hệ thống sẽ tự nhận diện biểu tượng Google Sheets, Docs, Drive, PDF hoặc Video YouTube.</p>
+                </div>
+
+                <!-- Tiêu đề tài liệu -->
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tiêu Đề Tài Liệu / Tệp <span class="text-rose-500">*</span></label>
+                    <input type="text" id="new-doc-title" required placeholder="VD: Bảng giá đại lý 2026, Brochure Callbot, Video hướng dẫn..." class="w-full text-xs font-semibold p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500">
+                </div>
+
+                <!-- Phân loại & Tags -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-[11px] font-semibold text-slate-600 mb-1">Phân Loại Danh Mục</label>
-                        <select id="new-doc-category" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-white">
+                        <select id="new-doc-category" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-white focus:ring-1 focus:ring-indigo-500">
                             <option value="Báo giá & Mẫu biểu">Báo giá & Mẫu biểu</option>
                             <option value="Bảng giá chính thức">Bảng giá PDF chính thức</option>
-                            <option value="Chính sách bán hàng">Chính sách bán hàng</option>
-                            <option value="Hỗ trợ & Chăm sóc khách hàng">Hỗ trợ & Chăm sóc khách hàng</option>
-                            <option value="Tài liệu đào tạo">Tài liệu đào tạo & Tổng hợp</option>
+                            <option value="Salekit & Giới thiệu">Salekit & Giới thiệu</option>
+                            <option value="Chính sách bán hàng">Chính sách & Hoa hồng</option>
+                            <option value="Hỗ trợ & Chăm sóc khách hàng">CSKH & Cam kết SLA</option>
+                            <option value="Tài liệu đào tạo">Tài liệu đào tạo</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tags (Phân cách bởi dấu phẩy)</label>
-                        <input type="text" id="new-doc-tags" placeholder="Chiết khấu, 2026, Sales" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg">
+                        <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tags (Phân cách bằng dấu phẩy)</label>
+                        <input type="text" id="new-doc-tags" placeholder="Bảng giá, CRM, Callbot, Sales" class="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500">
                     </div>
                 </div>
 
+                <!-- Mô tả -->
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Đường Dẫn Tài Liệu (Google Drive / OneDrive / Dropbox / URL)</label>
-                    <input type="url" id="new-doc-url" required placeholder="https://drive.google.com/..." class="w-full text-xs p-2.5 border border-slate-200 rounded-lg font-mono">
+                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Mô Tả Chi Tiết Về Nội Dung</label>
+                    <textarea id="new-doc-desc" rows="2" placeholder="Tóm tắt nội dung tài liệu để sales dễ dàng nắm bắt..." class="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">Mô Tả Ngắn Về Tài Liệu</label>
-                    <textarea id="new-doc-desc" rows="3" placeholder="Tóm tắt nội dung tài liệu để sales dễ dàng nắm bắt..." class="w-full text-xs p-2 border border-slate-200 rounded-lg"></textarea>
+                <!-- Tùy chọn Ghim -->
+                <div class="pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer bg-slate-50 p-2.5 rounded-lg border border-slate-200 hover:bg-indigo-50/50 transition-colors">
+                        <input type="checkbox" id="new-doc-pinned" class="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4">
+                        <div class="text-xs">
+                            <span class="font-bold text-slate-800 flex items-center gap-1">⭐ Ghim vào mục "Truy Cập Nhanh"</span>
+                            <span class="text-[10px] text-slate-500 block">Hiển thị thẻ nổi bật trên đầu trang để mở và gửi khách nhanh nhất.</span>
+                        </div>
+                    </label>
                 </div>
 
-                <div class="pt-3 flex justify-end gap-2 border-t border-slate-200">
+                <!-- Modal Footer -->
+                <div class="pt-3 flex justify-end gap-2 border-t border-slate-200 shrink-0">
                     <button type="button" onclick="document.getElementById('document-add-modal').classList.add('hidden')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Hủy</button>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm">Lưu Tài Liệu</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Lưu Vào Kho Tài Nguyên</span>
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- MODAL 4: XEM TRƯỚC MEDIA (LIGHTBOX & VIDEO) -->
+    <!-- ========================================== -->
+    <div id="media-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <!-- Header -->
+            <div class="p-3.5 sm:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+                <div class="min-w-0 pr-3">
+                    <h4 id="media-preview-title" class="font-bold text-xs sm:text-sm text-slate-900 truncate">Xem trước tài nguyên</h4>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button id="media-preview-download-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors flex items-center gap-1.5">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Tải về</span>
+                    </button>
+                    <button onclick="window.documentHub.closeMediaPreview()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Media Content -->
+            <div id="media-preview-content" class="p-4 overflow-auto flex-1 flex items-center justify-center bg-slate-900/5">
+                <!-- Rendered dynamically by document-hub.js -->
+            </div>
         </div>
     </div>
 
@@ -814,13 +946,13 @@
     </div>
 
     <!-- Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261013_v32"></script>
-    <script src="js/number-to-words.js?v=20261013_v32"></script>
-    <script src="js/store.js?v=20261013_v32"></script>
-    <script src="js/quote-builder.js?v=20261013_v32"></script>
-    <script src="js/document-hub.js?v=20261013_v32"></script>
-    <script src="js/product-catalog.js?v=20261013_v32"></script>
-    <script src="js/pdf-export.js?v=20261013_v32"></script>
-    <script src="js/app.js?v=20261013_v32"></script>
+    <script src="js/logo-data.js?v=20261013_v33"></script>
+    <script src="js/number-to-words.js?v=20261013_v33"></script>
+    <script src="js/store.js?v=20261013_v33"></script>
+    <script src="js/quote-builder.js?v=20261013_v33"></script>
+    <script src="js/document-hub.js?v=20261013_v33"></script>
+    <script src="js/product-catalog.js?v=20261013_v33"></script>
+    <script src="js/pdf-export.js?v=20261013_v33"></script>
+    <script src="js/app.js?v=20261013_v33"></script>
 </body>
 </html>

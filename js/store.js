@@ -371,11 +371,12 @@ const DEFAULT_DOCUMENTS = [
         category: 'Báo giá & Mẫu biểu',
         type: 'link',
         fileUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
-        fileSize: 'Trực tuyến',
+        fileSize: 'Google Sheets',
         fileType: 'xlsx',
         description: 'File template báo giá chính thức của Etron trên Google Sheets, đầy đủ công thức tính các gói CRM và Callbot.',
         updatedAt: '2026-10-12',
-        tags: ['Template', 'Báo giá', 'Google Sheets', 'Chính thức']
+        tags: ['Template', 'Báo giá', 'Google Sheets', 'Chính thức'],
+        pinned: true
     },
     {
         id: 'doc-etron-002',
@@ -387,7 +388,8 @@ const DEFAULT_DOCUMENTS = [
         fileType: 'pdf',
         description: 'Thư mục Google Drive lưu trữ toàn bộ các file PDF bảng giá chính thức để gửi trực tiếp cho khách hàng.',
         updatedAt: '2026-10-12',
-        tags: ['Bảng giá', 'PDF', 'CRM', 'Callbot', 'Google Drive']
+        tags: ['Bảng giá', 'PDF', 'CRM', 'Callbot', 'Google Drive'],
+        pinned: true
     },
     {
         id: 'doc-etron-003',
@@ -399,7 +401,8 @@ const DEFAULT_DOCUMENTS = [
         fileType: 'gdoc',
         description: 'Văn bản quy định chính sách chiết khấu, hạn mức đàm phán, cơ chế tính hoa hồng và quyền lợi nhân viên kinh doanh Etron.',
         updatedAt: '2026-10-10',
-        tags: ['Chính sách', 'Sales', 'Hoa hồng', 'Nội bộ']
+        tags: ['Chính sách', 'Sales', 'Hoa hồng', 'Nội bộ'],
+        pinned: true
     },
     {
         id: 'doc-etron-004',
@@ -411,7 +414,8 @@ const DEFAULT_DOCUMENTS = [
         fileType: 'gdoc',
         description: 'Các văn bản thông báo chính sách mới, cập nhật sản phẩm và quy định bán hàng từ Ban Giám Đốc Etron.',
         updatedAt: '2026-10-08',
-        tags: ['Thông báo', 'Quy định', 'Sales']
+        tags: ['Thông báo', 'Quy định', 'Sales'],
+        pinned: false
     },
     {
         id: 'doc-etron-005',
@@ -423,7 +427,8 @@ const DEFAULT_DOCUMENTS = [
         fileType: 'drive',
         description: 'Thư mục tài liệu chính sách CSKH, quy trình bảo hành, cam kết thời gian xử lý sự cố (SLA 99.5%) cho khách hàng.',
         updatedAt: '2026-10-05',
-        tags: ['CSKH', 'SLA', 'Hỗ trợ kỹ thuật', 'Quy trình']
+        tags: ['CSKH', 'SLA', 'Hỗ trợ kỹ thuật', 'Quy trình'],
+        pinned: false
     },
     {
         id: 'doc-etron-006',
@@ -435,7 +440,34 @@ const DEFAULT_DOCUMENTS = [
         fileType: 'drive',
         description: 'Thư mục gốc chứa toàn bộ kho tài liệu, hợp đồng mẫu, kịch bản tư vấn, slide thuyết trình giới thiệu giải pháp Etron.',
         updatedAt: '2026-10-01',
-        tags: ['Tổng hợp', 'Tài liệu gốc', 'Đào tạo', 'Drive']
+        tags: ['Tổng hợp', 'Tài liệu gốc', 'Đào tạo', 'Drive'],
+        pinned: true
+    },
+    {
+        id: 'doc-etron-007',
+        title: 'Infographic Sơ Đồ Hệ Thống Etron CRM & Callbot AI',
+        category: 'Salekit & Giới thiệu',
+        type: 'image',
+        fileUrl: 'assets/logo_etron_new.png',
+        fileSize: '1.2 MB',
+        fileType: 'png',
+        description: 'Sơ đồ luồng dữ liệu kết nối giữa Adahub CRM, Callbot AI Ucall và các nhà mạng viễn thông.',
+        updatedAt: '2026-10-13',
+        tags: ['Infographic', 'Salekit', 'Sơ đồ', 'CRM', 'Callbot'],
+        pinned: false
+    },
+    {
+        id: 'doc-etron-008',
+        title: 'Video Demo Tính Năng Callbot AI & Tự Động Hóa CRM',
+        category: 'Salekit & Giới thiệu',
+        type: 'video',
+        fileUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        fileSize: 'Video Link',
+        fileType: 'youtube',
+        description: 'Video giới thiệu luồng tương tác thực tế của Callbot AI với khách hàng và đồng bộ dữ liệu về CRM.',
+        updatedAt: '2026-10-13',
+        tags: ['Video Demo', 'Callbot', 'Trực quan', 'Salekit'],
+        pinned: false
     }
 ];
 
@@ -534,11 +566,33 @@ class SalesStore {
     init() {
         // Cập nhật cấu hình Etron nếu chưa khởi tạo phiên bản mới
         const initVersion = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
-        if (initVersion !== 'v15_done') {
-            if (initVersion !== 'v9_done' && initVersion !== 'v10_done' && initVersion !== 'v11_done' && initVersion !== 'v12_done' && initVersion !== 'v13_done' && initVersion !== 'v14_done') {
+        if (initVersion !== 'v16_done') {
+            if (!initVersion || (initVersion !== 'v15_done' && !initVersion.startsWith('v'))) {
                 localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(DEFAULT_COMPANY));
                 localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(DEFAULT_DOCUMENTS));
                 localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(DEFAULT_QUOTES));
+            } else {
+                // Đảm bảo các tài liệu mặc định có thuộc tính pinned và bổ sung tài liệu media mẫu nếu chưa có
+                try {
+                    const currentDocs = JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];
+                    let hasChanges = false;
+                    currentDocs.forEach(d => {
+                        if (['doc-etron-001', 'doc-etron-002', 'doc-etron-003', 'doc-etron-006'].includes(d.id)) {
+                            if (d.pinned === undefined) { d.pinned = true; hasChanges = true; }
+                        }
+                    });
+                    if (!currentDocs.some(d => d.id === 'doc-etron-007')) {
+                        const d7 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-007');
+                        if (d7) { currentDocs.push(d7); hasChanges = true; }
+                    }
+                    if (!currentDocs.some(d => d.id === 'doc-etron-008')) {
+                        const d8 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-008');
+                        if (d8) { currentDocs.push(d8); hasChanges = true; }
+                    }
+                    if (hasChanges) {
+                        localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(currentDocs));
+                    }
+                } catch (e) { /* bỏ qua */ }
             }
             // Làm mới danh mục sản phẩm (bảng giá đầu số và cước viễn thông mới)
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
@@ -556,7 +610,7 @@ class SalesStore {
                     localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(comp));
                 }
             } catch (e) { /* bỏ qua */ }
-            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'v15_done');
+            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'v16_done');
         }
     }
 
