@@ -115,6 +115,9 @@ class DocumentHub {
         this.viewMode = localStorage.getItem('etron_doc_view_mode') || 'table'; // 'table' hoặc 'grid'
         this.selectedUploadFile = null;
         this.activeModalTab = 'upload'; // 'upload' hoặc 'link'
+        this.selectedNewCategoryIcon = 'folder';
+        this.userPickedAddIcon = false;
+        this.activeCategoryForIconPicker = null;
     }
 
     init() {
@@ -123,6 +126,7 @@ class DocumentHub {
         this.renderTypePills();
         this.renderCategoryPills();
         this.updateCategorySelectOptions();
+        this.renderAddIconPickerGrid();
         
         const sortSelect = document.getElementById('doc-sort-select');
         if (sortSelect) {
@@ -1120,21 +1124,176 @@ class DocumentHub {
             return;
         }
 
+    getCuratedCategoryIcons() {
+        return [
+            { id: 'folder', name: 'Thư mục chung' },
+            { id: 'folder-heart', name: 'Yêu thích' },
+            { id: 'folder-kanban', name: 'Dự án' },
+            { id: 'folder-check', name: 'Duyệt / Hoàn tất' },
+            { id: 'file-text', name: 'Tài liệu / PDF' },
+            { id: 'file-spreadsheet', name: 'Bảng tính Excel' },
+            { id: 'file-check', name: 'Hợp đồng & Pháp lý' },
+            { id: 'video', name: 'Video hướng dẫn' },
+            { id: 'play-circle', name: 'Demo / Clip' },
+            { id: 'users', name: 'Nhân sự / HR / Team' },
+            { id: 'headphones', name: 'CSKH / Hỗ trợ' },
+            { id: 'dollar-sign', name: 'Bảng giá / Cước' },
+            { id: 'badge-percent', name: 'Hoa hồng / Chiết khấu' },
+            { id: 'sparkles', name: 'Salekit / Giới thiệu' },
+            { id: 'book-open', name: 'Đào tạo / Hướng dẫn' },
+            { id: 'graduation-cap', name: 'Giáo trình / Học' },
+            { id: 'shield-check', name: 'Chính sách / Bảo mật' },
+            { id: 'briefcase', name: 'Hồ sơ / Doanh nghiệp' },
+            { id: 'trending-up', name: 'Báo cáo / Doanh số' },
+            { id: 'award', name: 'Chứng nhận' },
+            { id: 'layers', name: 'Tổng hợp' },
+            { id: 'cpu', name: 'Kỹ thuật / Thiết bị' },
+            { id: 'wrench', name: 'Cài đặt' },
+            { id: 'megaphone', name: 'Thông báo' },
+            { id: 'bookmark', name: 'Quan trọng' },
+            { id: 'star', name: 'Nổi bật' },
+            { id: 'boxes', name: 'Gói sản phẩm' },
+            { id: 'clipboard-list', name: 'Biểu mẫu' },
+            { id: 'compass', name: 'Định hướng' }
+        ];
+    }
+
+    renderAddIconPickerGrid() {
+        const grid = document.getElementById('add-icon-grid');
+        if (!grid) return;
+        const icons = this.getCuratedCategoryIcons();
+        grid.innerHTML = icons.map(ic => `
+            <button type="button" onclick="window.documentHub.selectAddIcon('${ic.id}')"
+                class="p-2 rounded-xl border border-slate-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 text-slate-700 hover:text-indigo-600 flex flex-col items-center justify-center gap-1 transition-all ${this.selectedNewCategoryIcon === ic.id ? 'ring-2 ring-indigo-500 bg-indigo-50 text-indigo-700 border-indigo-400 font-bold' : ''}"
+                title="${ic.name}">
+                <i data-lucide="${ic.id}" class="w-4 h-4"></i>
+            </button>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    handleCategoryNameInput(value) {
+        if (this.userPickedAddIcon) return; // Nếu người dùng đã tự bấm chọn icon riêng, không tự động ghi đè
+        if (typeof detectCategoryIcon === 'function') {
+            const detected = detectCategoryIcon(value);
+            this.selectedNewCategoryIcon = detected;
+            this.updateAddIconPreview(detected);
+        }
+    }
+
+    updateAddIconPreview(iconName) {
+        const preview = document.getElementById('new-category-icon-preview');
+        if (preview) {
+            preview.setAttribute('data-lucide', iconName);
+            lucide.createIcons();
+        }
+    }
+
+    toggleAddIconPicker() {
+        const picker = document.getElementById('new-category-icon-picker');
+        if (!picker) return;
+        picker.classList.toggle('hidden');
+        if (!picker.classList.contains('hidden')) {
+            this.renderAddIconPickerGrid();
+        }
+    }
+
+    selectAddIcon(iconName) {
+        this.selectedNewCategoryIcon = iconName;
+        this.userPickedAddIcon = true;
+        this.updateAddIconPreview(iconName);
+        const picker = document.getElementById('new-category-icon-picker');
+        if (picker) picker.classList.add('hidden');
+    }
+
+    openIconPickerForCategory(catId) {
+        this.activeCategoryForIconPicker = catId;
+        const modal = document.getElementById('category-icon-picker-modal');
+        const titleEl = document.getElementById('picker-category-name');
+        const grid = document.getElementById('category-icons-grid');
+        if (!modal || !grid) return;
+
+        const categories = window.salesStore.getDocumentCategories();
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return;
+
+        if (titleEl) titleEl.textContent = `Đổi biểu tượng: ${cat.name}`;
+
+        const icons = this.getCuratedCategoryIcons();
+        grid.innerHTML = icons.map(ic => `
+            <button type="button" onclick="window.documentHub.applyIconToCategory('${cat.id}', '${ic.id}')"
+                class="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 text-slate-700 hover:text-indigo-600 flex flex-col items-center justify-center gap-1.5 transition-all group ${cat.icon === ic.id ? 'ring-2 ring-indigo-500 bg-indigo-50 text-indigo-700 font-bold border-indigo-400' : ''}"
+                title="${ic.name}">
+                <i data-lucide="${ic.id}" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                <span class="text-[9px] truncate max-w-full text-slate-500">${ic.name.split('/')[0].trim()}</span>
+            </button>
+        `).join('');
+
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
+    closeCategoryIconPicker() {
+        const modal = document.getElementById('category-icon-picker-modal');
+        if (modal) modal.classList.add('hidden');
+        this.activeCategoryForIconPicker = null;
+    }
+
+    applyIconToCategory(catId, iconName) {
+        const categories = window.salesStore.getDocumentCategories();
+        const cat = categories.find(c => c.id === catId);
+        if (!cat) return;
+
+        cat.icon = iconName;
+        window.salesStore.saveDocumentCategory(cat);
+
+        this.renderCategoryManagerList();
+        this.renderCategoryPills();
+        this.renderQuickAccess();
+        this.closeCategoryIconPicker();
+
+        window.salesApp.showNotification(`Đã cập nhật biểu tượng mới cho "${cat.name}"!`, 'success');
+    }
+
+    randomizeCategoryIcon() {
+        if (!this.activeCategoryForIconPicker) return;
+        const icons = this.getCuratedCategoryIcons();
+        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+        this.applyIconToCategory(this.activeCategoryForIconPicker, randomIcon.id);
+    }
+
+    renderCategoryManagerList() {
+        const container = document.getElementById('category-manager-list');
+        const totalCountEl = document.getElementById('cat-manager-total-count');
+        if (!container) return;
+
+        const categories = window.salesStore.getDocumentCategories();
+        const docs = window.salesStore.getDocuments();
+
+        if (totalCountEl) totalCountEl.textContent = categories.length;
+
+        if (categories.length === 0) {
+            container.innerHTML = '<div class="py-6 text-center text-slate-400 text-xs">Chưa có danh mục nào. Hãy thêm danh mục đầu tiên bên trên!</div>';
+            return;
+        }
+
         container.innerHTML = categories.map(cat => {
             const count = docs.filter(d => d.category === cat.name || d.category === cat.id).length;
             const isPinned = cat.pinned === true;
             return `
                 <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                        <div class="w-8 h-8 rounded-lg ${isPinned ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center shrink-0">
-                            <i data-lucide="${cat.icon || 'tag'}" class="w-4 h-4"></i>
-                        </div>
+                        <button type="button" onclick="window.documentHub.openIconPickerForCategory('${cat.id}')"
+                            class="w-8 h-8 rounded-lg ${isPinned ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} hover:ring-2 hover:ring-indigo-300 hover:scale-105 flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-2xs"
+                            title="Bấm để đổi biểu tượng cho danh mục này">
+                            <i data-lucide="${cat.icon || 'folder'}" class="w-4 h-4"></i>
+                        </button>
                         <div class="min-w-0">
                             <p class="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
                                 <span>${this.escapeHtml(cat.name)}</span>
                                 ${isPinned ? `<span class="px-1.5 py-0.5 bg-amber-100 text-amber-700 font-bold text-[9px] rounded-full inline-flex items-center gap-0.5">⭐ Ghim</span>` : ''}
                             </p>
-                            <span class="text-[10px] text-slate-400 font-mono">${count} tài liệu</span>
+                            <span class="text-[10px] text-slate-400 font-mono">${count} tài liệu • Bấm icon để đổi</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
@@ -1189,17 +1348,23 @@ class DocumentHub {
         }
 
         const isPinned = Boolean(pinnedCheck && pinnedCheck.checked);
+        const assignedIcon = this.selectedNewCategoryIcon || (typeof detectCategoryIcon === 'function' ? detectCategoryIcon(name) : 'folder');
 
         const newCat = {
             id: 'cat-' + Date.now(),
             name: name,
-            icon: 'tag',
+            icon: assignedIcon,
             pinned: isPinned
         };
 
         window.salesStore.saveDocumentCategory(newCat);
         input.value = '';
         if (pinnedCheck) pinnedCheck.checked = false;
+        this.userPickedAddIcon = false;
+        this.selectedNewCategoryIcon = 'folder';
+        this.updateAddIconPreview('folder');
+        const picker = document.getElementById('new-category-icon-picker');
+        if (picker) picker.classList.add('hidden');
 
         this.renderCategoryManagerList();
         this.renderCategoryPills();

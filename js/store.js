@@ -20,7 +20,7 @@ const DEFAULT_DOCUMENT_CATEGORIES = [
     { id: 'cat-bao-gia', name: 'Báo giá & Mẫu biểu', icon: 'file-spreadsheet', pinned: false },
     { id: 'cat-salekit', name: 'Salekit & Giới thiệu', icon: 'sparkles', pinned: true },
     { id: 'cat-chinh-sach', name: 'Chính sách bán hàng', icon: 'shield-check', pinned: false },
-    { id: 'cat-cskh', name: 'Hỗ trợ & Chăm sóc khách hàng', icon: 'life-buoy', pinned: false },
+    { id: 'cat-cskh', name: 'Hỗ trợ & Chăm sóc khách hàng', icon: 'headphones', pinned: false },
     { id: 'cat-dao-tao', name: 'Tài liệu đào tạo', icon: 'book-open', pinned: false }
 ];
 
@@ -756,6 +756,54 @@ class SalesStore {
         }
     }
 
+// Hàm nhận diện biểu tượng thông minh cho danh mục theo từ khóa
+function detectCategoryIcon(name) {
+    if (!name) return 'folder';
+    const lower = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // 1. Video / Clip / HDSD
+    if (/vid|video|clip|youtube|mp4|hdsd|demo|phim|quay/.test(lower)) return 'video';
+
+    // 2. Nhân sự / HR / Tuyển dụng / Đội ngũ
+    if (/hr|nhan su|tuyen dung|team|staff|nhan vien|noi bo/.test(lower)) return 'users';
+
+    // 3. CS / CSKH / Chăm sóc / Hỗ trợ / Support / Ticket / SLA
+    if (/\bcs\b|cskh|cham soc|ho tro|support|ticket|sla|bao hanh|help|khach hang/.test(lower)) return 'headphones';
+
+    // 4. Bảng giá / Báo giá / Chi phí / Cước / Price / Tiền
+    if (/gia|bao gia|bang gia|phi|cuoc|tien|price|cost|fee/.test(lower)) return 'dollar-sign';
+
+    // 5. Hợp đồng / Pháp lý / Biên bản / Cam kết / Thỏa thuận
+    if (/hop dong|phap ly|bien ban|cam ket|thoa thuan|dieu khoan|luat|contract/.test(lower)) return 'file-check';
+
+    // 6. Salekit / Giới thiệu / Marketing / MKT / Brochure / Catalog / Profile
+    if (/salekit|gioi thieu|marketing|mkt|brochure|catalog|profile|quang cao|pitch/.test(lower)) return 'sparkles';
+
+    // 7. Đào tạo / Hướng dẫn / Giáo trình / Training / Học / Sổ tay
+    if (/dao tao|giao trinh|training|so tay|cam nang|tai lieu chung/.test(lower)) return 'book-open';
+
+    // 8. Chính sách / Quy chế / Bảo mật / An toàn
+    if (/chinh sach|quy che|quy dinh|bao mat|an toan|policy/.test(lower)) return 'shield-check';
+
+    // 9. Dự án / Case study / Triển khai
+    if (/case study|du an|trien khai|khach tieu bieu|project/.test(lower)) return 'folder-kanban';
+
+    // 10. Kỹ thuật / Cấu hình / Thiết bị / API / Phần cứng
+    if (/ky thuat|cau hinh|thiet bi|api|hardware|phan cung|setup/.test(lower)) return 'cpu';
+
+    // 11. Báo cáo / Thống kê / Doanh số
+    if (/bao cao|thong ke|doanh so|report|analytics/.test(lower)) return 'trending-up';
+
+    // 12. Bảng tính / Excel / Sheet
+    if (/sheet|excel|bang tinh|so lieu/.test(lower)) return 'file-spreadsheet';
+
+    // Random/Hash fallback sinh động cho các danh mục không trùng từ khóa (luôn khác nhau, không bị trùng lặp)
+    const vibrantPool = ['folder-heart', 'folder-kanban', 'layers', 'briefcase', 'boxes', 'award', 'clipboard-list', 'compass', 'bookmark'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
+    return vibrantPool[hash % vibrantPool.length];
+}
+
     // ==========================================
     // Quản lý Danh Mục Tài Liệu (Document Categories)
     // ==========================================
@@ -765,6 +813,16 @@ class SalesStore {
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
+                    let hasChanges = false;
+
+                    // Tự động nâng cấp icon sinh động nếu danh mục đang mang icon 'tag' mặc định hoặc thiếu icon
+                    parsed.forEach(c => {
+                        if (!c.icon || c.icon === 'tag') {
+                            c.icon = detectCategoryIcon(c.name);
+                            hasChanges = true;
+                        }
+                    });
+
                     // Nếu chưa từng có cấu hình ghim nào, mặc định kích hoạt ghim cho danh mục Bảng giá & Salekit
                     const hasPinField = parsed.some(c => typeof c.pinned === 'boolean');
                     if (!hasPinField) {
@@ -775,7 +833,15 @@ class SalesStore {
                                 c.pinned = false;
                             }
                         });
+                        hasChanges = true;
+                    }
+
+                    if (hasChanges) {
                         localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(parsed));
+                        if (window.firebaseDb) {
+                            window.firebaseDb.collection('config').doc('categories').set({ list: parsed })
+                                .catch(() => {});
+                        }
                     }
                     return parsed;
                 }
@@ -787,17 +853,19 @@ class SalesStore {
     saveDocumentCategory(cat) {
         const categories = this.getDocumentCategories();
         let targetCat = null;
+        const assignedIcon = (cat.icon && cat.icon !== 'tag') ? cat.icon : detectCategoryIcon(cat.name);
+
         if (cat.id) {
             const idx = categories.findIndex(c => c.id === cat.id);
             if (idx !== -1) {
-                targetCat = { ...categories[idx], ...cat };
+                targetCat = { ...categories[idx], ...cat, icon: assignedIcon };
                 categories[idx] = targetCat;
             } else {
-                targetCat = { ...cat };
+                targetCat = { ...cat, icon: assignedIcon };
                 categories.push(targetCat);
             }
         } else {
-            targetCat = { ...cat, id: 'cat-' + Date.now(), icon: cat.icon || 'tag', pinned: Boolean(cat.pinned) };
+            targetCat = { ...cat, id: 'cat-' + Date.now(), icon: assignedIcon, pinned: Boolean(cat.pinned) };
             categories.push(targetCat);
         }
 
