@@ -194,14 +194,70 @@ class DocumentHub {
         if (!container) return;
 
         const allDocs = window.salesStore.getDocuments();
+        const allCats = window.salesStore.getDocumentCategories();
+
+        const pinnedCats = allCats.filter(c => c.id !== 'all' && c.pinned === true);
         let pinnedDocs = allDocs.filter(d => d.pinned === true);
 
-        // Nếu chưa có tài liệu nào ghim, lấy 4 tài liệu đầu tiên làm mặc định
-        if (pinnedDocs.length === 0) {
+        // Nếu chưa có danh mục hay tài liệu nào được ghim thủ công, lấy 4 tài liệu đầu tiên làm mặc định
+        if (pinnedCats.length === 0 && pinnedDocs.length === 0) {
             pinnedDocs = allDocs.slice(0, 4);
         }
 
-        container.innerHTML = pinnedDocs.map(doc => {
+        // 1. Thẻ danh mục ghim (Pinned Categories)
+        const catCardsHtml = pinnedCats.map(cat => {
+            const catDocs = allDocs.filter(d => d.category === cat.name || d.category === cat.id);
+            return `
+                <div class="w-[270px] sm:w-auto shrink-0 snap-start bg-gradient-to-br from-indigo-50/80 via-white to-white rounded-xl border-2 border-indigo-200/90 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-indigo-400 transition-all flex flex-col justify-between group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-100/40 rounded-bl-full pointer-events-none transition-transform group-hover:scale-110"></div>
+                    
+                    <div>
+                        <!-- Header thẻ Pinned Category -->
+                        <div class="flex items-center justify-between gap-2 mb-2.5 sm:mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-indigo-100 shrink-0">
+                                    <i data-lucide="${cat.icon || 'folders'}" class="w-5 h-5"></i>
+                                </div>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">
+                                    Thư mục ghim
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-1 z-10">
+                                <button onclick="window.documentHub.toggleCategoryPin('${cat.id}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim danh mục khỏi Truy cập nhanh">
+                                    <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-500"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tiêu đề & Thông tin danh mục -->
+                        <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
+                            onclick="window.documentHub.openCategoryFromQuickAccess('${cat.id}')" title="${this.escapeHtml(cat.name)}">
+                            ${this.escapeHtml(cat.name)}
+                        </h4>
+                        <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                            📁 Bao gồm ${catDocs.length} tài liệu, mẫu biểu & liên kết Sales.
+                        </p>
+                    </div>
+
+                    <!-- Footer Thẻ -->
+                    <div class="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-indigo-600 flex items-center gap-1">
+                            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                            <span>${catDocs.length} tài liệu</span>
+                        </span>
+                        
+                        <button onclick="window.documentHub.openCategoryFromQuickAccess('${cat.id}')"
+                            class="px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-all flex items-center gap-1 shadow-xs">
+                            <span>Mở thư mục</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // 2. Thẻ tài liệu ghim (Pinned Documents)
+        const docCardsHtml = pinnedDocs.map(doc => {
             const badge = this.getFileBadge(doc.fileType, doc.type);
             const isImage = doc.type === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(doc.fileType);
             const isVideo = doc.type === 'video' || doc.fileType === 'youtube';
@@ -269,7 +325,19 @@ class DocumentHub {
             `;
         }).join('');
 
+        container.innerHTML = catCardsHtml + docCardsHtml;
         lucide.createIcons();
+    }
+
+    openCategoryFromQuickAccess(catId) {
+        this.setCategory(catId);
+        const container = document.getElementById('documents-view-container');
+        if (container) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        const cat = this.getCategories().find(c => c.id === catId);
+        const catName = cat ? cat.name : catId;
+        window.salesApp.showNotification(`Đang mở danh mục: "${catName}"`, 'info');
     }
 
     renderTypePills() {
@@ -307,13 +375,14 @@ class DocumentHub {
                     }">
                     <i data-lucide="${cat.icon || 'tag'}" class="w-3.5 h-3.5"></i>
                     <span>${cat.name}</span>
+                    ${cat.pinned ? `<span class="text-amber-400 text-[10px]" title="Đã ghim ở mục Truy cập nhanh">⭐</span>` : ''}
                 </button>
             `).join('')}
 
             <!-- Nút Mở Modal Quản Lý Danh Mục (Thêm / Sửa / Xóa) -->
             <button type="button" onclick="window.documentHub.openCategoryManagerModal()"
                 class="px-2.5 py-1 rounded-full text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs"
-                title="Quản lý, thêm mới, sửa hoặc xóa danh mục tài liệu">
+                title="Quản lý, thêm mới, sửa, xóa hoặc ghim danh mục lên Truy Cập Nhanh">
                 <i data-lucide="settings-2" class="w-3.5 h-3.5 text-indigo-600"></i>
                 <span>Quản lý danh mục</span>
             </button>
@@ -1053,18 +1122,27 @@ class DocumentHub {
 
         container.innerHTML = categories.map(cat => {
             const count = docs.filter(d => d.category === cat.name || d.category === cat.id).length;
+            const isPinned = cat.pinned === true;
             return `
                 <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition-colors group">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <div class="w-8 h-8 rounded-lg ${isPinned ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center shrink-0">
                             <i data-lucide="${cat.icon || 'tag'}" class="w-4 h-4"></i>
                         </div>
                         <div class="min-w-0">
-                            <p class="text-xs font-bold text-slate-800 truncate">${this.escapeHtml(cat.name)}</p>
+                            <p class="text-xs font-bold text-slate-800 truncate flex items-center gap-1.5">
+                                <span>${this.escapeHtml(cat.name)}</span>
+                                ${isPinned ? `<span class="px-1.5 py-0.5 bg-amber-100 text-amber-700 font-bold text-[9px] rounded-full inline-flex items-center gap-0.5">⭐ Ghim</span>` : ''}
+                            </p>
                             <span class="text-[10px] text-slate-400 font-mono">${count} tài liệu</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="window.documentHub.toggleCategoryPin('${cat.id}')"
+                            class="p-1.5 rounded-lg transition-colors ${isPinned ? 'text-amber-500 hover:text-amber-600 bg-amber-50' : 'text-slate-300 hover:text-amber-500 hover:bg-slate-100'}"
+                            title="${isPinned ? 'Bỏ ghim khỏi mục Truy cập nhanh' : 'Ghim danh mục lên mục Truy cập nhanh'}">
+                            <i data-lucide="star" class="w-4 h-4 ${isPinned ? 'fill-amber-400 text-amber-500' : ''}"></i>
+                        </button>
                         <button type="button" onclick="window.documentHub.promptRenameCategory('${cat.id}')"
                             class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Đổi tên danh mục">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
@@ -1081,9 +1159,25 @@ class DocumentHub {
         lucide.createIcons();
     }
 
+    toggleCategoryPin(catId) {
+        const isPinned = window.salesStore.toggleCategoryPin(catId);
+        const cat = this.getCategories().find(c => c.id === catId);
+        const catName = cat ? cat.name : 'Danh mục';
+
+        this.renderCategoryPills();
+        this.renderCategoryManagerList();
+        this.renderQuickAccess();
+
+        const msg = isPinned
+            ? `⭐ Đã ghim danh mục "${catName}" vào mục Truy Cập Nhanh!`
+            : `Đã bỏ ghim danh mục "${catName}" khỏi mục Truy Cập Nhanh.`;
+        window.salesApp.showNotification(msg, 'success');
+    }
+
     handleAddNewCategory(event) {
         event.preventDefault();
         const input = document.getElementById('new-category-name-input');
+        const pinnedCheck = document.getElementById('new-category-pinned-check');
         if (!input) return;
         const name = input.value.trim();
         if (!name) return;
@@ -1094,20 +1188,25 @@ class DocumentHub {
             return;
         }
 
+        const isPinned = Boolean(pinnedCheck && pinnedCheck.checked);
+
         const newCat = {
             id: 'cat-' + Date.now(),
             name: name,
-            icon: 'tag'
+            icon: 'tag',
+            pinned: isPinned
         };
 
         window.salesStore.saveDocumentCategory(newCat);
         input.value = '';
+        if (pinnedCheck) pinnedCheck.checked = false;
 
         this.renderCategoryManagerList();
         this.renderCategoryPills();
         this.updateCategorySelectOptions(name);
+        this.renderQuickAccess();
 
-        window.salesApp.showNotification(`Đã thêm danh mục mới: "${name}"!`, 'success');
+        window.salesApp.showNotification(`Đã thêm danh mục mới: "${name}"${isPinned ? ' (đã ghim ⭐)' : ''}!`, 'success');
     }
 
     promptRenameCategory(catId) {
@@ -1140,6 +1239,7 @@ class DocumentHub {
         this.renderCategoryPills();
         this.updateCategorySelectOptions(cleanName);
         this.renderDocumentsList();
+        this.renderQuickAccess();
 
         window.salesApp.showNotification(`Đã đổi tên danh mục thành "${cleanName}" (${updatedCount} tài liệu được cập nhật)!`, 'success');
     }
@@ -1180,6 +1280,7 @@ class DocumentHub {
         this.renderCategoryPills();
         this.updateCategorySelectOptions();
         this.renderDocumentsList();
+        this.renderQuickAccess();
 
         window.salesApp.showNotification(`Đã xóa danh mục "${cat.name}"!`, 'info');
     }

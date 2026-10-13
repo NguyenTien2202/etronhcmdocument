@@ -444,7 +444,7 @@
                         <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
                         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">⭐ Truy Cập Nhanh</h2>
                     </div>
-                    <span class="text-[11px] text-slate-400 hidden sm:inline">Các tài liệu quan trọng được ghim để mở và gửi khách nhanh nhất</span>
+                    <span class="text-[11px] text-slate-400 hidden sm:inline">Các danh mục & tài liệu quan trọng được ghim để mở và gửi khách nhanh nhất</span>
                     <span class="text-[11px] text-indigo-600 font-semibold sm:hidden flex items-center gap-1">
                         <span>Vuốt xem</span>
                         <i data-lucide="arrow-right" class="w-3 h-3"></i>
@@ -969,7 +969,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Quản Lý Danh Mục Tài Liệu</h3>
-                        <p class="text-[11px] text-slate-500">Thêm, đổi tên, xóa danh mục (đồng bộ mọi thiết bị)</p>
+                        <p class="text-[11px] text-slate-500">Thêm, đổi tên, xóa & ghim ⭐ danh mục lên Truy Cập Nhanh</p>
                     </div>
                 </div>
                 <button type="button" onclick="window.documentHub.closeCategoryManagerModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors">
@@ -979,7 +979,7 @@
 
             <!-- Form Thêm Danh Mục Mới -->
             <div class="p-4 border-b border-slate-200 bg-white shrink-0">
-                <form id="add-category-form" onsubmit="window.documentHub.handleAddNewCategory(event)" class="space-y-2">
+                <form id="add-category-form" onsubmit="window.documentHub.handleAddNewCategory(event)" class="space-y-2.5">
                     <label class="block text-xs font-bold text-slate-700">Thêm danh mục mới</label>
                     <div class="flex gap-2">
                         <input type="text" id="new-category-name-input" required placeholder="VD: Hợp đồng & Pháp lý, Case study..."
@@ -989,6 +989,10 @@
                             <span>Thêm</span>
                         </button>
                     </div>
+                    <label class="flex items-center gap-2 cursor-pointer pt-0.5">
+                        <input type="checkbox" id="new-category-pinned-check" class="rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5">
+                        <span class="text-[11px] text-slate-600">⭐ Ghim ngay danh mục này lên mục <b>Truy Cập Nhanh</b></span>
+                    </label>
                 </form>
             </div>
 
@@ -1025,16 +1029,16 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261013_v38"></script>
+    <script src="js/firebase-config.js?v=20261013_v39"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261013_v38"></script>
-    <script src="js/number-to-words.js?v=20261013_v38"></script>
-    <script src="js/store.js?v=20261013_v38"></script>
-    <script src="js/quote-builder.js?v=20261013_v38"></script>
-    <script src="js/document-hub.js?v=20261013_v38"></script>
-    <script src="js/product-catalog.js?v=20261013_v38"></script>
-    <script src="js/pdf-export.js?v=20261013_v38"></script>
-    <script src="js/app.js?v=20261013_v38"></script>
+    <script src="js/logo-data.js?v=20261013_v39"></script>
+    <script src="js/number-to-words.js?v=20261013_v39"></script>
+    <script src="js/store.js?v=20261013_v39"></script>
+    <script src="js/quote-builder.js?v=20261013_v39"></script>
+    <script src="js/document-hub.js?v=20261013_v39"></script>
+    <script src="js/product-catalog.js?v=20261013_v39"></script>
+    <script src="js/pdf-export.js?v=20261013_v39"></script>
+    <script src="js/app.js?v=20261013_v39"></script>
 </body>
 </html>

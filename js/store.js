@@ -16,12 +16,12 @@ const STORAGE_KEYS = {
 
 // Danh mục tài liệu mặc định chuẩn Etron
 const DEFAULT_DOCUMENT_CATEGORIES = [
-    { id: 'cat-bang-gia', name: 'Bảng giá chính thức', icon: 'file-text' },
-    { id: 'cat-bao-gia', name: 'Báo giá & Mẫu biểu', icon: 'file-spreadsheet' },
-    { id: 'cat-salekit', name: 'Salekit & Giới thiệu', icon: 'sparkles' },
-    { id: 'cat-chinh-sach', name: 'Chính sách bán hàng', icon: 'shield-check' },
-    { id: 'cat-cskh', name: 'Hỗ trợ & Chăm sóc khách hàng', icon: 'life-buoy' },
-    { id: 'cat-dao-tao', name: 'Tài liệu đào tạo', icon: 'book-open' }
+    { id: 'cat-bang-gia', name: 'Bảng giá chính thức', icon: 'file-text', pinned: true },
+    { id: 'cat-bao-gia', name: 'Báo giá & Mẫu biểu', icon: 'file-spreadsheet', pinned: false },
+    { id: 'cat-salekit', name: 'Salekit & Giới thiệu', icon: 'sparkles', pinned: true },
+    { id: 'cat-chinh-sach', name: 'Chính sách bán hàng', icon: 'shield-check', pinned: false },
+    { id: 'cat-cskh', name: 'Hỗ trợ & Chăm sóc khách hàng', icon: 'life-buoy', pinned: false },
+    { id: 'cat-dao-tao', name: 'Tài liệu đào tạo', icon: 'book-open', pinned: false }
 ];
 
 // Initial Seed Data - ETRON SOLUTIONS JSC
@@ -764,7 +764,21 @@ class SalesStore {
             const raw = localStorage.getItem(STORAGE_KEYS.DOCUMENT_CATEGORIES);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    // Nếu chưa từng có cấu hình ghim nào, mặc định kích hoạt ghim cho danh mục Bảng giá & Salekit
+                    const hasPinField = parsed.some(c => typeof c.pinned === 'boolean');
+                    if (!hasPinField) {
+                        parsed.forEach(c => {
+                            if (c.id === 'cat-bang-gia' || c.name === 'Bảng giá chính thức' || c.id === 'cat-salekit' || c.name === 'Salekit & Giới thiệu') {
+                                c.pinned = true;
+                            } else {
+                                c.pinned = false;
+                            }
+                        });
+                        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(parsed));
+                    }
+                    return parsed;
+                }
             }
         } catch {}
         return DEFAULT_DOCUMENT_CATEGORIES;
@@ -783,7 +797,7 @@ class SalesStore {
                 categories.push(targetCat);
             }
         } else {
-            targetCat = { ...cat, id: 'cat-' + Date.now(), icon: cat.icon || 'tag' };
+            targetCat = { ...cat, id: 'cat-' + Date.now(), icon: cat.icon || 'tag', pinned: Boolean(cat.pinned) };
             categories.push(targetCat);
         }
 
@@ -794,6 +808,16 @@ class SalesStore {
                 .catch(err => console.warn('Lỗi ghi danh mục Firestore:', err));
         }
         return targetCat;
+    }
+
+    toggleCategoryPin(catId) {
+        const categories = this.getDocumentCategories();
+        const cat = categories.find(c => c.id === catId || c.name === catId);
+        if (!cat) return false;
+
+        cat.pinned = !cat.pinned;
+        this.saveDocumentCategory(cat);
+        return cat.pinned;
     }
 
     deleteDocumentCategory(catId) {
@@ -855,6 +879,7 @@ class SalesStore {
                             window.documentHub.renderCategoryPills();
                             window.documentHub.updateCategorySelectOptions();
                             window.documentHub.renderCategoryManagerList();
+                            window.documentHub.renderQuickAccess();
                         }
                     }
                 } else {
