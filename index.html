@@ -30,7 +30,7 @@
     <!-- html2pdf.js (Local) -->
     <script src="js/html2pdf.bundle.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261013_v37">
+    <link rel="stylesheet" href="css/styles.css?v=20261014_v55">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -974,8 +974,8 @@
     <!-- ========================================== -->
     <!-- MODAL 3: THÊM TÀI LIỆU / MEDIA SALES MỚI   -->
     <!-- ========================================== -->
-    <div id="document-add-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-6 overflow-hidden max-h-[90vh] flex flex-col">
+    <div id="document-add-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl p-4 sm:p-6 overflow-hidden max-h-[92vh] flex flex-col">
             <!-- Modal Header -->
             <div class="flex items-center justify-between pb-3 border-b border-slate-200 shrink-0">
                 <div>
@@ -990,8 +990,8 @@
                 </button>
             </div>
 
-            <!-- Modal Content (Scrollable) -->
-            <form id="document-add-form" onsubmit="window.documentHub.saveNewDocument(event)" class="space-y-3.5 pt-3 overflow-y-auto pr-1 flex-1">
+            <!-- Modal Content (Scrollable without visible scrollbar) -->
+            <form id="document-add-form" onsubmit="window.documentHub.saveNewDocument(event)" class="space-y-3 sm:space-y-3.5 pt-2.5 sm:pt-3 overflow-y-auto no-scrollbar flex-1">
                 <input type="hidden" id="editing-doc-id" value="">
                 
                 <!-- Phương thức nhập (Tab switcher) -->
@@ -1012,13 +1012,13 @@
 
                 <!-- SECTION 1: UPLOAD TỆP TỪ MÁY (Kéo thả) -->
                 <div id="modal-section-upload" class="space-y-2">
-                    <div id="doc-dropzone" class="border-2 border-dashed border-slate-200 rounded-xl p-5 text-center hover:border-indigo-400 hover:bg-slate-50/60 transition-all cursor-pointer relative">
+                    <div id="doc-dropzone" class="border-2 border-dashed border-slate-200 rounded-xl p-3.5 sm:p-5 text-center hover:border-indigo-400 hover:bg-slate-50/60 transition-all cursor-pointer relative">
                         <input type="file" id="doc-file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                             accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.svg,.mp4,.webm,.mov">
                         
-                        <div id="doc-dropzone-content" class="space-y-1.5 pointer-events-none">
-                            <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center">
-                                <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                        <div id="doc-dropzone-content" class="space-y-1 sm:space-y-1.5 pointer-events-none">
+                            <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center">
+                                <i data-lucide="upload-cloud" class="w-4 h-4 sm:w-5 sm:h-5"></i>
                             </div>
                             <p class="text-xs font-bold text-slate-800">Kéo thả tệp vào đây hoặc <span class="text-indigo-600 underline">bấm để chọn</span></p>
                             <p class="text-[10px] text-slate-400">Hỗ trợ: PDF, Word, Excel, Slide, Ảnh (PNG/JPG), Video (MP4) • Tối đa 100MB</p>
@@ -1192,7 +1192,7 @@
             </div>
 
             <!-- Danh Sách Danh Mục Hiện Tại -->
-            <div class="p-4 overflow-y-auto flex-1 bg-slate-50/50">
+            <div class="p-4 overflow-y-auto no-scrollbar flex-1 bg-slate-50/50">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Danh mục hiện có</span>
                     <span class="text-xs font-semibold text-slate-400"><span id="cat-manager-total-count">0</span> danh mục</span>
@@ -1266,7 +1266,7 @@
                 </button>
             </div>
 
-            <form id="cb-tpl-form" onsubmit="window.callbotHub.saveTemplateFromModal(event)" class="overflow-y-auto p-5 sm:p-6 space-y-4">
+            <form id="cb-tpl-form" onsubmit="window.callbotHub.saveTemplateFromModal(event)" class="overflow-y-auto no-scrollbar p-5 sm:p-6 space-y-4">
                 <input type="hidden" id="cb-tpl-id">
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1339,7 +1339,7 @@
                 </button>
             </div>
 
-            <form id="cb-med-form" onsubmit="window.callbotHub.saveMediaFromModal(event)" class="overflow-y-auto p-5 sm:p-6 space-y-4">
+            <form id="cb-med-form" onsubmit="window.callbotHub.saveMediaFromModal(event)" class="overflow-y-auto no-scrollbar p-5 sm:p-6 space-y-4">
                 <input type="hidden" id="cb-med-id">
 
                 <div>
@@ -1421,7 +1421,7 @@
                 </button>
             </div>
 
-            <form id="cb-grp-form" onsubmit="window.callbotHub.saveGroupFromModal(event)" class="overflow-y-auto p-5 sm:p-6 space-y-4">
+            <form id="cb-grp-form" onsubmit="window.callbotHub.saveGroupFromModal(event)" class="overflow-y-auto no-scrollbar p-5 sm:p-6 space-y-4">
                 <input type="hidden" id="cb-grp-ind-id">
                 <input type="hidden" id="cb-grp-id">
 
@@ -1529,7 +1529,7 @@
             </div>
 
             <!-- Danh Sách Ngành Nghề Hiện Có -->
-            <div class="p-4 overflow-y-auto flex-1 bg-slate-50/50">
+            <div class="p-4 overflow-y-auto no-scrollbar flex-1 bg-slate-50/50">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Ngành nghề hiện có</span>
                     <span class="text-xs font-semibold text-slate-400"><span id="cb-ind-manager-total-count">0</span> ngành</span>
@@ -1561,18 +1561,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v54"></script>
+    <script src="js/firebase-config.js?v=20261014_v55"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v54"></script>
-    <script src="js/callbot-data.js?v=20261014_v54"></script>
-    <script src="js/number-to-words.js?v=20261014_v54"></script>
-    <script src="js/store.js?v=20261014_v54"></script>
-    <script src="js/quote-builder.js?v=20261014_v54"></script>
-    <script src="js/document-hub.js?v=20261014_v54"></script>
-    <script src="js/callbot-hub.js?v=20261014_v54"></script>
-    <script src="js/product-catalog.js?v=20261014_v54"></script>
-    <script src="js/pdf-export.js?v=20261014_v54"></script>
-    <script src="js/app.js?v=20261014_v54"></script>
+    <script src="js/logo-data.js?v=20261014_v55"></script>
+    <script src="js/callbot-data.js?v=20261014_v55"></script>
+    <script src="js/number-to-words.js?v=20261014_v55"></script>
+    <script src="js/store.js?v=20261014_v55"></script>
+    <script src="js/quote-builder.js?v=20261014_v55"></script>
+    <script src="js/document-hub.js?v=20261014_v55"></script>
+    <script src="js/callbot-hub.js?v=20261014_v55"></script>
+    <script src="js/product-catalog.js?v=20261014_v55"></script>
+    <script src="js/pdf-export.js?v=20261014_v55"></script>
+    <script src="js/app.js?v=20261014_v55"></script>
 </body>
 </html>
