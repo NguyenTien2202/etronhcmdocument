@@ -417,7 +417,8 @@ class CallbotHub {
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                         <button onclick="window.callbotHub.openAddGroupModal('${curInd.id}')"
-                            class="px-3 sm:px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95">
+                            class="px-2.5 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition-all flex items-center gap-1.5 shrink-0 shadow-2xs active:scale-95"
+                            title="Thêm nhóm từ khóa cho ngành này">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span class="hidden sm:inline">Thêm Nhóm Từ Khóa</span>
                             <span class="sm:hidden">Thêm nhóm</span>

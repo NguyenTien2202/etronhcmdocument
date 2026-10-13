@@ -67,11 +67,6 @@
                         <i data-lucide="bot" class="w-4 h-4"></i>
                         <span>Callbot & Kịch Bản</span>
                     </button>
-                    <button data-tab-target="settings" 
-                        class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 transition-all flex items-center gap-2 focus:outline-none">
-                        <i data-lucide="settings" class="w-4 h-4"></i>
-                        <span>Cài Đặt</span>
-                    </button>
                 </nav>
             </div>
 
@@ -80,7 +75,6 @@
                 <button data-tab-target="quote-builder" class="px-3 py-1.5 rounded-lg text-xs font-bold text-indigo-600 bg-white shadow-sm whitespace-nowrap focus:outline-none">Báo Giá</button>
                 <button data-tab-target="documents" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Tài Liệu</button>
                 <button data-tab-target="callbot-hub" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Callbot</button>
-                <button data-tab-target="settings" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-600 whitespace-nowrap focus:outline-none">Cài Đặt</button>
             </div>
         </div>
     </header>
@@ -188,10 +182,10 @@
                             1. Thông Tin Báo Giá
                         </h2>
                         <button type="button" onclick="window.quoteBuilder.clearCustomerInfo()"
-                            class="text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1 rounded-lg border border-slate-200 hover:border-rose-200 flex items-center gap-1.5 transition-colors"
+                            class="text-xs font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-rose-200 flex items-center gap-1.5 transition-colors"
                             title="Xóa nhanh thông tin khách hàng">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                            <span>Xóa thông tin</span>
+                            <span class="hidden sm:inline">Xóa thông tin</span>
                         </button>
                     </div>
 
@@ -227,22 +221,24 @@
                             <i data-lucide="shopping-cart" class="w-4 h-4 text-blue-600"></i>
                             2. Chi Tiết Hạng Mục / Gói Cước
                         </h2>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
                             <button type="button" onclick="window.productCatalog.openPickerModal()"
-                                class="text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
-                                <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                                Chọn từ danh mục
+                                class="text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors"
+                                title="Chọn từ danh mục sản phẩm">
+                                <i data-lucide="plus-circle" class="w-4 h-4 sm:w-3.5 sm:h-3.5"></i>
+                                <span class="hidden sm:inline">Chọn từ danh mục</span>
                             </button>
                             <button type="button" onclick="window.quoteBuilder.addCustomItem()"
-                                class="text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
-                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                                Thêm dòng
+                                class="text-xs font-medium text-slate-600 hover:text-slate-900 bg-slate-100 px-2.5 sm:px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors"
+                                title="Thêm dòng tùy chỉnh">
+                                <i data-lucide="plus" class="w-4 h-4 sm:w-3.5 sm:h-3.5"></i>
+                                <span class="hidden sm:inline">Thêm dòng</span>
                             </button>
                             <button type="button" onclick="window.quoteBuilder.clearAllItems()"
                                 class="text-xs font-medium text-slate-500 hover:text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-slate-200 flex items-center gap-1 transition-colors"
                                 title="Xóa toàn bộ dòng sản phẩm">
-                                <i data-lucide="trash" class="w-3.5 h-3.5"></i>
-                                <span>Xóa hết dòng</span>
+                                <i data-lucide="trash-2" class="w-4 h-4 sm:w-3.5 sm:h-3.5"></i>
+                                <span class="hidden sm:inline">Xóa hết dòng</span>
                             </button>
                         </div>
                     </div>
@@ -357,14 +353,16 @@
 
                 <div class="flex items-center gap-1.5 sm:gap-2">
                     <button type="button" onclick="window.quoteBuilder.openDrawerPreview()"
-                        class="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-200 flex items-center gap-1.5 transition-all hover:scale-105">
+                        class="px-3 sm:px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-blue-200 flex items-center gap-1.5 transition-all hover:scale-105"
+                        title="Xem trước bản in A4">
                         <i data-lucide="eye" class="w-4 h-4"></i>
-                        <span>Xem Trước A4</span>
+                        <span class="hidden sm:inline">Xem Trước A4</span>
                     </button>
                     <button type="button" onclick="window.pdfExporter.downloadPdf()"
-                        class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all" title="Tải PDF">
+                        class="px-3 sm:px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all"
+                        title="Tải PDF">
                         <i data-lucide="download" class="w-4 h-4"></i>
-                        <span>Tải PDF</span>
+                        <span class="hidden sm:inline">Tải PDF</span>
                     </button>
                 </div>
             </div>
@@ -434,16 +432,12 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-                    <button onclick="window.salesApp.switchTab('callbot-hub')"
-                        class="w-full sm:w-auto px-3.5 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all">
-                        <i data-lucide="bot" class="w-4 h-4"></i>
-                        <span>Kho Callbot & Kịch Bản</span>
-                    </button>
+                <div class="flex items-center gap-2 shrink-0">
                     <button onclick="window.documentHub.openAddModal()"
-                        class="w-full sm:w-auto px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-100 flex items-center justify-center gap-2 transition-all">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                        <span>Thêm Tài Liệu / Media</span>
+                        class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"
+                        title="Thêm tài liệu hoặc liên kết mới">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Thêm tài liệu</span>
                     </button>
                 </div>
             </div>
@@ -547,14 +541,6 @@
                     <div id="cb-hub-stats" class="flex items-center gap-1.5 pt-1.5 overflow-x-auto no-scrollbar -mx-1 px-1">
                         <!-- Rendered dynamically by callbot-hub.js -->
                     </div>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="window.callbotHub.openAddTemplateModal()" 
-                        class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 active:scale-95">
-                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                        <span>+ Thêm Kịch Bản Mẫu</span>
-                    </button>
                 </div>
             </div>
 
@@ -1571,18 +1557,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v50"></script>
+    <script src="js/firebase-config.js?v=20261014_v51"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v50"></script>
-    <script src="js/callbot-data.js?v=20261014_v50"></script>
-    <script src="js/number-to-words.js?v=20261014_v50"></script>
-    <script src="js/store.js?v=20261014_v50"></script>
-    <script src="js/quote-builder.js?v=20261014_v50"></script>
-    <script src="js/document-hub.js?v=20261014_v50"></script>
-    <script src="js/callbot-hub.js?v=20261014_v50"></script>
-    <script src="js/product-catalog.js?v=20261014_v50"></script>
-    <script src="js/pdf-export.js?v=20261014_v50"></script>
-    <script src="js/app.js?v=20261014_v50"></script>
+    <script src="js/logo-data.js?v=20261014_v51"></script>
+    <script src="js/callbot-data.js?v=20261014_v51"></script>
+    <script src="js/number-to-words.js?v=20261014_v51"></script>
+    <script src="js/store.js?v=20261014_v51"></script>
+    <script src="js/quote-builder.js?v=20261014_v51"></script>
+    <script src="js/document-hub.js?v=20261014_v51"></script>
+    <script src="js/callbot-hub.js?v=20261014_v51"></script>
+    <script src="js/product-catalog.js?v=20261014_v51"></script>
+    <script src="js/pdf-export.js?v=20261014_v51"></script>
+    <script src="js/app.js?v=20261014_v51"></script>
 </body>
 </html>

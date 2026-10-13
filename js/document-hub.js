@@ -606,16 +606,11 @@ class DocumentHub {
                                                             <span class="text-amber-500 text-[10px]" title="Đang ghim ở mục Truy cập nhanh">⭐</span>
                                                         ` : ''}
                                                     </div>
-                                                    <!-- Hiển thị phân loại & dung lượng dưới tên khi ở màn hình nhỏ -->
-                                                    <div class="flex items-center gap-1 sm:hidden mt-0.5">
-                                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-bold ${badge.bg} ${badge.color}">${badge.label}</span>
-                                                        <span class="text-[10px] text-slate-500 font-medium truncate max-w-[110px]">${this.escapeHtml(doc.category)}</span>
-                                                        <span class="text-[10px] text-slate-300">•</span>
-                                                        <span class="text-[10px] text-slate-400 font-mono">${this.escapeHtml(doc.fileSize || '')}</span>
-                                                    </div>
-                                                    <p class="text-[11px] text-slate-400 truncate mt-0.5 hidden sm:block">
-                                                        ${this.escapeHtml(doc.description || 'Chưa có mô tả chi tiết')}
-                                                    </p>
+                                                    ${doc.description ? `
+                                                        <p class="text-[11px] text-slate-400 truncate mt-0.5" title="${this.escapeHtml(doc.description)}">
+                                                            ${this.escapeHtml(doc.description)}
+                                                        </p>
+                                                    ` : ''}
                                                     ${doc.tags && doc.tags.length > 0 ? `
                                                         <div class="hidden sm:flex flex-wrap gap-1 mt-1">
                                                             ${doc.tags.map(t => `<span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded font-medium">#${this.escapeHtml(t)}</span>`).join('')}
