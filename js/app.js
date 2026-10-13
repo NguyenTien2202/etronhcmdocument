@@ -20,6 +20,9 @@ class SalesApp {
         window.productCatalog.init();
         window.quoteBuilder.resetForm();
 
+        // Kích hoạt đồng bộ đám mây Real-time Firebase Firestore
+        window.salesStore.setupCloudSync();
+
         lucide.createIcons();
     }
 

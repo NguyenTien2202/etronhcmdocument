@@ -682,25 +682,90 @@ class SalesStore {
 
     saveDocument(doc) {
         const docs = this.getDocuments();
+        let targetDoc = null;
         if (doc.id) {
             const index = docs.findIndex(d => d.id === doc.id);
             if (index !== -1) {
-                docs[index] = { ...docs[index], ...doc, updatedAt: new Date().toISOString().split('T')[0] };
+                targetDoc = { ...docs[index], ...doc, updatedAt: new Date().toISOString().split('T')[0] };
+                docs[index] = targetDoc;
             } else {
-                docs.unshift(doc);
+                targetDoc = { ...doc, updatedAt: doc.updatedAt || new Date().toISOString().split('T')[0] };
+                docs.unshift(targetDoc);
             }
         } else {
-            doc.id = 'doc-' + Date.now();
-            doc.updatedAt = new Date().toISOString().split('T')[0];
-            docs.unshift(doc);
+            targetDoc = { ...doc, id: 'doc-' + Date.now(), updatedAt: new Date().toISOString().split('T')[0] };
+            docs.unshift(targetDoc);
         }
         localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
-        return doc;
+
+        // Đồng bộ lên Firebase Firestore nếu có kết nối
+        if (window.firebaseDb && targetDoc && targetDoc.id) {
+            try {
+                const cloudData = JSON.parse(JSON.stringify(targetDoc));
+                window.firebaseDb.collection('documents').doc(targetDoc.id).set(cloudData, { merge: true })
+                    .catch(err => console.warn('Lỗi ghi Firestore:', err));
+            } catch (err) {
+                console.warn('Lỗi đồng bộ Firebase:', err);
+            }
+        }
+
+        return targetDoc;
     }
 
     deleteDocument(id) {
         const docs = this.getDocuments().filter(d => d.id !== id);
         localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
+
+        // Xóa trên Firebase Firestore
+        if (window.firebaseDb && id) {
+            try {
+                window.firebaseDb.collection('documents').doc(id).delete()
+                    .catch(err => console.warn('Lỗi xóa Firestore:', err));
+            } catch (err) {
+                console.warn('Lỗi xóa Firebase:', err);
+            }
+        }
+    }
+
+    setupCloudSync() {
+        if (!window.firebaseDb) return;
+
+        try {
+            window.firebaseDb.collection('documents').onSnapshot((snapshot) => {
+                if (snapshot.empty) {
+                    console.log('Khởi tạo dữ liệu mặc định lên Firestore...');
+                    const initialDocs = this.getDocuments();
+                    const listToPush = (initialDocs && initialDocs.length > 0) ? initialDocs : DEFAULT_DOCUMENTS;
+                    listToPush.forEach(d => {
+                        window.firebaseDb.collection('documents').doc(d.id).set(JSON.parse(JSON.stringify(d)))
+                            .catch(() => {});
+                    });
+                } else {
+                    const cloudDocs = [];
+                    snapshot.forEach(docSnap => {
+                        cloudDocs.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+                    
+                    cloudDocs.sort((a, b) => {
+                        if (a.pinned && !b.pinned) return -1;
+                        if (!a.pinned && b.pinned) return 1;
+                        return (b.updatedAt || '').localeCompare(a.updatedAt || '');
+                    });
+
+                    localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(cloudDocs));
+
+                    if (window.documentHub) {
+                        window.documentHub.renderStats();
+                        window.documentHub.renderQuickAccess();
+                        window.documentHub.renderDocumentsList();
+                    }
+                }
+            }, (error) => {
+                console.warn('Lỗi đồng bộ Real-time Firestore:', error);
+            });
+        } catch (err) {
+            console.warn('Lỗi thiết lập lắng nghe Firestore:', err);
+        }
     }
 
     // Quotes
