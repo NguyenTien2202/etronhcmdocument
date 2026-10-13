@@ -1109,21 +1109,6 @@ class DocumentHub {
         if (input) input.value = '';
     }
 
-    renderCategoryManagerList() {
-        const container = document.getElementById('category-manager-list');
-        const totalCountEl = document.getElementById('cat-manager-total-count');
-        if (!container) return;
-
-        const categories = window.salesStore.getDocumentCategories();
-        const docs = window.salesStore.getDocuments();
-
-        if (totalCountEl) totalCountEl.textContent = categories.length;
-
-        if (categories.length === 0) {
-            container.innerHTML = '<div class="py-6 text-center text-slate-400 text-xs">Chưa có danh mục nào. Hãy thêm danh mục đầu tiên bên trên!</div>';
-            return;
-        }
-
     getCuratedCategoryIcons() {
         return [
             { id: 'folder', name: 'Thư mục chung' },

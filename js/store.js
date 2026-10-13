@@ -24,6 +24,54 @@ const DEFAULT_DOCUMENT_CATEGORIES = [
     { id: 'cat-dao-tao', name: 'Tài liệu đào tạo', icon: 'book-open', pinned: false }
 ];
 
+// Hàm nhận diện biểu tượng thông minh cho danh mục theo từ khóa
+function detectCategoryIcon(name) {
+    if (!name) return 'folder';
+    const lower = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    // 1. Video / Clip / HDSD
+    if (/vid|video|clip|youtube|mp4|hdsd|demo|phim|quay/.test(lower)) return 'video';
+
+    // 2. Nhân sự / HR / Tuyển dụng / Đội ngũ
+    if (/hr|nhan su|tuyen dung|team|staff|nhan vien|noi bo/.test(lower)) return 'users';
+
+    // 3. CS / CSKH / Chăm sóc / Hỗ trợ / Support / Ticket / SLA
+    if (/\bcs\b|cskh|cham soc|ho tro|support|ticket|sla|bao hanh|help|khach hang/.test(lower)) return 'headphones';
+
+    // 4. Bảng giá / Báo giá / Chi phí / Cước / Price / Tiền
+    if (/gia|bao gia|bang gia|phi|cuoc|tien|price|cost|fee/.test(lower)) return 'dollar-sign';
+
+    // 5. Hợp đồng / Pháp lý / Biên bản / Cam kết / Thỏa thuận
+    if (/hop dong|phap ly|bien ban|cam ket|thoa thuan|dieu khoan|luat|contract/.test(lower)) return 'file-check';
+
+    // 6. Salekit / Giới thiệu / Marketing / MKT / Brochure / Catalog / Profile
+    if (/salekit|gioi thieu|marketing|mkt|brochure|catalog|profile|quang cao|pitch/.test(lower)) return 'sparkles';
+
+    // 7. Đào tạo / Hướng dẫn / Giáo trình / Training / Học / Sổ tay
+    if (/dao tao|giao trinh|training|so tay|cam nang|tai lieu chung/.test(lower)) return 'book-open';
+
+    // 8. Chính sách / Quy chế / Bảo mật / An toàn
+    if (/chinh sach|quy che|quy dinh|bao mat|an toan|policy/.test(lower)) return 'shield-check';
+
+    // 9. Dự án / Case study / Triển khai
+    if (/case study|du an|trien khai|khach tieu bieu|project/.test(lower)) return 'folder-kanban';
+
+    // 10. Kỹ thuật / Cấu hình / Thiết bị / API / Phần cứng
+    if (/ky thuat|cau hinh|thiet bi|api|hardware|phan cung|setup/.test(lower)) return 'cpu';
+
+    // 11. Báo cáo / Thống kê / Doanh số
+    if (/bao cao|thong ke|doanh so|report|analytics/.test(lower)) return 'trending-up';
+
+    // 12. Bảng tính / Excel / Sheet
+    if (/sheet|excel|bang tinh|so lieu/.test(lower)) return 'file-spreadsheet';
+
+    // Random/Hash fallback sinh động cho các danh mục không trùng từ khóa
+    const vibrantPool = ['folder-heart', 'folder-kanban', 'layers', 'briefcase', 'boxes', 'award', 'clipboard-list', 'compass', 'bookmark'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
+    return vibrantPool[hash % vibrantPool.length];
+}
+
 // Initial Seed Data - ETRON SOLUTIONS JSC
 const DEFAULT_COMPANY = {
     name: 'CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON',
@@ -755,54 +803,6 @@ class SalesStore {
             }
         }
     }
-
-// Hàm nhận diện biểu tượng thông minh cho danh mục theo từ khóa
-function detectCategoryIcon(name) {
-    if (!name) return 'folder';
-    const lower = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-    // 1. Video / Clip / HDSD
-    if (/vid|video|clip|youtube|mp4|hdsd|demo|phim|quay/.test(lower)) return 'video';
-
-    // 2. Nhân sự / HR / Tuyển dụng / Đội ngũ
-    if (/hr|nhan su|tuyen dung|team|staff|nhan vien|noi bo/.test(lower)) return 'users';
-
-    // 3. CS / CSKH / Chăm sóc / Hỗ trợ / Support / Ticket / SLA
-    if (/\bcs\b|cskh|cham soc|ho tro|support|ticket|sla|bao hanh|help|khach hang/.test(lower)) return 'headphones';
-
-    // 4. Bảng giá / Báo giá / Chi phí / Cước / Price / Tiền
-    if (/gia|bao gia|bang gia|phi|cuoc|tien|price|cost|fee/.test(lower)) return 'dollar-sign';
-
-    // 5. Hợp đồng / Pháp lý / Biên bản / Cam kết / Thỏa thuận
-    if (/hop dong|phap ly|bien ban|cam ket|thoa thuan|dieu khoan|luat|contract/.test(lower)) return 'file-check';
-
-    // 6. Salekit / Giới thiệu / Marketing / MKT / Brochure / Catalog / Profile
-    if (/salekit|gioi thieu|marketing|mkt|brochure|catalog|profile|quang cao|pitch/.test(lower)) return 'sparkles';
-
-    // 7. Đào tạo / Hướng dẫn / Giáo trình / Training / Học / Sổ tay
-    if (/dao tao|giao trinh|training|so tay|cam nang|tai lieu chung/.test(lower)) return 'book-open';
-
-    // 8. Chính sách / Quy chế / Bảo mật / An toàn
-    if (/chinh sach|quy che|quy dinh|bao mat|an toan|policy/.test(lower)) return 'shield-check';
-
-    // 9. Dự án / Case study / Triển khai
-    if (/case study|du an|trien khai|khach tieu bieu|project/.test(lower)) return 'folder-kanban';
-
-    // 10. Kỹ thuật / Cấu hình / Thiết bị / API / Phần cứng
-    if (/ky thuat|cau hinh|thiet bi|api|hardware|phan cung|setup/.test(lower)) return 'cpu';
-
-    // 11. Báo cáo / Thống kê / Doanh số
-    if (/bao cao|thong ke|doanh so|report|analytics/.test(lower)) return 'trending-up';
-
-    // 12. Bảng tính / Excel / Sheet
-    if (/sheet|excel|bang tinh|so lieu/.test(lower)) return 'file-spreadsheet';
-
-    // Random/Hash fallback sinh động cho các danh mục không trùng từ khóa (luôn khác nhau, không bị trùng lặp)
-    const vibrantPool = ['folder-heart', 'folder-kanban', 'layers', 'briefcase', 'boxes', 'award', 'clipboard-list', 'compass', 'bookmark'];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) hash += name.charCodeAt(i);
-    return vibrantPool[hash % vibrantPool.length];
-}
 
     // ==========================================
     // Quản lý Danh Mục Tài Liệu (Document Categories)
