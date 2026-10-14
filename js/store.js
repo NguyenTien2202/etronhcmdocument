@@ -17,14 +17,12 @@ const STORAGE_KEYS = {
     INITIALIZED: 'saleshub_etron_salekit_v2026_pricing_v9'
 };
 
-// Danh mục tài liệu mặc định chuẩn Etron
+// Danh mục tài liệu mặc định chuẩn Etron (đồng bộ theo cấu hình hệ thống hiện tại)
 const DEFAULT_DOCUMENT_CATEGORIES = [
-    { id: 'cat-bang-gia', name: 'Bảng giá chính thức', icon: 'file-text', pinned: true },
-    { id: 'cat-bao-gia', name: 'Báo giá & Mẫu biểu', icon: 'file-spreadsheet', pinned: false },
-    { id: 'cat-salekit', name: 'Salekit & Giới thiệu', icon: 'sparkles', pinned: true },
-    { id: 'cat-chinh-sach', name: 'Chính sách bán hàng', icon: 'shield-check', pinned: false },
-    { id: 'cat-cskh', name: 'Hỗ trợ & Chăm sóc khách hàng', icon: 'headphones', pinned: false },
-    { id: 'cat-dao-tao', name: 'Tài liệu đào tạo', icon: 'book-open', pinned: false }
+    { id: 'cat-bang-gia', name: 'Bảng giá', icon: 'file-text', pinned: false },
+    { id: 'cat-dao-tao', name: 'Tài liệu chung', icon: 'book-open', pinned: false },
+    { id: 'cat-1791911891512', name: 'Vid HDSD', icon: 'video', pinned: true },
+    { id: 'cat-1791912100098', name: 'HR', icon: 'users', pinned: false }
 ];
 
 // Hàm nhận diện biểu tượng thông minh cho danh mục theo từ khóa
@@ -425,124 +423,139 @@ const DEFAULT_PRODUCTS = [
     }
 ];
 
-// Kho tài liệu chính thức liên kết từ Etron Google Drive & Salekit
+// Kho tài liệu chuẩn theo dữ liệu thực tế của người dùng trên hệ thống
 const DEFAULT_DOCUMENTS = [
     {
         id: 'doc-etron-001',
-        title: 'Template Báo Giá Bán Hàng Etron (Google Sheets)',
-        category: 'Báo giá & Mẫu biểu',
+        title: 'Báo Giá Callbot Full Gói',
+        category: 'Bảng giá',
         type: 'link',
         fileUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         fileSize: 'Google Sheets',
         fileType: 'xlsx',
-        description: 'File template báo giá chính thức của Etron trên Google Sheets, đầy đủ công thức tính các gói CRM và Callbot.',
-        updatedAt: '2026-10-12',
-        tags: ['Template', 'Báo giá', 'Google Sheets', 'Chính thức'],
-        pinned: true
+        description: 'File báo giá chính thức, dạng tổng toàn bộ các gói của Callbot và CRM trên Google Sheets',
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791911919832,
+        tags: ['full gói', 'báo giá', 'callbot', 'crm'],
+        pinned: false
     },
     {
         id: 'doc-etron-002',
-        title: 'Thư Mục Bảng Giá PDF Chính Thức Adahub CRM & Callbot AI Ucall',
-        category: 'Bảng giá chính thức',
+        title: 'Toàn Bộ Bảng Giá Chính Thức',
+        category: 'Bảng giá',
         type: 'link',
         fileUrl: 'https://drive.google.com/drive/folders/1dLC5RB1i7FK4mpVMafg7AVx78K2xIETX',
         fileSize: 'Drive Folder',
-        fileType: 'pdf',
-        description: 'Thư mục Google Drive lưu trữ toàn bộ các file PDF bảng giá chính thức để gửi trực tiếp cho khách hàng.',
-        updatedAt: '2026-10-12',
-        tags: ['Bảng giá', 'PDF', 'CRM', 'Callbot', 'Google Drive'],
-        pinned: true
-    },
-    {
-        id: 'doc-etron-003',
-        title: 'Chính Sách Bán Hàng & Quy Chế Hoa Hồng Sales Etron',
-        category: 'Chính sách bán hàng',
-        type: 'link',
-        fileUrl: 'https://docs.google.com/document/d/1EPPCm_XRIrHncmW8FQXTCTdwz7Pt664oYGHr8zYwyLU/edit',
-        fileSize: 'Google Docs',
-        fileType: 'gdoc',
-        description: 'Văn bản quy định chính sách chiết khấu, hạn mức đàm phán, cơ chế tính hoa hồng và quyền lợi nhân viên kinh doanh Etron.',
-        updatedAt: '2026-10-10',
-        tags: ['Chính sách', 'Sales', 'Hoa hồng', 'Nội bộ'],
-        pinned: true
-    },
-    {
-        id: 'doc-etron-004',
-        title: 'Thông Báo & Quy Định Mới Dành Cho Đội Ngũ Kinh Doanh',
-        category: 'Chính sách bán hàng',
-        type: 'link',
-        fileUrl: 'https://docs.google.com/document/d/100xFDgbzMBCSZ5xIVxa78wFn9PQhtiYp1SuKYRoPxIg/edit',
-        fileSize: 'Google Docs',
-        fileType: 'gdoc',
-        description: 'Các văn bản thông báo chính sách mới, cập nhật sản phẩm và quy định bán hàng từ Ban Giám Đốc Etron.',
-        updatedAt: '2026-10-08',
-        tags: ['Thông báo', 'Quy định', 'Sales'],
-        pinned: false
-    },
-    {
-        id: 'doc-etron-005',
-        title: 'Chính Sách Chăm Sóc Khách Hàng & Cam Kết Chất Lượng (SLA)',
-        category: 'Hỗ trợ & Chăm sóc khách hàng',
-        type: 'link',
-        fileUrl: 'https://drive.google.com/drive/folders/1luA9y94OnDfpY5dGEYVPRhULIT5cXt6S',
-        fileSize: 'Drive Folder',
         fileType: 'drive',
-        description: 'Thư mục tài liệu chính sách CSKH, quy trình bảo hành, cam kết thời gian xử lý sự cố (SLA 99.5%) cho khách hàng.',
-        updatedAt: '2026-10-05',
-        tags: ['CSKH', 'SLA', 'Hỗ trợ kỹ thuật', 'Quy trình'],
-        pinned: false
+        description: 'Thư mục Google Drive lưu trữ toàn bộ các file PDF bảng giá chính thức để gửi trực tiếp cho khách hàng.',
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791911845990,
+        tags: ['bảng giá', 'crm', 'callbot', 'đối tác'],
+        pinned: true
     },
     {
         id: 'doc-etron-006',
-        title: 'Thư Mục Tổng Hợp Toàn Bộ Tài Liệu Sale & CSKH Etron',
-        category: 'Tài liệu đào tạo',
+        title: 'Tài Liệu Sale & CS',
+        category: 'Tài liệu chung',
         type: 'link',
         fileUrl: 'https://drive.google.com/drive/folders/16uA2vLYzEVJ2Za_2WHBMIFHAG1MKwhVZ',
         fileSize: 'Drive Folder',
         fileType: 'drive',
-        description: 'Thư mục gốc chứa toàn bộ kho tài liệu, hợp đồng mẫu, kịch bản tư vấn, slide thuyết trình giới thiệu giải pháp Etron.',
-        updatedAt: '2026-10-01',
-        tags: ['Tổng hợp', 'Tài liệu gốc', 'Đào tạo', 'Drive'],
+        description: 'Folder chứa các file về chính sách sale và CS, có cả cơ chế thu hồi lead nữa',
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791911838922,
+        tags: ['chính sách sale', 'chính sách cs', 'thu hồi lead'],
         pinned: true
     },
     {
-        id: 'doc-etron-007',
-        title: 'Infographic Sơ Đồ Hệ Thống Etron CRM & Callbot AI',
-        category: 'Salekit & Giới thiệu',
-        type: 'image',
-        fileUrl: 'assets/logo_etron_new.png',
-        fileSize: '1.2 MB',
-        fileType: 'png',
-        description: 'Sơ đồ luồng dữ liệu kết nối giữa Adahub CRM, Callbot AI Ucall và các nhà mạng viễn thông.',
-        updatedAt: '2026-10-13',
-        tags: ['Infographic', 'Salekit', 'Sơ đồ', 'CRM', 'Callbot'],
-        pinned: false
-    },
-    {
-        id: 'doc-etron-008',
-        title: 'Video Demo Tính Năng Callbot AI & Tự Động Hóa CRM',
-        category: 'Salekit & Giới thiệu',
-        type: 'video',
-        fileUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-        fileSize: 'Video Link',
-        fileType: 'youtube',
-        description: 'Video giới thiệu luồng tương tác thực tế của Callbot AI với khách hàng và đồng bộ dữ liệu về CRM.',
-        updatedAt: '2026-10-13',
-        tags: ['Video Demo', 'Callbot', 'Trực quan', 'Salekit'],
-        pinned: false
-    },
-    {
-        id: 'doc-etron-009',
-        title: '[BĐS] Kịch Bản Callbot Mở Bán Palm River - Palm City (Hướng Việt)',
-        category: 'Hỗ trợ & Chăm sóc khách hàng',
+        id: 'doc-user-1791912060239',
+        title: 'Sales kit (Công ty)',
+        category: 'Tài liệu chung',
         type: 'link',
-        fileUrl: 'https://docs.google.com/spreadsheets/d/16iV1wXVjmqLlsfkqf8mZQghTS3SUWxExRiYcy9_PPyw/edit?gid=329686546#gid=329686546',
+        fileUrl: 'https://etron-salekit.vercel.app/',
+        fileSize: 'Cloud Link',
+        fileType: 'link',
+        description: 'Trang web chung của công ty về các tài liệu của Sale',
+        createdAt: 1791912060239,
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791920447684,
+        tags: ['salekit', 'web chung', 'web tài liệu', 'sale'],
+        pinned: true
+    },
+    {
+        id: 'doc-user-1791912210919',
+        title: 'AI Agent MCP (Công ty)',
+        category: 'Tài liệu chung',
+        type: 'link',
+        fileUrl: 'https://v0-adahubaiagent.vercel.app/',
+        fileSize: 'Cloud Link',
+        fileType: 'link',
+        description: 'Trang web về MCP cho khách hàng bên công ty cấp',
+        createdAt: 1791912210919,
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791912210919,
+        tags: ['mcp', 'ai agent'],
+        pinned: false
+    },
+    {
+        id: 'doc-user-1791912277778',
+        title: 'Tài liệu HR Etron',
+        category: 'HR',
+        type: 'link',
+        fileUrl: 'https://docs.google.com/spreadsheets/d/1rA1q7sUFy9qFko3c1QUb7aPjAaIFbKME_7JzWn4JC0o/edit?gid=0#gid=0',
         fileSize: 'Google Sheets',
         fileType: 'xlsx',
-        description: 'File kịch bản Callbot AI bóc tách thực tế cho dự án BĐS Palm River: câu chào, xử lý từ chối, hỏi giá, pháp lý, sa bàn và hơn 550 từ khóa nhận diện.',
-        updatedAt: '2026-10-14',
-        tags: ['Kịch bản', 'Callbot AI', 'Bất động sản', 'Palm River', 'Từ khóa'],
-        pinned: true
+        description: 'File tổng hợp toàn bộ các tài liệu, quy trình của vị trí HR tại Etron',
+        createdAt: 1791912277778,
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791912277778,
+        tags: ['tuyển dụng', 'hr'],
+        pinned: false
+    },
+    {
+        id: 'doc-user-1791912424440',
+        title: 'HDSD bước 2',
+        category: 'Vid HDSD',
+        type: 'link',
+        fileUrl: 'https://drive.google.com/file/d/1TjeYECw8jCpEMp11KpXJkHWSQUleVpDW/view?usp=sharing',
+        fileSize: 'Drive Folder',
+        fileType: 'drive',
+        description: 'Video hướng dẫn KH up file data bước 2',
+        createdAt: 1791912424440,
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791912424440,
+        tags: ['hdsd', 'bước 2', 'updata', 'tải data'],
+        pinned: false
+    },
+    {
+        id: 'doc-user-1791912528543',
+        title: 'HDSD bước 3',
+        category: 'Vid HDSD',
+        type: 'link',
+        fileUrl: 'https://drive.google.com/file/d/10LQNBd3Jfdj13aJ8Ayy09gi7omd_53iM/view?usp=sharing',
+        fileSize: 'Drive Folder',
+        fileType: 'drive',
+        description: 'Video hướng dẫn KH cài đặt bước 3 Callbot',
+        createdAt: 1791912528543,
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791912536510,
+        tags: ['hdsd', 'bước 3', 'cài đặt'],
+        pinned: false
+    },
+    {
+        id: 'doc-user-1791923235936',
+        title: 'Chính sách lưu trữ dữ liệu',
+        category: 'Tài liệu chung',
+        type: 'link',
+        fileUrl: 'https://drive.google.com/file/d/1EDc9sCEwY3CNc6Kr7CxpIzMGlwyDnTrn/view?usp=drive_link',
+        fileSize: 'Drive Folder',
+        fileType: 'drive',
+        description: 'Tài liệu thể hiện các thời gian lưu trữ data của hệ thống và phí hỗ trợ lấy lại data quá hạn',
+        createdAt: 1791923235936,
+        updatedAt: '2026-10-13',
+        updatedAtTime: 1791923235936,
+        tags: ['dữ liệu', 'data', 'lưu trữ'],
+        pinned: false
     }
 ];
 
@@ -639,57 +652,21 @@ class SalesStore {
     }
 
     init() {
-        // Cập nhật cấu hình Etron nếu chưa khởi tạo phiên bản mới
-        const initVersion = localStorage.getItem(STORAGE_KEYS.INITIALIZED);
-        if (initVersion !== 'v17_done') {
-            if (!initVersion || (initVersion !== 'v16_done' && !initVersion.startsWith('v'))) {
-                localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(DEFAULT_COMPANY));
-                localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(DEFAULT_DOCUMENTS));
-                localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(DEFAULT_QUOTES));
-            } else {
-                // Đảm bảo các tài liệu mặc định có thuộc tính pinned và bổ sung tài liệu media mẫu nếu chưa có
-                try {
-                    const currentDocs = JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];
-                    let hasChanges = false;
-                    currentDocs.forEach(d => {
-                        if (['doc-etron-001', 'doc-etron-002', 'doc-etron-003', 'doc-etron-006'].includes(d.id)) {
-                            if (d.pinned === undefined) { d.pinned = true; hasChanges = true; }
-                        }
-                    });
-                    if (!currentDocs.some(d => d.id === 'doc-etron-007')) {
-                        const d7 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-007');
-                        if (d7) { currentDocs.push(d7); hasChanges = true; }
-                    }
-                    if (!currentDocs.some(d => d.id === 'doc-etron-008')) {
-                        const d8 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-008');
-                        if (d8) { currentDocs.push(d8); hasChanges = true; }
-                    }
-                    if (!currentDocs.some(d => d.id === 'doc-etron-009')) {
-                        const d9 = DEFAULT_DOCUMENTS.find(d => d.id === 'doc-etron-009');
-                        if (d9) { currentDocs.unshift(d9); hasChanges = true; }
-                    }
-                    if (hasChanges) {
-                        localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(currentDocs));
-                    }
-                } catch (e) { /* bỏ qua */ }
-            }
-            // Làm mới danh mục sản phẩm (bảng giá rút gọn CRM, Callbot, Đầu số, Cước, Dịch vụ)
+        // Chỉ khởi tạo giá trị mặc định khi trình duyệt hoàn toàn chưa có dữ liệu, tuyệt đối không ghi đè dữ liệu đã chỉnh sửa
+        if (!localStorage.getItem(STORAGE_KEYS.COMPANY)) {
+            localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(DEFAULT_COMPANY));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
             localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(DEFAULT_PRODUCTS));
-            // Cập nhật điều khoản cước Callbot và cước viễn thông trong cấu hình công ty (giữ nguyên các thiết lập khác)
-            try {
-                const comp = JSON.parse(localStorage.getItem(STORAGE_KEYS.COMPANY));
-                if (comp && Array.isArray(comp.defaultTerms)) {
-                    const newCb = DEFAULT_COMPANY.defaultTerms.find(t => t.startsWith('Callbot tính theo block'));
-                    const newVc = DEFAULT_COMPANY.defaultTerms.find(t => t.includes('ví cước'));
-                    comp.defaultTerms = comp.defaultTerms.map(t => {
-                        if (t.startsWith('Callbot tính theo block') && newCb) return newCb;
-                        if (t.includes('ví cước') && newVc) return newVc;
-                        return t;
-                    });
-                    localStorage.setItem(STORAGE_KEYS.COMPANY, JSON.stringify(comp));
-                }
-            } catch (e) { /* bỏ qua */ }
-            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'v17_done');
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) {
+            localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(DEFAULT_DOCUMENTS));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.QUOTES)) {
+            localStorage.setItem(STORAGE_KEYS.QUOTES, JSON.stringify(DEFAULT_QUOTES));
+        }
+        if (!localStorage.getItem(STORAGE_KEYS.INITIALIZED)) {
+            localStorage.setItem(STORAGE_KEYS.INITIALIZED, 'v18_safe');
         }
     }
 
@@ -765,12 +742,20 @@ class SalesStore {
             products.unshift(product);
         }
         localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('config').doc('products').set({ list: JSON.parse(JSON.stringify(products)) })
+                .catch(err => console.warn('Lỗi ghi sản phẩm Firestore:', err));
+        }
         return product;
     }
 
     deleteProduct(id) {
         const products = this.getProducts().filter(p => p.id !== id);
         localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('config').doc('products').set({ list: JSON.parse(JSON.stringify(products)) })
+                .catch(err => console.warn('Lỗi xóa sản phẩm Firestore:', err));
+        }
     }
 
     // Documents
@@ -856,41 +841,16 @@ class SalesStore {
             if (raw) {
                 const parsed = JSON.parse(raw);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    let hasChanges = false;
-
-                    // Tự động nâng cấp icon sinh động nếu danh mục đang mang icon 'tag' mặc định hoặc thiếu icon
                     parsed.forEach(c => {
                         if (!c.icon || c.icon === 'tag') {
                             c.icon = detectCategoryIcon(c.name);
-                            hasChanges = true;
                         }
                     });
-
-                    // Nếu chưa từng có cấu hình ghim nào, mặc định kích hoạt ghim cho danh mục Bảng giá & Salekit
-                    const hasPinField = parsed.some(c => typeof c.pinned === 'boolean');
-                    if (!hasPinField) {
-                        parsed.forEach(c => {
-                            if (c.id === 'cat-bang-gia' || c.name === 'Bảng giá chính thức' || c.id === 'cat-salekit' || c.name === 'Salekit & Giới thiệu') {
-                                c.pinned = true;
-                            } else {
-                                c.pinned = false;
-                            }
-                        });
-                        hasChanges = true;
-                    }
-
-                    if (hasChanges) {
-                        localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(parsed));
-                        if (window.firebaseDb) {
-                            window.firebaseDb.collection('config').doc('categories').set({ list: parsed })
-                                .catch(() => {});
-                        }
-                    }
                     return parsed;
                 }
             }
         } catch {}
-        return DEFAULT_DOCUMENT_CATEGORIES;
+        return JSON.parse(JSON.stringify(DEFAULT_DOCUMENT_CATEGORIES));
     }
 
     saveDocumentCategory(cat) {
@@ -915,7 +875,7 @@ class SalesStore {
         localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(categories));
 
         if (window.firebaseDb) {
-            window.firebaseDb.collection('config').doc('categories').set({ list: categories })
+            window.firebaseDb.collection('config').doc('categories').set({ list: JSON.parse(JSON.stringify(categories)) })
                 .catch(err => console.warn('Lỗi ghi danh mục Firestore:', err));
         }
         return targetCat;
@@ -937,7 +897,7 @@ class SalesStore {
         localStorage.setItem(STORAGE_KEYS.DOCUMENT_CATEGORIES, JSON.stringify(categories));
 
         if (window.firebaseDb) {
-            window.firebaseDb.collection('config').doc('categories').set({ list: categories })
+            window.firebaseDb.collection('config').doc('categories').set({ list: JSON.parse(JSON.stringify(categories)) })
                 .catch(err => console.warn('Lỗi xóa danh mục Firestore:', err));
         }
     }
@@ -961,19 +921,19 @@ class SalesStore {
 
         const def = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : (window.DEFAULT_CALLBOT_KEYWORDS || null);
         if (def) {
-            localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(def));
-            return def;
+            return JSON.parse(JSON.stringify(def));
         }
         return { common: [], industries: [] };
     }
 
     saveCallbotKeywords(keywords) {
-        localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(keywords));
+        const cleanKeywords = JSON.parse(JSON.stringify(keywords));
+        localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(cleanKeywords));
         if (window.firebaseDb) {
-            window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: keywords })
+            window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: cleanKeywords })
                 .catch(err => console.warn('Lỗi ghi bộ từ khóa Firestore:', err));
         }
-        return keywords;
+        return cleanKeywords;
     }
 
     getCallbotTemplates() {
@@ -981,14 +941,13 @@ class SalesStore {
             const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_TEMPLATES);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                if (Array.isArray(parsed)) return parsed;
             }
         } catch {}
 
         const def = (typeof DEFAULT_CALLBOT_TEMPLATES !== 'undefined') ? DEFAULT_CALLBOT_TEMPLATES : (window.DEFAULT_CALLBOT_TEMPLATES || []);
         if (def && def.length > 0) {
-            localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(def));
-            return def;
+            return JSON.parse(JSON.stringify(def));
         }
         return [];
     }
@@ -1011,7 +970,7 @@ class SalesStore {
         }
         localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(templates));
         if (window.firebaseDb) {
-            window.firebaseDb.collection('callbot_templates').doc(target.id).set(target)
+            window.firebaseDb.collection('callbot_templates').doc(target.id).set(JSON.parse(JSON.stringify(target)))
                 .catch(err => console.warn('Lỗi ghi kịch bản mẫu Firestore:', err));
         }
         return target;
@@ -1023,7 +982,7 @@ class SalesStore {
         if (window.firebaseDb) {
             templates.forEach(tpl => {
                 if (tpl && tpl.id) {
-                    window.firebaseDb.collection('callbot_templates').doc(tpl.id).set(tpl)
+                    window.firebaseDb.collection('callbot_templates').doc(tpl.id).set(JSON.parse(JSON.stringify(tpl)))
                         .catch(err => console.warn('Lỗi đồng bộ kịch bản mẫu Firestore:', err));
                 }
             });
@@ -1049,18 +1008,16 @@ class SalesStore {
             const raw = localStorage.getItem(STORAGE_KEYS.CALLBOT_MEDIA);
             if (raw) {
                 const parsed = JSON.parse(raw);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    // Lọc bỏ các phần tử lỗi (nếu từng truyền mảng vào saveCallbotMedia trước đây)
+                if (Array.isArray(parsed)) {
                     const valid = parsed.filter(m => m && typeof m === 'object' && !Array.isArray(m) && m.title);
-                    if (valid.length > 0) return valid;
+                    return valid;
                 }
             }
         } catch {}
 
         const def = (typeof DEFAULT_CALLBOT_MEDIA !== 'undefined') ? DEFAULT_CALLBOT_MEDIA : (window.DEFAULT_CALLBOT_MEDIA || []);
         if (def && def.length > 0) {
-            localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(def));
-            return def;
+            return JSON.parse(JSON.stringify(def));
         }
         return [];
     }
@@ -1072,7 +1029,7 @@ class SalesStore {
             if (window.firebaseDb) {
                 validList.forEach(item => {
                     if (item && item.id) {
-                        window.firebaseDb.collection('callbot_media').doc(item.id).set(item)
+                        window.firebaseDb.collection('callbot_media').doc(item.id).set(JSON.parse(JSON.stringify(item)))
                             .catch(err => console.warn('Lỗi đồng bộ media Firestore:', err));
                     }
                 });
@@ -1096,7 +1053,7 @@ class SalesStore {
         }
         localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(list));
         if (window.firebaseDb) {
-            window.firebaseDb.collection('callbot_media').doc(target.id).set(target)
+            window.firebaseDb.collection('callbot_media').doc(target.id).set(JSON.parse(JSON.stringify(target)))
                 .catch(err => console.warn('Lỗi ghi media Firestore:', err));
         }
         return target;
@@ -1116,35 +1073,28 @@ class SalesStore {
         if (!window.firebaseDb) return;
 
         try {
-            // 1. Đồng bộ Kho Tài Liệu Real-time
+            // 1. Đồng bộ Kho Tài Liệu Real-time (Không bao giờ tự động đẩy lại file mặc định đã xóa lên Firestore)
             window.firebaseDb.collection('documents').onSnapshot((snapshot) => {
-                if (snapshot.empty) {
-                    console.log('Khởi tạo dữ liệu tài liệu mặc định lên Firestore...');
-                    const initialDocs = this.getDocuments();
-                    const listToPush = (initialDocs && initialDocs.length > 0) ? initialDocs : DEFAULT_DOCUMENTS;
-                    listToPush.forEach(d => {
-                        window.firebaseDb.collection('documents').doc(d.id).set(JSON.parse(JSON.stringify(d)))
-                            .catch(() => {});
-                    });
-                } else {
-                    const cloudDocs = [];
-                    snapshot.forEach(docSnap => {
-                        cloudDocs.push({ id: docSnap.id, ...docSnap.data() });
-                    });
-                    
-                    cloudDocs.sort((a, b) => {
-                        const tsA = a.updatedAtTime || (a.createdAt && typeof a.createdAt === 'number' ? a.createdAt : (a.updatedAt ? new Date(a.updatedAt).getTime() : 0));
-                        const tsB = b.updatedAtTime || (b.createdAt && typeof b.createdAt === 'number' ? b.createdAt : (b.updatedAt ? new Date(b.updatedAt).getTime() : 0));
-                        return tsB - tsA;
-                    });
+                if (snapshot.empty && snapshot.metadata && snapshot.metadata.fromCache) {
+                    return; // Bỏ qua snapshot rỗng từ cache trước khi kết nối máy chủ
+                }
+                const cloudDocs = [];
+                snapshot.forEach(docSnap => {
+                    cloudDocs.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                
+                cloudDocs.sort((a, b) => {
+                    const tsA = a.updatedAtTime || (a.createdAt && typeof a.createdAt === 'number' ? a.createdAt : (a.updatedAt ? new Date(a.updatedAt).getTime() : 0));
+                    const tsB = b.updatedAtTime || (b.createdAt && typeof b.createdAt === 'number' ? b.createdAt : (b.updatedAt ? new Date(b.updatedAt).getTime() : 0));
+                    return tsB - tsA;
+                });
 
-                    localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(cloudDocs));
+                localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(cloudDocs));
 
-                    if (window.documentHub) {
-                        window.documentHub.renderStats();
-                        window.documentHub.renderQuickAccess();
-                        window.documentHub.renderDocumentsList();
-                    }
+                if (window.documentHub) {
+                    window.documentHub.renderStats();
+                    window.documentHub.renderQuickAccess();
+                    window.documentHub.renderDocumentsList();
                 }
             }, (error) => {
                 console.warn('Lỗi đồng bộ Real-time Firestore:', error);
@@ -1163,10 +1113,6 @@ class SalesStore {
                             window.documentHub.renderQuickAccess();
                         }
                     }
-                } else {
-                    const localCats = this.getDocumentCategories();
-                    window.firebaseDb.collection('config').doc('categories').set({ list: localCats })
-                        .catch(() => {});
                 }
             }, (error) => {
                 console.warn('Lỗi đồng bộ danh mục Firestore:', error);
@@ -1174,7 +1120,6 @@ class SalesStore {
 
             // 3. Đồng bộ Bộ Từ Khóa Callbot Real-time
             window.firebaseDb.collection('config').doc('callbot_keywords').onSnapshot((docSnap) => {
-                let hasValidCloudData = false;
                 if (docSnap.exists) {
                     const data = docSnap.data();
                     if (data && data.data && (
@@ -1182,17 +1127,6 @@ class SalesStore {
                         (Array.isArray(data.data.industries) && data.data.industries.length > 0)
                     )) {
                         localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(data.data));
-                        hasValidCloudData = true;
-                        if (window.callbotHub) window.callbotHub.render();
-                    }
-                }
-
-                if (!hasValidCloudData) {
-                    const defKw = (typeof DEFAULT_CALLBOT_KEYWORDS !== 'undefined') ? DEFAULT_CALLBOT_KEYWORDS : (window.DEFAULT_CALLBOT_KEYWORDS || null);
-                    if (defKw) {
-                        localStorage.setItem(STORAGE_KEYS.CALLBOT_KEYWORDS, JSON.stringify(defKw));
-                        window.firebaseDb.collection('config').doc('callbot_keywords').set({ data: defKw })
-                            .catch(e => console.warn('Lỗi ghi từ khóa lên Firestore:', e));
                         if (window.callbotHub) window.callbotHub.render();
                     }
                 }
@@ -1200,35 +1134,38 @@ class SalesStore {
 
             // 4. Đồng bộ Kịch Bản Mẫu Callbot Real-time
             window.firebaseDb.collection('callbot_templates').onSnapshot((snapshot) => {
-                if (snapshot.empty) {
-                    const initialTpls = this.getCallbotTemplates();
-                    initialTpls.forEach(t => {
-                        window.firebaseDb.collection('callbot_templates').doc(t.id).set(t).catch(() => {});
-                    });
-                } else {
-                    const cloudTpls = [];
-                    snapshot.forEach(docSnap => cloudTpls.push({ id: docSnap.id, ...docSnap.data() }));
-                    localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(cloudTpls));
-                    if (window.callbotHub && window.callbotHub.activeSubTab === 'templates') window.callbotHub.render();
+                if (snapshot.empty && snapshot.metadata && snapshot.metadata.fromCache) {
+                    return;
                 }
+                const cloudTpls = [];
+                snapshot.forEach(docSnap => cloudTpls.push({ id: docSnap.id, ...docSnap.data() }));
+                localStorage.setItem(STORAGE_KEYS.CALLBOT_TEMPLATES, JSON.stringify(cloudTpls));
+                if (window.callbotHub && window.callbotHub.activeSubTab === 'templates') window.callbotHub.render();
             }, (err) => console.warn('Lỗi đồng bộ kịch bản Firestore:', err));
 
             // 5. Đồng bộ Thư Viện Media Callbot Real-time
             window.firebaseDb.collection('callbot_media').onSnapshot((snapshot) => {
-                if (snapshot.empty) {
-                    const initialMedia = this.getCallbotMedia();
-                    initialMedia.forEach(m => {
-                        window.firebaseDb.collection('callbot_media').doc(m.id).set(m).catch(() => {});
-                    });
-                } else {
-                    const cloudMedia = [];
-                    snapshot.forEach(docSnap => cloudMedia.push({ id: docSnap.id, ...docSnap.data() }));
-                    localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(cloudMedia));
-                    if (window.callbotHub && window.callbotHub.activeSubTab === 'media') {
-                        window.callbotHub.renderMedia();
-                    }
+                if (snapshot.empty && snapshot.metadata && snapshot.metadata.fromCache) {
+                    return;
+                }
+                const cloudMedia = [];
+                snapshot.forEach(docSnap => cloudMedia.push({ id: docSnap.id, ...docSnap.data() }));
+                localStorage.setItem(STORAGE_KEYS.CALLBOT_MEDIA, JSON.stringify(cloudMedia));
+                if (window.callbotHub && window.callbotHub.activeSubTab === 'media') {
+                    window.callbotHub.renderMedia();
                 }
             }, (err) => console.warn('Lỗi đồng bộ media Firestore:', err));
+
+            // 6. Đồng bộ Danh Mục Sản Phẩm Real-time
+            window.firebaseDb.collection('config').doc('products').onSnapshot((docSnap) => {
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    if (data && Array.isArray(data.list) && data.list.length > 0) {
+                        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(data.list));
+                        if (window.productCatalog) window.productCatalog.renderCatalogTable();
+                    }
+                }
+            }, (err) => console.warn('Lỗi đồng bộ sản phẩm Firestore:', err));
 
         } catch (err) {
             console.warn('Lỗi thiết lập lắng nghe Firestore:', err);

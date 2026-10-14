@@ -8,7 +8,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
     common: [
         {
             id: 'kw-common-zalo',
-            name: 'Đồng ý kết bạn & Gửi Zalo',
+            name: 'Zalo',
             category: 'common',
             icon: 'message-circle',
             color: 'emerald',
@@ -24,7 +24,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
         },
         {
             id: 'kw-common-reject',
-            name: 'Từ chối / Không có nhu cầu',
+            name: 'Không quan tâm',
             category: 'common',
             icon: 'x-circle',
             color: 'rose',
@@ -40,7 +40,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
         },
         {
             id: 'kw-common-interested',
-            name: 'Lắng nghe / Muốn tư vấn thêm',
+            name: 'Quan tâm',
             category: 'common',
             icon: 'help-circle',
             color: 'indigo',
@@ -56,7 +56,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
         },
         {
             id: 'kw-common-busy',
-            name: 'Bận / Hẹn gọi lại sau',
+            name: 'Bận',
             category: 'common',
             icon: 'clock',
             color: 'amber',
@@ -72,7 +72,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
         },
         {
             id: 'kw-common-telecom',
-            name: 'Thuê bao / Hộp thư thoại / Máy bận',
+            name: 'Thuê bao',
             category: 'common',
             icon: 'phone-off',
             color: 'slate',
@@ -104,7 +104,7 @@ const DEFAULT_CALLBOT_KEYWORDS = {
     industries: [
         {
             id: 'ind-bds',
-            name: 'Bất Động Sản & Nhà Đất',
+            name: 'Bất Động Sản',
             icon: 'building-2',
             badgeColor: 'emerald',
             description: 'Trọn bộ 9 trường nhận diện chuyên sâu bóc tách từ chiến dịch Palm River (Palm City) của Hướng Việt Properties.',
@@ -342,12 +342,12 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         id: 'cb-tpl-palmriver',
         title: '[BĐS] Kịch Bản Callbot Mở Bán Phân Khu Palm River - Palm City',
         industry: 'ind-bds',
-        industryName: 'Bất Động Sản & Nhà Đất',
+        industryName: 'Bất Động Sản',
         badgeColor: 'emerald',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/16iV1wXVjmqLlsfkqf8mZQghTS3SUWxExRiYcy9_PPyw/edit?gid=329686546#gid=329686546',
         scriptFileName: 'Kich_ban_Palm_River_Ly.xlsx',
-        botUrl: 'https://app.ucall.vn/bot/bds-palmriver-demo',
-        updatedAt: '2026-10-14'
+        botUrl: 'https://app.ucall.vn/dashboard/scenario-preview/eyJDT01QQU5ZX0lEIjoidGhhbmgxNzY2MiIsIkNBTExCT1RTQ0VOQVJJT19JRCI6ImY3MTMxYWNmLTU2ZTItNDNmZi04Y2M5LWI5YTFmZGQ3ODJkZiIsIlRPS0VOIjoiZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnpZMlZ1WVhKcGIxOXBaQ0k2SW1ZM01UTXhZV05tTFRVMlpUSXRORE5tWmkwNFkyTTVMV0k1WVRGbVpHUTNPREprWmlJc0luQjFZbXhwYzJobFpGOXBaQ0k2SWpjd1lUTTNNV1V4TFRVd04yVXROR1ZsTUMwNU5UTTNMVEEyTURabFlqVTVNVGMzTXlJc0ltbGhkQ0k2TVRjNU1UZzROVGM1TUgwLnNMdEdWZloyOGxDNVlZZU1UWllWQUhSdWluNTI0al83OVNhQ2pFWnRtY3MifQ',
+        updatedAt: '2026-10-13'
     },
     {
         id: 'cb-tpl-nhakhoa',
@@ -357,7 +357,7 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         badgeColor: 'cyan',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Callbot_Nha_Khoa.xlsx',
-        botUrl: 'https://app.ucall.vn/bot/nhakhoa-chamsoc-demo',
+        botUrl: '',
         updatedAt: '2026-10-13'
     },
     {
@@ -368,7 +368,7 @@ const DEFAULT_CALLBOT_TEMPLATES = [
         badgeColor: 'indigo',
         scriptUrl: 'https://docs.google.com/spreadsheets/d/1JZrRKMKROb0cnQ_3rnOqmm9qgOJ1qthUkEfx8Hn1Kp8/edit',
         scriptFileName: 'Kich_ban_Adahub_CRM_B2B.xlsx',
-        botUrl: 'https://app.ucall.vn/bot/adahub-crm-b2b-demo',
+        botUrl: '',
         updatedAt: '2026-10-12'
     }
 ];
@@ -379,7 +379,7 @@ const DEFAULT_CALLBOT_MEDIA = [
         id: 'media-001',
         title: 'Ghi âm cuộc gọi thực tế - Giọng Nữ Miền Nam (Tư vấn BĐS Palm River)',
         industry: 'ind-bds',
-        industryName: 'Bất Động Sản & Nhà Đất',
+        industryName: 'Bất Động Sản',
         type: 'audio',
         mediaUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
         fileName: 'Palm_River_Voice_Nu_Nam.mp3',

@@ -9,6 +9,9 @@ class SalesApp {
     }
 
     init() {
+        // Kích hoạt đồng bộ đám mây Real-time Firebase Firestore trước tiên
+        window.salesStore.setupCloudSync();
+
         this.setupNavigation();
         this.setupEventListeners();
         this.renderStats();
@@ -21,8 +24,21 @@ class SalesApp {
         if (window.callbotHub) window.callbotHub.init();
         window.quoteBuilder.resetForm();
 
-        // Kích hoạt đồng bộ đám mây Real-time Firebase Firestore
-        window.salesStore.setupCloudSync();
+        // Đồng bộ tức thì khi người dùng mở nhiều tab cùng lúc
+        window.addEventListener('storage', () => {
+            if (window.documentHub) {
+                window.documentHub.renderStats();
+                window.documentHub.renderQuickAccess();
+                window.documentHub.renderCategoryPills();
+                window.documentHub.renderDocumentsList();
+            }
+            if (window.callbotHub) {
+                window.callbotHub.render();
+            }
+            if (window.productCatalog) {
+                window.productCatalog.renderCatalogTable();
+            }
+        });
 
         lucide.createIcons();
     }
