@@ -96,7 +96,6 @@ const CALLBOT_CALL_TYPES = {
 
 const NUMBER_TYPES = {
     chung_codinh: { name: 'Số chung cố định', callRateBot: 70, delta: 0, callRatePbx: 700, botDesc: '70đ/block 6s' },
-    chung_didong: { name: 'Số chung di động', callRateBot: 120, delta: 50, callRatePbx: 720, botDesc: '120đ/block 6s' },
     so_ngoai: { name: 'Số tự chuẩn bị', callRateBot: 0, delta: -70, callRatePbx: 0, botDesc: '0đ/block 6s' },
     rieng_didong: { name: 'Số riêng di động', callRateBot: 80, delta: 10, callRatePbx: 720, botDesc: '80đ/block 6s' },
     rieng_codinh: { name: 'Số riêng cố định', callRateBot: 70, delta: 0, callRatePbx: 660, botDesc: '70đ/block 6s' },
@@ -106,7 +105,6 @@ const NUMBER_TYPES = {
 // Các dòng phí đầu số & phí kết nối tự thêm khi chọn loại đầu số trong khung Callbot: [mã sản phẩm, số lượng]
 const CALLBOT_NUMBER_FEES = {
     chung_codinh: [],
-    chung_didong: [],
     so_ngoai: [['srv-ket-noi-so-dau', 1], ['srv-duy-tri-so-ngoai', 1]],
     rieng_didong: [['num-khoi-tao-didong', 1], ['num-duy-tri-didong', 1]],
     rieng_codinh: [['num-khoi-tao-codinh', 1], ['num-duy-tri-codinh', 1]],
@@ -187,11 +185,7 @@ class QuoteBuilder {
 
         // Điều chỉnh theo Tuỳ chọn đầu số (so với mặc định Số chung cố định 70đ/block 6s)
         let numLabel = 'Số chung cố định';
-        if (numTypeKey === 'chung_didong') {
-            rate += 50;
-            baseRate += 50;
-            numLabel = 'Số chung di động';
-        } else if (numTypeKey === 'rieng_didong') {
+        if (numTypeKey === 'rieng_didong') {
             rate += 10;
             baseRate += 10;
             numLabel = 'Số riêng di động';
@@ -243,7 +237,6 @@ class QuoteBuilder {
             parts.push('Gọi lần lượt');
         }
         const numSuffix = {
-            chung_didong: 'Số chung di động',
             rieng_didong: 'Số riêng di động',
             rieng_codinh: 'Số riêng cố định',
             brandname: 'Brandname',
@@ -294,10 +287,48 @@ class QuoteBuilder {
         if (!item) return;
         this.syncFormToCurrentQuote();
         item.numberType = numType;
+        if (numType !== 'brandname') {
+            item.registerBrandname = false;
+        }
 
         const cbDetails = this.getCallbotDetails(item);
         if (cbDetails) {
             item.name = this.buildCallbotName(cbDetails, numType, item.callType);
+        }
+
+        this.syncCallbotNumberFees(item);
+        this.syncPackageDetails();
+        this.syncTermsWithItems();
+        this.recalculate();
+        this.renderItemsList();
+        this.renderPreview();
+    }
+
+    toggleCallbotBrandnameReg(idx, checked) {
+        const item = this.currentQuote.items[idx];
+        if (!item) return;
+        this.syncFormToCurrentQuote();
+        item.registerBrandname = !!checked;
+        if (item.registerBrandname && (!item.brandnameCount || item.brandnameCount < 1)) {
+            item.brandnameCount = 1;
+        }
+
+        this.syncCallbotNumberFees(item);
+        this.syncPackageDetails();
+        this.syncTermsWithItems();
+        this.recalculate();
+        this.renderItemsList();
+        this.renderPreview();
+    }
+
+    setCallbotBrandnameCount(idx, countVal) {
+        const item = this.currentQuote.items[idx];
+        if (!item) return;
+        this.syncFormToCurrentQuote();
+        const cnt = Math.max(1, parseInt(countVal, 10) || 1);
+        item.brandnameCount = cnt;
+        if (!item.registerBrandname) {
+            item.registerBrandname = true;
         }
 
         this.syncCallbotNumberFees(item);
@@ -313,7 +344,12 @@ class QuoteBuilder {
         if (!cbItem.id) cbItem.id = 'item-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
         this.currentQuote.items = this.currentQuote.items.filter(it => it.autoFor !== cbItem.id);
 
-        const fees = CALLBOT_NUMBER_FEES[cbItem.numberType] || [];
+        const baseFees = CALLBOT_NUMBER_FEES[cbItem.numberType] || [];
+        const fees = [...baseFees];
+        if (cbItem.numberType === 'brandname' && cbItem.registerBrandname) {
+            const bnQty = Math.max(1, parseInt(cbItem.brandnameCount, 10) || 1);
+            fees.push(['srv-dang-ky-brandname', bnQty], ['srv-duy-tri-ten-brandname', bnQty]);
+        }
         const newItems = fees
             .map(([productId, qty]) => this.addProductFromCatalog(productId, { silent: true, quantity: qty, autoFor: cbItem.id, forCallbot: true }))
             .filter(Boolean);
@@ -335,8 +371,8 @@ class QuoteBuilder {
         const name = (item.name || '').toLowerCase();
         const cat = (item.category || '').toLowerCase();
 
-        // Dịch vụ (kể cả phí kết nối và duy trì kết nối đầu số) chưa bao gồm VAT 8% -> chịu thuế VAT 8%
-        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm') || name.includes('kết nối') || name.includes('đấu nối')) return false;
+        // Dịch vụ (kể cả phí kết nối, duy trì kết nối đầu số, đăng ký & duy trì tên định danh Brandname) chưa bao gồm VAT 8% -> chịu thuế VAT 8%
+        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm') || name.includes('kết nối') || name.includes('đấu nối') || name.includes('tên định danh')) return false;
 
         const isNumberItem = cat === 'đầu số' || 
                              id.startsWith('num-') || 
@@ -361,6 +397,12 @@ class QuoteBuilder {
     isMonthlyFeeService(item) {
         if (!item) return false;
         return (item.productId || item.id || '') === 'srv-duy-tri-so-ngoai';
+    }
+
+    // Phí dịch vụ tính theo năm (duy trì tên định danh Brandname): thành tiền = số lượng × số năm × đơn giá
+    isYearlyFeeService(item) {
+        if (!item) return false;
+        return (item.productId || item.id || '') === 'srv-duy-tri-ten-brandname';
     }
 
     isMonthlyNumberItem(item) {
@@ -757,13 +799,14 @@ class QuoteBuilder {
         const telecomDetails = {
             'vi-cuoc-vien-thong': 'Ví Cước Viễn Thông: Nạp tiền trước tối thiểu 1.000.000₫ (đã gồm VAT 10%), cước gọi thực tế và phí đầu số trừ dần vào ví theo thực tế.',
             'num-chung-codinh': 'Số chung cố định: Cước gọi Callbot 70đ/block 6s, cước Tổng đài 700đ/phút. Không phát sinh phí đầu số và phí kết nối.',
-            'num-chung-didong': 'Số chung di động: Cước gọi Callbot 120đ/block 6s, cước Tổng đài 720đ/phút. Không phát sinh phí đầu số và phí kết nối.',
             'num-khoi-tao-codinh': 'Số riêng cố định: Miễn phí khởi tạo, phí duy trì 20.000₫/đầu số/tháng (đã gồm VAT 10%), cước gọi Callbot 70đ/block 6s, Tổng đài 660đ/phút. Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%), miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON.',
             'num-duy-tri-codinh': 'Phí duy trì đầu số riêng cố định: 20.000₫/đầu số/tháng (đã gồm VAT 10%).',
             'num-khoi-tao-didong': 'Số riêng di động: Khởi tạo 50.000₫/đầu số, phí duy trì 60.000₫/đầu số/tháng (đã gồm VAT 10%), cước gọi Callbot 80đ/block 6s, Tổng đài 720đ/phút. Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%), miễn phí khi dùng số ảo tự thay số.',
             'num-duy-tri-didong': 'Phí duy trì đầu số riêng di động: 60.000₫/đầu số/tháng (đã gồm VAT 10%).',
             'num-brandname-combo': 'Đầu số Brandname: Khởi tạo 100.000₫/thuê bao, mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone), phí duy trì 60.000₫/đầu số/tháng (đã gồm VAT 10%), cước gọi Callbot 70đ/block 6s, Tổng đài 660đ/phút. Mỗi đầu số chỉ gọi được nội mạng của nhà mạng đó. Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%), miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON.',
             'num-brandname-duy-tri': 'Phí duy trì Voice Brandname: 60.000₫/đầu số/tháng (đã gồm VAT 10%).',
+            'srv-dang-ky-brandname': 'Đăng ký tên định danh Brandname riêng: Thời gian dự kiến khoảng 1 tháng; chi phí gồm 2.000.000 VNĐ phí đăng ký và 200.000 VNĐ/năm phí duy trì (chưa gồm VAT 8%). Dịch vụ Brandname chỉ áp dụng cho doanh nghiệp/tổ chức, cá nhân không thể đăng ký.',
+            'srv-duy-tri-ten-brandname': 'Phí duy trì tên định danh Brandname: 200.000 VNĐ/năm (chưa gồm VAT 8%).',
             'srv-ket-noi-so-dau': 'Số tự chuẩn bị: Khách tự làm việc với nhà cung cấp đầu số và kết nối với ETRON. Kết nối lần đầu 1.000.000₫, kết nối từ đầu số thứ 2: 100.000₫/đầu số (miễn phí khi dùng số ảo tự thay số), phí duy trì 100.000₫/tháng (chưa gồm VAT 8%). Cước gọi Callbot 0đ/block 6s.',
             'srv-ket-noi-so-them': 'Phí kết nối đầu số tự chuẩn bị từ đầu số thứ 2: 100.000₫/đầu số (chưa gồm VAT 8%, miễn phí khi dùng số ảo tự thay số).',
             'srv-duy-tri-so-ngoai': 'Phí duy trì kết nối đầu số tự chuẩn bị: 100.000₫/tháng (chưa gồm VAT 8%).',
@@ -822,7 +865,8 @@ class QuoteBuilder {
                     'num-duy-tri-codinh': 'num-khoi-tao-codinh',
                     'num-brandname-duy-tri': 'num-brandname-combo',
                     'srv-ket-noi-so-them': 'srv-ket-noi-so-dau',
-                    'srv-duy-tri-so-ngoai': 'srv-ket-noi-so-dau'
+                    'srv-duy-tri-so-ngoai': 'srv-ket-noi-so-dau',
+                    'srv-duy-tri-ten-brandname': 'srv-dang-ky-brandname'
                 }[item.productId];
                 if (coveredBy && this.currentQuote.items.some(it => it.productId === coveredBy)) return;
 
@@ -901,6 +945,9 @@ class QuoteBuilder {
             if (clean.includes('cước gọi tổng đài trừ')) return false;
             if (clean.includes('thông tin thanh toán:') || clean.includes('vietcombank') || clean.includes('quân đội') || clean.includes('mbbank') || clean.includes('999998887777') || clean.includes('103899886688')) return false;
             if (clean.includes('đầu số brandname chỉ gọi nội mạng') || clean.includes('mỗi đầu số brandname chỉ gọi')) return false;
+            if (clean.includes('dịch vụ brandname chỉ áp dụng cho doanh nghiệp')) return false;
+            if (clean.includes('có thể sử dụng tên công ty làm voice brandname')) return false;
+            if (clean.includes('nếu đăng ký tên định danh riêng')) return false;
             if (clean.includes('đầu số khách tự chuẩn bị:') || clean.includes('số tự chuẩn bị:')) return false;
             if (clean.includes('phí duy trì số được tính') || clean.includes('phí duy trì đầu số và phí duy trì kết nối')) return false;
             return clean.length > 0;
@@ -909,7 +956,7 @@ class QuoteBuilder {
         // Ghi chú riêng theo loại đầu số (Brandname / Số tự chuẩn bị / Phí duy trì)
         const items = this.currentQuote.items;
         const hasBrandname = items.some(it => (this.isCallbotItem(it) && it.numberType === 'brandname') ||
-            ['num-brandname-combo', 'num-brandname-duy-tri', 'num-brandname-viettel', 'num-brandname-mobifone', 'num-brandname-vinaphone'].includes(it.productId));
+            ['num-brandname-combo', 'num-brandname-duy-tri', 'num-brandname-viettel', 'num-brandname-mobifone', 'num-brandname-vinaphone', 'srv-dang-ky-brandname', 'srv-duy-tri-ten-brandname'].includes(it.productId));
         const hasOwnNumber = items.some(it => (this.isCallbotItem(it) && it.numberType === 'so_ngoai') ||
             ['srv-ket-noi-so-dau', 'srv-ket-noi-so-them', 'srv-duy-tri-so-ngoai'].includes(it.productId));
         const hasMaintenanceFee = items.some(it => 
@@ -920,6 +967,9 @@ class QuoteBuilder {
         );
 
         const brandnameTerm = 'Mỗi đầu số Brandname chỉ gọi được nội mạng của nhà mạng đó; mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone).';
+        const brandnameOrgOnlyTerm = 'Dịch vụ Brandname chỉ áp dụng cho doanh nghiệp/tổ chức, cá nhân không thể đăng ký.';
+        const brandnameCompanyNameTerm = 'Có thể sử dụng Tên công ty làm Voice Brandname mà không bắt buộc phải có giấy chứng nhận tên định danh (miễn phí đăng ký brandname trong trường hợp này).';
+        const brandnameCustomRegTerm = 'Nếu đăng ký tên định danh riêng: thời gian dự kiến khoảng 1 tháng; chi phí gồm 2.000.000 VNĐ phí đăng ký và 200.000 VNĐ/năm phí duy trì.';
         const ownNumberTerm = 'Số tự chuẩn bị: Khách tự làm việc với nhà cung cấp đầu số và kết nối với ETRON. Nên đề xuất khách yêu cầu nhà cung cấp tự thay số để không phải kết nối nhiều lần.';
         const maintenanceTerm = 'Phí duy trì đầu số và phí duy trì kết nối được tính từ ngày đầu tiên (ngày 01) hàng tháng và được thanh toán trước 7 ngày làm việc trước ngày cuối cùng của tháng trước đó.';
 
@@ -927,7 +977,12 @@ class QuoteBuilder {
         if (hasCallbot) {
             newTerms.push(callbotTerm);
         }
-        if (hasBrandname) newTerms.push(brandnameTerm);
+        if (hasBrandname) {
+            newTerms.push(brandnameTerm);
+            newTerms.push(brandnameOrgOnlyTerm);
+            newTerms.push(brandnameCompanyNameTerm);
+            newTerms.push(brandnameCustomRegTerm);
+        }
         if (hasOwnNumber) newTerms.push(ownNumberTerm);
         if (hasMaintenanceFee) newTerms.push(maintenanceTerm);
         if (hasCrm) {
@@ -1017,6 +1072,7 @@ class QuoteBuilder {
         const clean = String(unit || '')
             .replace(/\s*\([^)]*\)\s*/g, '')
             .replace(/\s*\/\s*tháng\s*$/i, '')
+            .replace(/\s*\/\s*năm\s*$/i, '')
             .trim();
         return (clean || 'gói').toLowerCase();
     }
@@ -1074,7 +1130,7 @@ class QuoteBuilder {
         if (document.getElementById('qb-units-duration')) return;
         const lists = {
             'qb-units-duration': ['tháng', 'năm', 'quý', 'tuần', 'ngày', 'lần'],
-            'qb-units-unit': ['gói', 'tài khoản', 'user', 'số', 'kênh', 'lần', 'bộ', 'cái', 'giờ', 'combo', 'kịch bản', 'block']
+            'qb-units-unit': ['gói', 'tài khoản', 'user', 'số', 'tên', 'kênh', 'lần', 'bộ', 'cái', 'giờ', 'combo', 'kịch bản', 'block']
         };
         Object.entries(lists).forEach(([id, opts]) => {
             const dl = document.createElement('datalist');
@@ -1160,6 +1216,8 @@ class QuoteBuilder {
     formatItemUnitPrice(item) {
         const priceStr = window.formatNumber(item.price);
         const pid = item.productId || '';
+        if (pid === 'srv-dang-ky-brandname') return `${priceStr}₫/tên`;
+        if (pid === 'srv-duy-tri-ten-brandname') return `${priceStr}₫/tên/năm`;
         if (pid === 'srv-ket-noi-so-dau' || pid === 'srv-ket-noi-thay-so') return `${priceStr}₫/lần`;
         if (pid === 'srv-ket-noi-so-them') return `${priceStr}₫/số`;
         if (pid === 'srv-duy-tri-so-ngoai') return `${priceStr}₫/tháng`;
@@ -1192,6 +1250,13 @@ class QuoteBuilder {
 
     formatItemQuantity(item) {
         const pid = item.productId || '';
+        if (pid === 'srv-dang-ky-brandname') return `${item.quantity || 1} tên`;
+        if (pid === 'srv-duy-tri-ten-brandname') {
+            const dur = this.splitDuration(item.duration);
+            const years = (dur && dur.unit.toLowerCase().includes('năm')) ? dur.num : 1;
+            const qty = item.quantity || 1;
+            return `${qty} tên × ${years} năm`;
+        }
         if (pid === 'srv-ket-noi-so-dau' || pid === 'srv-ket-noi-thay-so') return `${item.quantity || 1} lần`;
         if (pid === 'srv-ket-noi-so-them') return `${item.quantity || 1} số`;
         if (pid === 'srv-duy-tri-so-ngoai') {
@@ -1314,6 +1379,14 @@ class QuoteBuilder {
             duration = '1 tháng';
             months = 1;
             unit = product.unit || 'số';
+        } else if (product.id === 'srv-dang-ky-brandname') {
+            duration = '1 lần';
+            months = 1;
+            unit = 'tên';
+        } else if (this.isYearlyFeeService(product)) {
+            duration = '1 năm';
+            months = 12;
+            unit = 'tên';
         } else if (product.id === 'srv-ket-noi-so-dau' || product.id === 'srv-ket-noi-thay-so') {
             duration = '1 lần';
             months = 1;
@@ -1373,6 +1446,14 @@ class QuoteBuilder {
         };
         this.currentQuote.items.push(newItem);
         if (opts.silent) return newItem;
+
+        // Khi chọn Đăng ký tên định danh Brandname từ danh mục, tự thêm kèm dòng Phí duy trì tên định danh Brandname (200.000₫/năm) nếu chưa có
+        if (product.id === 'srv-dang-ky-brandname') {
+            const hasMaint = this.currentQuote.items.some(it => it.productId === 'srv-duy-tri-ten-brandname');
+            if (!hasMaint) {
+                this.addProductFromCatalog('srv-duy-tri-ten-brandname', { silent: true, quantity });
+            }
+        }
 
         this.syncPackageDetails();
         this.syncTermsWithItems();
@@ -1508,6 +1589,10 @@ class QuoteBuilder {
             if (this.isCrmItem(item) || this.isMonthlyNumberItem(item) || this.isMonthlyFeeService(item)) {
                 const months = Number(item.months) || this.parseMonths(item.duration) || (this.isCrmItem(item) ? 12 : 1);
                 lineGross = qty * months * price;
+            } else if (this.isYearlyFeeService(item)) {
+                const dur = this.splitDuration(item.duration);
+                const years = (dur && dur.unit.toLowerCase().includes('năm')) ? dur.num : 1;
+                lineGross = qty * years * price;
             } else {
                 lineGross = qty * price;
             }
@@ -1668,7 +1753,6 @@ class QuoteBuilder {
     getCallbotNumberTypeOptions() {
         return [
             { value: 'chung_codinh', label: 'Số chung cố định (70đ/block 6s)', icon: 'phone-call' },
-            { value: 'chung_didong', label: 'Số chung di động (120đ/block 6s)', icon: 'smartphone' },
             { value: 'so_ngoai', label: 'Số tự chuẩn bị (0đ/block 6s)', icon: 'plug-zap' },
             { value: 'rieng_didong', label: 'Số riêng di động (80đ/block 6s)', icon: 'phone-forwarded' },
             { value: 'rieng_codinh', label: 'Số riêng cố định (70đ/block 6s)', icon: 'phone' },
@@ -1904,6 +1988,32 @@ class QuoteBuilder {
                                 </div>
                             </div>
                         </div>
+                        ${currentNumType === 'brandname' ? `
+                        <div class="mt-2.5 pt-2.5 border-t border-amber-200/70">
+                            <div class="text-[11px] font-bold text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                <span>Đăng ký Brandname</span>
+                                <span class="text-slate-400 font-normal">— Phí riêng, không tính vào cước · chưa VAT 8%</span>
+                            </div>
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-amber-100/50 border border-amber-300/80 rounded-lg px-3 py-2">
+                                <label class="flex items-center gap-2 text-xs text-slate-800 cursor-pointer select-none">
+                                    <input type="checkbox" ${item.registerBrandname ? 'checked' : ''}
+                                        onchange="window.quoteBuilder.toggleCallbotBrandnameReg(${idx}, this.checked)"
+                                        class="w-4 h-4 rounded border-amber-400 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+                                    <span>
+                                        <b class="text-slate-900">Đăng ký tên định danh Brandname:</b>
+                                        <b class="text-amber-900">2.000.000₫/tên</b> <span class="text-slate-600">(phí đăng ký)</span>
+                                        và <b class="text-amber-900">200.000₫/tên</b> <span class="text-slate-600">(/năm phí duy trì)</span>
+                                    </span>
+                                </label>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <input type="number" min="1" step="1" value="${item.brandnameCount || 1}"
+                                        onchange="window.quoteBuilder.setCallbotBrandnameCount(${idx}, this.value)"
+                                        class="w-12 text-xs text-center font-bold text-slate-800 bg-white border border-amber-300 rounded-md py-1 px-1.5 focus:outline-none focus:border-blue-500" />
+                                    <span class="text-xs text-slate-600 font-medium">tên</span>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
                         `;
             })() + `
                         ${cbDetails ? `

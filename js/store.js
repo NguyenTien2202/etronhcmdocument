@@ -258,6 +258,26 @@ const DEFAULT_PRODUCTS = [
         warranty: 'Hàng tháng'
     },
     {
+        id: 'srv-dang-ky-brandname',
+        code: 'DV-BN-DK',
+        name: 'Đăng ký tên định danh Brandname',
+        category: 'Dịch vụ',
+        unit: 'Tên',
+        price: 2000000,
+        description: 'Đăng ký tên định danh riêng: thời gian dự kiến khoảng 1 tháng; chi phí gồm 2.000.000 VNĐ phí đăng ký và 200.000 VNĐ/năm phí duy trì (chưa gồm VAT 8%). Dịch vụ Brandname chỉ áp dụng cho doanh nghiệp/tổ chức, cá nhân không thể đăng ký.',
+        warranty: 'Dự kiến ~1 tháng'
+    },
+    {
+        id: 'srv-duy-tri-ten-brandname',
+        code: 'DV-BN-DT',
+        name: 'Phí duy trì tên định danh Brandname',
+        category: 'Dịch vụ',
+        unit: 'Tên/năm',
+        price: 200000,
+        description: 'Phí duy trì tên định danh Brandname riêng hàng năm: 200.000 VNĐ/tên/năm (chưa gồm VAT 8%).',
+        warranty: 'Hàng năm'
+    },
+    {
         id: 'srv-ket-noi-thay-so',
         code: 'DV-KN-TS',
         name: 'Phí kết nối khi thay từng số',
@@ -327,16 +347,6 @@ const DEFAULT_PRODUCTS = [
         unit: 'Số',
         price: 0,
         description: 'Kho chung của công ty ETRON, không phát sinh phí đầu số và phí kết nối (Cước Callbot: 70đ/block 6s, Cước Tổng đài: 700đ/phút).',
-        warranty: 'Kho chung Etron'
-    },
-    {
-        id: 'num-chung-didong',
-        code: 'NUM-SHARED-MB',
-        name: 'Đầu số chung di động (Kho Etron)',
-        category: 'Đầu số',
-        unit: 'Số',
-        price: 0,
-        description: 'Kho chung di động của công ty ETRON, không phát sinh phí đầu số và phí kết nối (Cước Callbot: 120đ/block 6s, Cước Tổng đài: 720đ/phút).',
         warranty: 'Kho chung Etron'
     },
     {
@@ -416,7 +426,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Combo',
         price: 300000,
-        description: 'Khởi tạo 100.000₫/thuê bao, mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone), tổng 300.000₫ (đã bao gồm VAT 10%). Mỗi đầu số chỉ gọi được nội mạng của nhà mạng đó. Cước Callbot: 70đ/block 6s, Cước Tổng đài: 660đ/phút. Kết nối khi thay từng số: 200.000₫/lần (miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON).',
+        description: 'Khởi tạo 100.000₫/thuê bao, mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone), tổng 300.000₫ (đã bao gồm VAT 10%). Mỗi đầu số chỉ gọi được nội mạng của nhà mạng đó. Có thể sử dụng Tên công ty làm Voice Brandname mà không bắt buộc phải có giấy chứng nhận tên định danh (miễn phí đăng ký brandname trong trường hợp này). Nếu đăng ký tên định danh riêng: thời gian dự kiến khoảng 1 tháng; chi phí gồm 2.000.000 VNĐ phí đăng ký và 200.000 VNĐ/năm phí duy trì. Dịch vụ Brandname chỉ áp dụng cho doanh nghiệp/tổ chức, cá nhân không thể đăng ký.',
         warranty: 'Nhà mạng'
     },
     {
@@ -732,6 +742,10 @@ class SalesStore {
                 'Dịch vụ đi kèm': 'Dịch vụ'
             };
             let updated = false;
+            if (products.some(p => p.id === 'num-chung-didong')) {
+                products = products.filter(p => p.id !== 'num-chung-didong');
+                updated = true;
+            }
             products = products.map(p => {
                 if (p.category && catMap[p.category]) {
                     updated = true;
@@ -739,7 +753,7 @@ class SalesStore {
                 }
                 return p;
             });
-            ['srv-ket-noi-thay-so', 'num-chung-didong'].forEach(newId => {
+            ['srv-ket-noi-thay-so', 'srv-dang-ky-brandname', 'srv-duy-tri-ten-brandname'].forEach(newId => {
                 if (!products.some(p => p.id === newId)) {
                     const defItem = DEFAULT_PRODUCTS.find(p => p.id === newId);
                     if (defItem) {
