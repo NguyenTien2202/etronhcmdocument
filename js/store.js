@@ -234,17 +234,17 @@ const DEFAULT_PRODUCTS = [
         category: 'Dịch vụ',
         unit: 'Lần',
         price: 1000000,
-        description: 'Khách làm việc với nhà cung cấp đầu số và kết nối với UCALL. Phí kết nối lần đầu 1.000.000₫ (chưa gồm VAT 8%).',
+        description: 'Khách tự làm việc với nhà cung cấp đầu số và kết nối với ETRON. Phí kết nối lần đầu 1.000.000₫ (chưa gồm VAT 8%).',
         warranty: 'Theo nhà cung cấp'
     },
     {
         id: 'srv-ket-noi-so-them',
         code: 'DV-KN2',
-        name: 'Phí kết nối đầu số tự chuẩn bị (từ lần thứ 2)',
+        name: 'Phí kết nối đầu số tự chuẩn bị (từ đầu số thứ 2)',
         category: 'Dịch vụ',
         unit: 'Số',
         price: 100000,
-        description: 'Kết nối thêm đầu số tự chuẩn bị từ lần thứ 2: 100.000₫/đầu số (chưa gồm VAT 8%).',
+        description: 'Kết nối từ đầu số thứ 2: 100.000₫/đầu số (chưa gồm VAT 8%). Miễn phí khi dùng số ảo tự thay số.',
         warranty: 'Theo nhà cung cấp'
     },
     {
@@ -254,8 +254,18 @@ const DEFAULT_PRODUCTS = [
         category: 'Dịch vụ',
         unit: 'Tháng',
         price: 100000,
-        description: 'Duy trì kết nối đầu số khách tự chuẩn bị với UCALL: 100.000₫/tháng (chưa gồm VAT 8%).',
+        description: 'Duy trì kết nối đầu số khách tự chuẩn bị với ETRON: 100.000₫/tháng (chưa gồm VAT 8%).',
         warranty: 'Hàng tháng'
+    },
+    {
+        id: 'srv-ket-noi-thay-so',
+        code: 'DV-KN-TS',
+        name: 'Phí kết nối khi thay từng số',
+        category: 'Dịch vụ',
+        unit: 'Lần',
+        price: 200000,
+        description: 'Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%). Miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON.',
+        warranty: 'Theo lần kết nối'
     },
     {
         id: 'srv-quan-ly-chien-dich',
@@ -308,7 +318,7 @@ const DEFAULT_PRODUCTS = [
         warranty: 'Nghiệm thu kỹ thuật'
     },
 
-    // 4. ĐẦU SỐ (Dùng cho Callbot: chưa gồm VAT 8%; Dùng cho Tổng đài CRM: đã gồm VAT 10%)
+    // 4. ĐẦU SỐ (Phí khởi tạo và duy trì đầu số đã bao gồm VAT 10%)
     {
         id: 'num-chung-codinh',
         code: 'NUM-SHARED',
@@ -316,7 +326,17 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Số',
         price: 0,
-        description: 'Kho chung của công ty Etron, dùng cho Tổng đài và Callbot đều không mất phí mua đầu số (Cước Callbot: 70đ/block 6s, Cước Tổng đài: 700đ/phút).',
+        description: 'Kho chung của công ty ETRON, không phát sinh phí đầu số và phí kết nối (Cước Callbot: 70đ/block 6s, Cước Tổng đài: 700đ/phút).',
+        warranty: 'Kho chung Etron'
+    },
+    {
+        id: 'num-chung-didong',
+        code: 'NUM-SHARED-MB',
+        name: 'Đầu số chung di động (Kho Etron)',
+        category: 'Đầu số',
+        unit: 'Số',
+        price: 0,
+        description: 'Kho chung di động của công ty ETRON, không phát sinh phí đầu số và phí kết nối (Cước Callbot: 120đ/block 6s, Cước Tổng đài: 720đ/phút).',
         warranty: 'Kho chung Etron'
     },
     {
@@ -326,7 +346,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Số (1 lần)',
         price: 0,
-        description: 'Khởi tạo đầu số cố định riêng cho doanh nghiệp: miễn phí. Cước Callbot: 70đ/block 6s, Cước Tổng đài: 660đ/phút. Không mất phí kết nối khi qua đối tác của Etron.',
+        description: 'Khởi tạo đầu số cố định riêng cho doanh nghiệp: miễn phí. Cước Callbot: 70đ/block 6s, Cước Tổng đài: 660đ/phút. Kết nối khi thay từng số: 200.000₫/lần (miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON).',
         warranty: 'Nhà mạng'
     },
     {
@@ -336,7 +356,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Số/tháng',
         price: 20000,
-        description: 'Duy trì hàng tháng đầu số cố định riêng (20.000₫/số/tháng; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%).',
+        description: 'Duy trì hàng tháng đầu số cố định riêng (20.000₫/đầu số/tháng, đã bao gồm VAT 10%).',
         warranty: 'Nhà mạng'
     },
     {
@@ -346,7 +366,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Số (1 lần)',
         price: 50000,
-        description: 'Khởi tạo đầu số di động riêng cho doanh nghiệp (50.000₫/số; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%). Cước Callbot: 80đ/block 6s, Cước Tổng đài: 720đ/phút. Không mất phí kết nối khi qua đối tác của Etron.',
+        description: 'Khởi tạo đầu số di động riêng cho doanh nghiệp (50.000₫/đầu số, đã bao gồm VAT 10%). Cước Callbot: 80đ/block 6s, Cước Tổng đài: 720đ/phút. Kết nối khi thay từng số: 200.000₫/lần (miễn phí khi dùng số ảo tự thay số).',
         warranty: 'Nhà mạng'
     },
     {
@@ -356,7 +376,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Số/tháng',
         price: 60000,
-        description: 'Duy trì hàng tháng đầu số di động riêng (60.000₫/số/tháng; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%).',
+        description: 'Duy trì hàng tháng đầu số di động riêng (60.000₫/đầu số/tháng, đã bao gồm VAT 10%).',
         warranty: 'Nhà mạng'
     },
     {
@@ -366,7 +386,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Thuê bao',
         price: 100000,
-        description: 'Khai báo tên thương hiệu cuộc gọi mạng Viettel (100.000₫/thuê bao; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%).',
+        description: 'Khai báo tên thương hiệu cuộc gọi mạng Viettel (100.000₫/thuê bao, đã bao gồm VAT 10%).',
         warranty: 'Nhà mạng'
     },
     {
@@ -376,7 +396,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Thuê bao',
         price: 100000,
-        description: 'Khai báo tên thương hiệu cuộc gọi mạng MobiFone (100.000₫/thuê bao; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%).',
+        description: 'Khai báo tên thương hiệu cuộc gọi mạng MobiFone (100.000₫/thuê bao, đã bao gồm VAT 10%).',
         warranty: 'Nhà mạng'
     },
     {
@@ -386,7 +406,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Thuê bao',
         price: 100000,
-        description: 'Khai báo tên thương hiệu cuộc gọi mạng VinaPhone (100.000₫/thuê bao; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%).',
+        description: 'Khai báo tên thương hiệu cuộc gọi mạng VinaPhone (100.000₫/thuê bao, đã bao gồm VAT 10%).',
         warranty: 'Nhà mạng'
     },
     {
@@ -396,7 +416,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Combo',
         price: 300000,
-        description: 'Khách hàng mua tối thiểu 3 đầu số ứng với 3 nhà mạng Viettel, MobiFone, VinaPhone (100.000₫/thuê bao, tổng 300.000₫; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%). Các đầu số này chỉ gọi nội mạng. Cước Callbot: 70đ/block 6s, Cước Tổng đài: 660đ/phút. Không mất phí kết nối khi qua đối tác của Etron.',
+        description: 'Khởi tạo 100.000₫/thuê bao, mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone), tổng 300.000₫ (đã bao gồm VAT 10%). Mỗi đầu số chỉ gọi được nội mạng của nhà mạng đó. Cước Callbot: 70đ/block 6s, Cước Tổng đài: 660đ/phút. Kết nối khi thay từng số: 200.000₫/lần (miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON).',
         warranty: 'Nhà mạng'
     },
     {
@@ -406,7 +426,7 @@ const DEFAULT_PRODUCTS = [
         category: 'Đầu số',
         unit: 'Số/tháng',
         price: 60000,
-        description: 'Duy trì Voice Brandname hàng tháng (60.000₫/số/tháng; dùng cho Callbot chưa gồm VAT 8%, dùng cho Tổng đài đã gồm VAT 10%).',
+        description: 'Duy trì Voice Brandname hàng tháng (60.000₫/đầu số/tháng, đã bao gồm VAT 10%).',
         warranty: 'Nhà mạng'
     },
 
@@ -718,6 +738,15 @@ class SalesStore {
                     return { ...p, category: catMap[p.category] };
                 }
                 return p;
+            });
+            ['srv-ket-noi-thay-so', 'num-chung-didong'].forEach(newId => {
+                if (!products.some(p => p.id === newId)) {
+                    const defItem = DEFAULT_PRODUCTS.find(p => p.id === newId);
+                    if (defItem) {
+                        products.push(defItem);
+                        updated = true;
+                    }
+                }
             });
             if (updated) {
                 localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));

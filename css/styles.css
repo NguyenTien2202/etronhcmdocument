@@ -352,6 +352,7 @@ a:focus, a:focus-visible { outline: none !important; }
     .qb-cb-opts > div > span { white-space: nowrap; }
     .qb-cb-opts > div:first-child > div { display: flex; width: 100%; }
     .qb-cb-opts > div:first-child > div > button { flex: 1 1 auto; }
+    .qb-cb-opts [data-cb-calltype-wrapper],
     .qb-cb-opts [data-cb-numtype-wrapper] { width: 100%; min-width: 0; }
     .qb-cb-quota { flex-wrap: wrap; align-items: flex-start !important; }
     .qb-cb-quota > span:first-child { white-space: nowrap; }

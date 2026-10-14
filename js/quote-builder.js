@@ -77,21 +77,40 @@ Object.keys(CALLBOT_PACKAGES).forEach(key => {
     };
 });
 
-const NUMBER_TYPES = {
-    chung_codinh: { name: 'Số chung cố định (Kho Etron)', callRateBot: 70, callRatePbx: 700, botDesc: '70đ/block 6s' },
-    rieng_didong: { name: 'Số riêng di động', callRateBot: 80, callRatePbx: 720, botDesc: '80đ/block 6s (+10đ so với số chung)' },
-    rieng_codinh: { name: 'Số riêng cố định', callRateBot: 70, callRatePbx: 660, botDesc: '70đ/block 6s' },
-    brandname: { name: 'Brandname', callRateBot: 70, callRatePbx: 660, botDesc: '70đ/block 6s (chỉ gọi nội mạng)' },
-    so_ngoai: { name: 'Số khách tự chuẩn bị', callRateBot: 0, callRatePbx: 0, botDesc: '0đ/block, khách tự thanh toán với nhà mạng' }
+const CALLBOT_CALL_TYPES = {
+    hang_loat: {
+        name: 'Gọi ra hàng loạt (chạy chiến dịch)',
+        shortName: 'Gọi ra hàng loạt',
+        rate: 160,
+        delta: 0,
+        note: 'Cuộc gọi được đưa vào danh sách chờ và thực hiện hàng loạt.'
+    },
+    lan_luot: {
+        name: 'Gọi ra lần lượt (tích hợp)',
+        shortName: 'Gọi ra lần lượt',
+        rate: 180,
+        delta: 20,
+        note: 'Cuộc gọi được ưu tiên thực hiện ngay khi nhận được yêu cầu.'
+    }
 };
 
-// Các dòng phí đầu số tự thêm khi chọn loại đầu số trong khung Callbot: [mã sản phẩm, số lượng]
+const NUMBER_TYPES = {
+    chung_codinh: { name: 'Số chung cố định', callRateBot: 70, delta: 0, callRatePbx: 700, botDesc: '70đ/block 6s' },
+    chung_didong: { name: 'Số chung di động', callRateBot: 120, delta: 50, callRatePbx: 720, botDesc: '120đ/block 6s' },
+    so_ngoai: { name: 'Số tự chuẩn bị', callRateBot: 0, delta: -70, callRatePbx: 0, botDesc: '0đ/block 6s' },
+    rieng_didong: { name: 'Số riêng di động', callRateBot: 80, delta: 10, callRatePbx: 720, botDesc: '80đ/block 6s' },
+    rieng_codinh: { name: 'Số riêng cố định', callRateBot: 70, delta: 0, callRatePbx: 660, botDesc: '70đ/block 6s' },
+    brandname: { name: 'Brandname', callRateBot: 70, delta: 0, callRatePbx: 660, botDesc: '70đ/block 6s (chỉ gọi nội mạng)' }
+};
+
+// Các dòng phí đầu số & phí kết nối tự thêm khi chọn loại đầu số trong khung Callbot: [mã sản phẩm, số lượng]
 const CALLBOT_NUMBER_FEES = {
     chung_codinh: [],
+    chung_didong: [],
+    so_ngoai: [['srv-ket-noi-so-dau', 1], ['srv-duy-tri-so-ngoai', 1]],
     rieng_didong: [['num-khoi-tao-didong', 1], ['num-duy-tri-didong', 1]],
     rieng_codinh: [['num-khoi-tao-codinh', 1], ['num-duy-tri-codinh', 1]],
-    brandname: [['num-brandname-combo', 1], ['num-brandname-duy-tri', 3]],
-    so_ngoai: [['srv-ket-noi-so-dau', 1], ['srv-duy-tri-so-ngoai', 1]]
+    brandname: [['num-brandname-combo', 1], ['num-brandname-duy-tri', 3]]
 };
 
 class QuoteBuilder {
@@ -100,6 +119,7 @@ class QuoteBuilder {
         this.selectedProductIds = new Set();
         this.previewScale = 1;
         this.isVatDropdownOpen = false;
+        this.openCbCallTypeIdx = null;
         this.openCbNumTypeIdx = null;
 
         document.addEventListener('click', (e) => {
@@ -107,6 +127,12 @@ class QuoteBuilder {
                 if (this.isVatDropdownOpen) {
                     this.isVatDropdownOpen = false;
                     this.renderVatDropdown();
+                }
+            }
+            if (!e.target.closest('[data-cb-calltype-wrapper]')) {
+                if (this.openCbCallTypeIdx !== null) {
+                    this.openCbCallTypeIdx = null;
+                    this.renderItemsList();
                 }
             }
             if (!e.target.closest('[data-cb-numtype-wrapper]')) {
@@ -145,26 +171,38 @@ class QuoteBuilder {
         if (!pkgKey || !CALLBOT_PRICING[pkgKey]) return null;
         const pkg = CALLBOT_PRICING[pkgKey];
         const version = item.botVersion || 'advanced';
+        const callTypeKey = item.callType || 'hang_loat';
         const numTypeKey = item.numberType || 'chung_codinh';
 
         const baseRateObj = pkg.rates[version] || pkg.rates.advanced;
         let rate = baseRateObj.rate;
         let baseRate = baseRateObj.baseRate;
         const discount = baseRateObj.discount || 0;
-        let numLabel = 'Đầu số chung cố định';
 
-        if (numTypeKey === 'rieng_didong') {
+        // Điều chỉnh theo Tuỳ chọn loại cuộc gọi (Gọi ra hàng loạt 160đ vs Gọi ra lần lượt 180đ -> +20đ)
+        const callTypeObj = CALLBOT_CALL_TYPES[callTypeKey] || CALLBOT_CALL_TYPES.hang_loat;
+        rate += callTypeObj.delta;
+        baseRate += callTypeObj.delta;
+        const callTypeLabel = callTypeObj.shortName;
+
+        // Điều chỉnh theo Tuỳ chọn đầu số (so với mặc định Số chung cố định 70đ/block 6s)
+        let numLabel = 'Số chung cố định';
+        if (numTypeKey === 'chung_didong') {
+            rate += 50;
+            baseRate += 50;
+            numLabel = 'Số chung di động';
+        } else if (numTypeKey === 'rieng_didong') {
             rate += 10;
             baseRate += 10;
-            numLabel = 'Đầu số riêng di động';
+            numLabel = 'Số riêng di động';
         } else if (numTypeKey === 'rieng_codinh') {
-            numLabel = 'Đầu số riêng cố định';
+            numLabel = 'Số riêng cố định';
         } else if (numTypeKey === 'brandname') {
             numLabel = 'Đầu số Brandname';
         } else if (numTypeKey === 'so_ngoai') {
             rate -= 70;
             baseRate -= 70;
-            numLabel = 'Số khách tự chuẩn bị';
+            numLabel = 'Số tự chuẩn bị';
         }
 
         const blocksCount = Math.floor(pkg.price / rate);
@@ -175,12 +213,17 @@ class QuoteBuilder {
             ? `${rate}₫/block 6 giây (đã chiết khấu ${discount}₫/block so với giá gốc ${baseRate}₫)`
             : `${rate}₫/block 6 giây (giá gốc, chưa áp dụng chiết khấu)`;
         const gifts = [pkg.bonus, pkg.crm].filter(Boolean).join(', ');
+        const configParts = [versionName];
+        if (callTypeKey === 'lan_luot') configParts.push(callTypeLabel);
+        configParts.push(numLabel);
 
         return {
             pkg,
             pkgKey,
             version,
             versionName,
+            callTypeKey,
+            callTypeLabel,
             numTypeKey,
             numLabel,
             rate,
@@ -189,18 +232,27 @@ class QuoteBuilder {
             blocksCount,
             blocksStr,
             gifts,
-            summary: `Callbot ${pkg.name} (${versionName} - ${numLabel}): ${priceText}, tương đương ${blocksStr} block, thời hạn ${pkg.duration}. Tặng kèm: ${gifts}.`
+            summary: `Callbot ${pkg.name} (${configParts.join(' - ')}): ${priceText}, tương đương ${blocksStr} block, thời hạn ${pkg.duration}. Tặng kèm: ${gifts}.`
         };
     }
 
-    // Tên dòng Callbot theo phiên bản bot + loại đầu số
-    buildCallbotName(cbDetails, numType) {
-        const suffix = {
-            rieng_didong: ' - Số riêng di động',
-            brandname: ' - Brandname',
-            so_ngoai: ' - Số ngoài'
-        }[numType] || '';
-        return `Gói Callbot AI UCALL ${cbDetails.pkg.name} (${cbDetails.versionName}${suffix})`;
+    // Tên dòng Callbot theo phiên bản bot + loại cuộc gọi + loại đầu số
+    buildCallbotName(cbDetails, numType, callType) {
+        const parts = [cbDetails.versionName];
+        if (callType === 'lan_luot') {
+            parts.push('Gọi lần lượt');
+        }
+        const numSuffix = {
+            chung_didong: 'Số chung di động',
+            rieng_didong: 'Số riêng di động',
+            rieng_codinh: 'Số riêng cố định',
+            brandname: 'Brandname',
+            so_ngoai: 'Số tự chuẩn bị'
+        }[numType];
+        if (numSuffix) {
+            parts.push(numSuffix);
+        }
+        return `Gói Callbot AI UCALL ${cbDetails.pkg.name} (${parts.join(' - ')})`;
     }
 
     setCallbotVersion(idx, version) {
@@ -210,11 +262,29 @@ class QuoteBuilder {
 
         const cbDetails = this.getCallbotDetails(item);
         if (cbDetails) {
-            item.name = this.buildCallbotName(cbDetails, item.numberType);
+            item.name = this.buildCallbotName(cbDetails, item.numberType, item.callType);
         }
 
         this.syncPackageDetails();
         this.syncTermsWithItems();
+        this.renderItemsList();
+        this.renderPreview();
+    }
+
+    setCallbotCallType(idx, callType) {
+        const item = this.currentQuote.items[idx];
+        if (!item) return;
+        this.syncFormToCurrentQuote();
+        item.callType = callType;
+
+        const cbDetails = this.getCallbotDetails(item);
+        if (cbDetails) {
+            item.name = this.buildCallbotName(cbDetails, item.numberType, callType);
+        }
+
+        this.syncPackageDetails();
+        this.syncTermsWithItems();
+        this.recalculate();
         this.renderItemsList();
         this.renderPreview();
     }
@@ -227,7 +297,7 @@ class QuoteBuilder {
 
         const cbDetails = this.getCallbotDetails(item);
         if (cbDetails) {
-            item.name = this.buildCallbotName(cbDetails, numType);
+            item.name = this.buildCallbotName(cbDetails, numType, item.callType);
         }
 
         this.syncCallbotNumberFees(item);
@@ -260,17 +330,13 @@ class QuoteBuilder {
         // Gói Callbot và CRM thuộc phần mềm/giải pháp chịu thuế VAT 8%, không bao giờ thuộc nhóm đầu số/cước viễn thông
         if (this.isCallbotItem(item) || this.isCrmItem(item)) return false;
 
-        // Đầu số và phí duy trì cho Callbot sẽ CHƯA BAO GỒM VAT 8% (chịu thuế VAT 8% chung với Callbot),
-        // chỉ đầu số và phí duy trì cho Tổng đài CRM thì mới bao gồm VAT 10%
-        if (item.autoFor || item.forCallbot) return false;
-
         const id = (item.productId || item.id || '').toLowerCase();
         const code = (item.code || '').toLowerCase();
         const name = (item.name || '').toLowerCase();
         const cat = (item.category || '').toLowerCase();
 
-        // Dịch vụ (kể cả phí kết nối/đấu nối đầu số tự chuẩn bị) chịu VAT 8%, không thuộc nhóm đã gồm VAT 10%
-        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm') || name.includes('đấu nối')) return false;
+        // Dịch vụ (kể cả phí kết nối và duy trì kết nối đầu số) chưa bao gồm VAT 8% -> chịu thuế VAT 8%
+        if (id.startsWith('srv-') || cat === 'dịch vụ' || cat.includes('đi kèm') || name.includes('kết nối') || name.includes('đấu nối')) return false;
 
         const isNumberItem = cat === 'đầu số' || 
                              id.startsWith('num-') || 
@@ -278,19 +344,12 @@ class QuoteBuilder {
                              name.includes('đầu số') || 
                              name.includes('brandname');
 
-        // Nếu báo giá có Callbot và không có CRM, các dòng đầu số là phục vụ Callbot -> chưa bao gồm VAT 8%
-        const hasCallbot = (this.currentQuote.items || []).some(it => this.isCallbotItem(it));
-        const hasCrm = (this.currentQuote.items || []).some(it => this.isCrmItem(it));
-        if (isNumberItem && hasCallbot && !hasCrm) {
-            return false;
-        }
-
         // Cước viễn thông: luôn là cước viễn thông trả trước (đã bao gồm VAT 10%)
         if (cat === 'cước' || cat === 'ví cước viễn thông' || id === 'vi-cuoc-vien-thong' || code.startsWith('vc-') || code === 'vi-cuoc' || name.includes('ví cước') || name.includes('nạp cước')) {
             return true;
         }
 
-        // Đầu số cho Tổng đài CRM (hoặc khi không gắn với Callbot): đã bao gồm VAT 10%
+        // Phí khởi tạo và duy trì đầu số đã bao gồm VAT 10% (theo trang 5 Bảng giá chính thức)
         if (isNumberItem) {
             return true;
         }
@@ -499,6 +558,7 @@ class QuoteBuilder {
                         code: 'CB-2',
                         name: 'Gói Callbot AI UCALL CB2 (Advanced)',
                         botVersion: 'advanced',
+                        callType: 'hang_loat',
                         numberType: 'chung_codinh',
                         unitPriceDisplay: '2.000.000₫',
                         price: 2000000,
@@ -523,6 +583,7 @@ class QuoteBuilder {
                         code: 'CB-5',
                         name: 'Gói Callbot AI UCALL CB5 (Advanced)',
                         botVersion: 'advanced',
+                        callType: 'hang_loat',
                         numberType: 'chung_codinh',
                         unitPriceDisplay: '5.000.000₫',
                         price: 5000000,
@@ -547,6 +608,7 @@ class QuoteBuilder {
                         code: 'CB-20',
                         name: 'Gói Callbot AI UCALL CB20 (Advanced)',
                         botVersion: 'advanced',
+                        callType: 'hang_loat',
                         numberType: 'chung_codinh',
                         unitPriceDisplay: '20.000.000₫',
                         price: 20000000,
@@ -571,6 +633,7 @@ class QuoteBuilder {
                         code: 'CB-50',
                         name: 'Gói Callbot AI UCALL CB50 (Advanced)',
                         botVersion: 'advanced',
+                        callType: 'hang_loat',
                         numberType: 'chung_codinh',
                         unitPriceDisplay: '50.000.000₫',
                         price: 50000000,
@@ -673,7 +736,12 @@ class QuoteBuilder {
 
         const pId = product.productId || product.id;
         if (this.isCallbotItem(product)) {
-            const cb = this.getCallbotDetails({ ...product, botVersion: product.botVersion || 'advanced', numberType: product.numberType || 'chung_codinh' });
+            const cb = this.getCallbotDetails({
+                ...product,
+                botVersion: product.botVersion || 'advanced',
+                callType: product.callType || 'hang_loat',
+                numberType: product.numberType || 'chung_codinh'
+            });
             if (cb) return cb.summary;
         }
 
@@ -688,16 +756,18 @@ class QuoteBuilder {
 
         const telecomDetails = {
             'vi-cuoc-vien-thong': 'Ví Cước Viễn Thông: Nạp tiền trước tối thiểu 1.000.000₫ (đã gồm VAT 10%), cước gọi thực tế và phí đầu số trừ dần vào ví theo thực tế.',
-            'num-chung-codinh': 'Đầu Số Chung Cố Định: Sử dụng kho chung Etron (miễn phí), cước gọi Callbot 70đ/block 6s, cước Tổng đài 700đ/phút.',
-            'num-khoi-tao-codinh': 'Đầu Số Riêng Cố Định: Miễn phí khởi tạo, phí duy trì 20.000₫/số/tháng (đã gồm VAT 10%), cước gọi Callbot 70đ/block 6s, Tổng đài 660đ/phút. Không mất phí kết nối khi qua đối tác của Etron.',
-            'num-duy-tri-codinh': 'Phí duy trì đầu số riêng cố định: 20.000₫/số/tháng (đã gồm VAT 10%).',
-            'num-khoi-tao-didong': 'Đầu Số Riêng Di Động: Phí khởi tạo 50.000₫/số, phí duy trì 60.000₫/số/tháng (đã gồm VAT 10%), cước gọi Callbot 80đ/block 6s, Tổng đài 720đ/phút. Không mất phí kết nối khi qua đối tác của Etron.',
-            'num-duy-tri-didong': 'Phí duy trì đầu số riêng di động: 60.000₫/số/tháng (đã gồm VAT 10%).',
-            'num-brandname-combo': 'Đầu Số Brandname: Khách hàng mua tối thiểu 3 đầu số ứng với 3 nhà mạng Viettel, MobiFone, VinaPhone (100.000₫/thuê bao, các đầu số này chỉ gọi nội mạng), phí duy trì 60.000₫/số/tháng (đã gồm VAT 10%), cước gọi Callbot 70đ/block 6s, Tổng đài 660đ/phút. Không mất phí kết nối khi qua đối tác của Etron.',
-            'num-brandname-duy-tri': 'Phí duy trì Voice Brandname: 60.000₫/số/tháng (đã gồm VAT 10%).',
-            'srv-ket-noi-so-dau': 'Đầu Số Khách Tự Chuẩn Bị: Khách làm việc với nhà cung cấp đầu số và kết nối với UCALL. Phí kết nối lần đầu 1.000.000₫, từ lần thứ 2 100.000₫/đầu số, phí duy trì 100.000₫/tháng (chưa gồm VAT 8%). Cước gọi Callbot 0đ/block, khách tự thanh toán cước với nhà mạng.',
-            'srv-ket-noi-so-them': 'Phí kết nối đầu số tự chuẩn bị từ lần thứ 2: 100.000₫/đầu số (chưa gồm VAT 8%).',
-            'srv-duy-tri-so-ngoai': 'Phí duy trì kết nối đầu số tự chuẩn bị: 100.000₫/tháng (chưa gồm VAT 8%).'
+            'num-chung-codinh': 'Số chung cố định: Cước gọi Callbot 70đ/block 6s, cước Tổng đài 700đ/phút. Không phát sinh phí đầu số và phí kết nối.',
+            'num-chung-didong': 'Số chung di động: Cước gọi Callbot 120đ/block 6s, cước Tổng đài 720đ/phút. Không phát sinh phí đầu số và phí kết nối.',
+            'num-khoi-tao-codinh': 'Số riêng cố định: Miễn phí khởi tạo, phí duy trì 20.000₫/đầu số/tháng (đã gồm VAT 10%), cước gọi Callbot 70đ/block 6s, Tổng đài 660đ/phút. Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%), miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON.',
+            'num-duy-tri-codinh': 'Phí duy trì đầu số riêng cố định: 20.000₫/đầu số/tháng (đã gồm VAT 10%).',
+            'num-khoi-tao-didong': 'Số riêng di động: Khởi tạo 50.000₫/đầu số, phí duy trì 60.000₫/đầu số/tháng (đã gồm VAT 10%), cước gọi Callbot 80đ/block 6s, Tổng đài 720đ/phút. Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%), miễn phí khi dùng số ảo tự thay số.',
+            'num-duy-tri-didong': 'Phí duy trì đầu số riêng di động: 60.000₫/đầu số/tháng (đã gồm VAT 10%).',
+            'num-brandname-combo': 'Đầu số Brandname: Khởi tạo 100.000₫/thuê bao, mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone), phí duy trì 60.000₫/đầu số/tháng (đã gồm VAT 10%), cước gọi Callbot 70đ/block 6s, Tổng đài 660đ/phút. Mỗi đầu số chỉ gọi được nội mạng của nhà mạng đó. Kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%), miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON.',
+            'num-brandname-duy-tri': 'Phí duy trì Voice Brandname: 60.000₫/đầu số/tháng (đã gồm VAT 10%).',
+            'srv-ket-noi-so-dau': 'Số tự chuẩn bị: Khách tự làm việc với nhà cung cấp đầu số và kết nối với ETRON. Kết nối lần đầu 1.000.000₫, kết nối từ đầu số thứ 2: 100.000₫/đầu số (miễn phí khi dùng số ảo tự thay số), phí duy trì 100.000₫/tháng (chưa gồm VAT 8%). Cước gọi Callbot 0đ/block 6s.',
+            'srv-ket-noi-so-them': 'Phí kết nối đầu số tự chuẩn bị từ đầu số thứ 2: 100.000₫/đầu số (chưa gồm VAT 8%, miễn phí khi dùng số ảo tự thay số).',
+            'srv-duy-tri-so-ngoai': 'Phí duy trì kết nối đầu số tự chuẩn bị: 100.000₫/tháng (chưa gồm VAT 8%).',
+            'srv-ket-noi-thay-so': 'Phí kết nối khi thay từng số: 200.000₫/lần (chưa gồm VAT 8%). Miễn phí khi dùng số ảo tự thay số hoặc khi kết nối qua đối tác của ETRON.'
         };
         if (telecomDetails[pId]) {
             return telecomDetails[pId];
@@ -781,7 +851,7 @@ class QuoteBuilder {
         const endOfMonthStr = this.currentQuote.validUntil || this.getEndOfMonth(this.currentQuote.date || new Date());
         const validityTerm = `Báo giá có hiệu lực đến ngày ${this.formatDateVi(endOfMonthStr)}.`;
         const vatRate = this.currentQuote.vatRate !== undefined ? this.currentQuote.vatRate : 8;
-        const vatTerm = `Phần mềm CRM, Callbot, phí đầu số Callbot và dịch vụ đi kèm chưa bao gồm thuế VAT ${vatRate}%.`;
+        const vatTerm = `Phần mềm CRM, Callbot, phí kết nối và dịch vụ đi kèm chưa bao gồm thuế VAT ${vatRate}%. Phí khởi tạo và duy trì đầu số đã bao gồm VAT 10%.`;
         const paymentTerm = 'Thông tin thanh toán: Ngân hàng TMCP Quân đội (MBBank) - Số TK: 999998887777 - CONG TY CP GIAI PHAP ETRON.';
 
         const callbotTerm = 'Callbot tính theo block 6 giây. Giá block chưa bao gồm cước gọi và phí đầu số khi dùng số riêng. Trong 90 ngày sau khi hết hạn gói, có thể gia hạn với phí bằng 30% số dư còn lại.';
@@ -830,13 +900,13 @@ class QuoteBuilder {
             if (clean.includes('cước viễn thông thanh toán')) return false;
             if (clean.includes('cước gọi tổng đài trừ')) return false;
             if (clean.includes('thông tin thanh toán:') || clean.includes('vietcombank') || clean.includes('quân đội') || clean.includes('mbbank') || clean.includes('999998887777') || clean.includes('103899886688')) return false;
-            if (clean.includes('đầu số brandname chỉ gọi nội mạng')) return false;
-            if (clean.includes('đầu số khách tự chuẩn bị:')) return false;
-            if (clean.includes('phí duy trì số được tính')) return false;
+            if (clean.includes('đầu số brandname chỉ gọi nội mạng') || clean.includes('mỗi đầu số brandname chỉ gọi')) return false;
+            if (clean.includes('đầu số khách tự chuẩn bị:') || clean.includes('số tự chuẩn bị:')) return false;
+            if (clean.includes('phí duy trì số được tính') || clean.includes('phí duy trì đầu số và phí duy trì kết nối')) return false;
             return clean.length > 0;
         });
 
-        // Ghi chú riêng theo loại đầu số (Brandname / Số khách tự chuẩn bị / Phí duy trì số)
+        // Ghi chú riêng theo loại đầu số (Brandname / Số tự chuẩn bị / Phí duy trì)
         const items = this.currentQuote.items;
         const hasBrandname = items.some(it => (this.isCallbotItem(it) && it.numberType === 'brandname') ||
             ['num-brandname-combo', 'num-brandname-duy-tri', 'num-brandname-viettel', 'num-brandname-mobifone', 'num-brandname-vinaphone'].includes(it.productId));
@@ -849,9 +919,9 @@ class QuoteBuilder {
             (it.name || '').toLowerCase().includes('duy trì')
         );
 
-        const brandnameTerm = 'Đầu số Brandname chỉ gọi nội mạng tương ứng; khách hàng mua tối thiểu 3 đầu số ứng với 3 nhà mạng Viettel, MobiFone, VinaPhone.';
-        const ownNumberTerm = 'Đầu số khách tự chuẩn bị: khách hàng làm việc với nhà cung cấp đầu số và kết nối với UCALL. Đề xuất khách hàng yêu cầu nhà cung cấp đầu số tự thay số để không cần kết nối nhiều lần.';
-        const maintenanceTerm = 'Phí duy trì số được tính từ ngày đầu tiên (ngày 01) hàng tháng và được thanh toán trước 7 ngày làm việc trước ngày cuối cùng của tháng trước đó.';
+        const brandnameTerm = 'Mỗi đầu số Brandname chỉ gọi được nội mạng của nhà mạng đó; mua tối thiểu 3 đầu số (MobiFone, Viettel, VinaPhone).';
+        const ownNumberTerm = 'Số tự chuẩn bị: Khách tự làm việc với nhà cung cấp đầu số và kết nối với ETRON. Nên đề xuất khách yêu cầu nhà cung cấp tự thay số để không phải kết nối nhiều lần.';
+        const maintenanceTerm = 'Phí duy trì đầu số và phí duy trì kết nối được tính từ ngày đầu tiên (ngày 01) hàng tháng và được thanh toán trước 7 ngày làm việc trước ngày cuối cùng của tháng trước đó.';
 
         const newTerms = [validityTerm, vatTerm];
         if (hasCallbot) {
@@ -1090,7 +1160,7 @@ class QuoteBuilder {
     formatItemUnitPrice(item) {
         const priceStr = window.formatNumber(item.price);
         const pid = item.productId || '';
-        if (pid === 'srv-ket-noi-so-dau') return `${priceStr}₫/lần`;
+        if (pid === 'srv-ket-noi-so-dau' || pid === 'srv-ket-noi-thay-so') return `${priceStr}₫/lần`;
         if (pid === 'srv-ket-noi-so-them') return `${priceStr}₫/số`;
         if (pid === 'srv-duy-tri-so-ngoai') return `${priceStr}₫/tháng`;
         if (this.isCrmItem(item)) {
@@ -1122,7 +1192,7 @@ class QuoteBuilder {
 
     formatItemQuantity(item) {
         const pid = item.productId || '';
-        if (pid === 'srv-ket-noi-so-dau') return `${item.quantity || 1} lần`;
+        if (pid === 'srv-ket-noi-so-dau' || pid === 'srv-ket-noi-thay-so') return `${item.quantity || 1} lần`;
         if (pid === 'srv-ket-noi-so-them') return `${item.quantity || 1} số`;
         if (pid === 'srv-duy-tri-so-ngoai') {
             const months = item.months || this.parseMonths(item.duration) || 1;
@@ -1194,7 +1264,10 @@ class QuoteBuilder {
     // opts: { silent: không đồng bộ/vẽ lại (dùng khi tự thêm hàng loạt), quantity, autoFor: id dòng Callbot đã tự thêm dòng này }
     addProductFromCatalog(productId, opts = {}) {
         const products = window.salesStore.getProducts();
-        const product = products.find(p => p.id === productId);
+        let product = products.find(p => p.id === productId);
+        if (!product && typeof DEFAULT_PRODUCTS !== 'undefined') {
+            product = DEFAULT_PRODUCTS.find(p => p.id === productId);
+        }
         if (!product) return null;
 
         // Lưu trước các thay đổi trên form
@@ -1241,7 +1314,7 @@ class QuoteBuilder {
             duration = '1 tháng';
             months = 1;
             unit = product.unit || 'số';
-        } else if (product.id === 'srv-ket-noi-so-dau') {
+        } else if (product.id === 'srv-ket-noi-so-dau' || product.id === 'srv-ket-noi-thay-so') {
             duration = '1 lần';
             months = 1;
             unit = 'lần';
@@ -1284,6 +1357,7 @@ class QuoteBuilder {
             code: product.code || '',
             name: itemName,
             botVersion: isCallbot ? 'advanced' : undefined,
+            callType: isCallbot ? 'hang_loat' : undefined,
             numberType: isCallbot ? 'chung_codinh' : undefined,
             unitPriceDisplay: window.formatCurrency(product.price),
             duration: duration,
@@ -1572,18 +1646,39 @@ class QuoteBuilder {
         this.renderPreview();
     }
 
+    getCallbotCallTypeOptions() {
+        return [
+            { value: 'hang_loat', label: 'Gọi ra hàng loạt (160đ/block 6s)', icon: 'layers' },
+            { value: 'lan_luot', label: 'Gọi ra lần lượt - tích hợp (180đ/block 6s)', icon: 'zap' }
+        ];
+    }
+
+    toggleCbCallTypeDropdown(idx, e) {
+        if (e) e.stopPropagation();
+        this.openCbNumTypeIdx = null;
+        this.openCbCallTypeIdx = (this.openCbCallTypeIdx === idx) ? null : idx;
+        this.renderItemsList();
+    }
+
+    selectCbCallType(idx, callType) {
+        this.openCbCallTypeIdx = null;
+        this.setCallbotCallType(idx, callType);
+    }
+
     getCallbotNumberTypeOptions() {
         return [
-            { value: 'chung_codinh', label: 'Số chung cố định (Kho Etron - Mặc định, 70đ/block)', icon: 'phone-call' },
-            { value: 'rieng_didong', label: 'Số riêng di động (80đ/block 6s)', icon: 'smartphone' },
+            { value: 'chung_codinh', label: 'Số chung cố định (70đ/block 6s)', icon: 'phone-call' },
+            { value: 'chung_didong', label: 'Số chung di động (120đ/block 6s)', icon: 'smartphone' },
+            { value: 'so_ngoai', label: 'Số tự chuẩn bị (0đ/block 6s)', icon: 'plug-zap' },
+            { value: 'rieng_didong', label: 'Số riêng di động (80đ/block 6s)', icon: 'phone-forwarded' },
             { value: 'rieng_codinh', label: 'Số riêng cố định (70đ/block 6s)', icon: 'phone' },
-            { value: 'brandname', label: 'Brandname (70đ/block 6s, gọi nội mạng)', icon: 'award' },
-            { value: 'so_ngoai', label: 'Số tự chuẩn bị (0đ/block, khách tự trả nhà mạng)', icon: 'plug-zap' }
+            { value: 'brandname', label: 'Brandname (70đ/block 6s, gọi nội mạng)', icon: 'award' }
         ];
     }
 
     toggleCbNumTypeDropdown(idx, e) {
         if (e) e.stopPropagation();
+        this.openCbCallTypeIdx = null;
         this.openCbNumTypeIdx = (this.openCbNumTypeIdx === idx) ? null : idx;
         this.renderItemsList();
     }
@@ -1690,6 +1785,11 @@ class QuoteBuilder {
             </tr>
 
             ${isCallbot ? (() => {
+                const cbCallOptions = this.getCallbotCallTypeOptions();
+                const currentCallType = item.callType || 'hang_loat';
+                const activeCallObj = cbCallOptions.find(o => o.value === currentCallType) || cbCallOptions[0];
+                const isCallOpen = this.openCbCallTypeIdx === idx;
+
                 const cbNumOptions = this.getCallbotNumberTypeOptions();
                 const currentNumType = item.numberType || 'chung_codinh';
                 const activeNumObj = cbNumOptions.find(o => o.value === currentNumType) || cbNumOptions[0];
@@ -1732,37 +1832,74 @@ class QuoteBuilder {
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-amber-950 flex items-center gap-1 shrink-0">
-                                    <i data-lucide="phone-call" class="w-3.5 h-3.5 text-amber-700"></i>
-                                    Đầu số gọi:
-                                </span>
-                                <div class="relative min-w-[260px]" data-cb-numtype-wrapper="${idx}">
-                                    <button type="button" onclick="window.quoteBuilder.toggleCbNumTypeDropdown(${idx}, event)"
-                                        class="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
-                                        <div class="flex items-center gap-2 truncate">
-                                            <div class="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                                                <i data-lucide="${activeNumObj.icon}" class="w-3 h-3"></i>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-amber-950 flex items-center gap-1 shrink-0">
+                                        <i data-lucide="phone-outgoing" class="w-3.5 h-3.5 text-amber-700"></i>
+                                        Loại cuộc gọi:
+                                    </span>
+                                    <div class="relative min-w-[235px]" data-cb-calltype-wrapper="${idx}">
+                                        <button type="button" onclick="window.quoteBuilder.toggleCbCallTypeDropdown(${idx}, event)"
+                                            class="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                                            <div class="flex items-center gap-2 truncate">
+                                                <div class="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                                    <i data-lucide="${activeCallObj.icon}" class="w-3 h-3"></i>
+                                                </div>
+                                                <span class="truncate">${activeCallObj.label}</span>
                                             </div>
-                                            <span class="truncate">${activeNumObj.label}</span>
-                                        </div>
-                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isNumOpen ? 'rotate-180' : ''}"></i>
-                                    </button>
+                                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isCallOpen ? 'rotate-180' : ''}"></i>
+                                        </button>
 
-                                    <div class="${isNumOpen ? '' : 'hidden'} absolute right-0 left-0 sm:left-auto sm:w-80 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
-                                        ${cbNumOptions.map(opt => {
-                                            const isSelected = opt.value === currentNumType;
-                                            return `
-                                                <button type="button" onclick="window.quoteBuilder.selectCbNumType(${idx}, '${opt.value}')"
-                                                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors text-left ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
-                                                    <span class="flex items-center gap-2 truncate">
-                                                        <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
-                                                        <span class="truncate">${opt.label}</span>
-                                                    </span>
-                                                    ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
-                                                </button>
-                                            `;
-                                        }).join('')}
+                                        <div class="${isCallOpen ? '' : 'hidden'} absolute right-0 left-0 sm:left-auto sm:w-80 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                                            ${cbCallOptions.map(opt => {
+                                                const isSelected = opt.value === currentCallType;
+                                                return `
+                                                    <button type="button" onclick="window.quoteBuilder.selectCbCallType(${idx}, '${opt.value}')"
+                                                        class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors text-left ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                                                        <span class="flex items-center gap-2 truncate">
+                                                            <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                                            <span class="truncate">${opt.label}</span>
+                                                        </span>
+                                                        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
+                                                    </button>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-amber-950 flex items-center gap-1 shrink-0">
+                                        <i data-lucide="phone-call" class="w-3.5 h-3.5 text-amber-700"></i>
+                                        Đầu số gọi:
+                                    </span>
+                                    <div class="relative min-w-[235px]" data-cb-numtype-wrapper="${idx}">
+                                        <button type="button" onclick="window.quoteBuilder.toggleCbNumTypeDropdown(${idx}, event)"
+                                            class="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                                            <div class="flex items-center gap-2 truncate">
+                                                <div class="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                                    <i data-lucide="${activeNumObj.icon}" class="w-3 h-3"></i>
+                                                </div>
+                                                <span class="truncate">${activeNumObj.label}</span>
+                                            </div>
+                                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isNumOpen ? 'rotate-180' : ''}"></i>
+                                        </button>
+
+                                        <div class="${isNumOpen ? '' : 'hidden'} absolute right-0 left-0 sm:left-auto sm:w-80 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                                            ${cbNumOptions.map(opt => {
+                                                const isSelected = opt.value === currentNumType;
+                                                return `
+                                                    <button type="button" onclick="window.quoteBuilder.selectCbNumType(${idx}, '${opt.value}')"
+                                                        class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors text-left ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                                                        <span class="flex items-center gap-2 truncate">
+                                                            <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                                            <span class="truncate">${opt.label}</span>
+                                                        </span>
+                                                        ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
+                                                    </button>
+                                                `;
+                                            }).join('')}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
