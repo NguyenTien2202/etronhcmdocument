@@ -25,6 +25,8 @@ class CallbotHub {
         this.selectedMgrIcon = 'building-2';
         this.isSectionAOpen = true;
         this.isSectionBOpen = true;
+        this.selectedTplFile = null;
+        this.clearExistingTplFile = false;
     }
 
     init() {
@@ -733,6 +735,7 @@ class CallbotHub {
                         </h4>
 
                         <!-- Đính kèm: Link Drive, Link Bot hệ thống hoặc File - Nút chỉ để Icon kèm Icon Copy bên cạnh -->
+                        ${(hasUrl || hasBotUrl || hasFile) ? `
                         <div class="p-2.5 rounded-xl ${theme.rowBg} border space-y-2 shadow-2xs">
                             ${hasUrl ? `
                                 <div class="flex items-center justify-between gap-2">
@@ -790,18 +793,17 @@ class CallbotHub {
                                             ${this.escapeHtml(tpl.scriptFileName)}
                                         </span>
                                     </div>
-                                    ${hasUrl ? `
-                                        <div class="flex items-center gap-1 shrink-0">
-                                            <a href="${this.escapeHtml(tpl.scriptUrl)}" target="_blank" rel="noopener noreferrer"
-                                                class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
-                                                title="Xem / Tải file">
-                                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                            </a>
-                                        </div>
-                                    ` : ''}
+                                    <div class="flex items-center gap-1 shrink-0">
+                                        <button type="button" onclick="window.callbotHub.downloadTemplateFile('${this.escapeJs(tpl.id)}')"
+                                            class="p-1.5 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-slate-200 hover:border-indigo-300 transition-colors shadow-2xs"
+                                            title="Tải file đính kèm">
+                                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             ` : ''}
                         </div>
+                        ` : ''}
                     </div>
 
                     <!-- Footer Thao Tác: Bỏ hoàn toàn xem từ khóa, chỉ còn icon sửa và xóa -->
@@ -822,6 +824,60 @@ class CallbotHub {
         }).join('');
 
         if (window.lucide) lucide.createIcons();
+    }
+
+    formatFileSize(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    async downloadTemplateFile(id) {
+        const templates = window.salesStore.getCallbotTemplates();
+        const tpl = templates.find(t => t.id === id);
+        if (!tpl) return;
+
+        const fileName = tpl.scriptFileName || 'Kich_ban.xlsx';
+
+        if (tpl.scriptFileData) {
+            const a = document.createElement('a');
+            a.href = tpl.scriptFileData;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.salesApp.showNotification(`Đang tải xuống "${fileName}"!`, 'success');
+            return;
+        }
+
+        if (window.documentHub && window.documentHub.fileStore) {
+            try {
+                const record = await window.documentHub.fileStore.getFile(tpl.id);
+                if (record && record.blob) {
+                    const url = URL.createObjectURL(record.blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = record.fileName || fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                    window.salesApp.showNotification(`Đang tải xuống "${record.fileName || fileName}"!`, 'success');
+                    return;
+                }
+            } catch (e) {
+                console.warn('Lỗi đọc file kịch bản từ IndexedDB:', e);
+            }
+        }
+
+        if (tpl.scriptUrl && tpl.scriptUrl.trim()) {
+            window.open(tpl.scriptUrl, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
+        window.salesApp.showNotification('Kịch bản này chỉ lưu tên file tham khảo, chưa có tệp đính kèm trên hệ thống.', 'info');
     }
 
     renderTemplateDropdown() {
@@ -1465,6 +1521,10 @@ class CallbotHub {
         if (botInput) botInput.value = '';
         document.getElementById('cb-tpl-modal-title').textContent = 'Thêm Kịch Bản Mẫu Mới';
 
+        this.selectedTplFile = null;
+        this.clearExistingTplFile = false;
+        this.updateTplFileUI('', '');
+
         this.isModalTplIndDropdownOpen = false;
         this.selectedModalTplIndustry = '';
         this.updateIndustrySelectOptions();
@@ -1484,18 +1544,70 @@ class CallbotHub {
         if (form) form.reset();
 
         this.isModalTplIndDropdownOpen = false;
+        this.selectedTplFile = null;
+        this.clearExistingTplFile = false;
 
         document.getElementById('cb-tpl-id').value = tpl.id;
         document.getElementById('cb-tpl-title').value = tpl.title || '';
         document.getElementById('cb-tpl-url').value = tpl.scriptUrl || '';
-        document.getElementById('cb-tpl-filename').value = tpl.scriptFileName || '';
         const botInput = document.getElementById('cb-tpl-boturl');
         if (botInput) botInput.value = tpl.botUrl || '';
+
+        const existingFileName = (tpl.scriptFileName || '').trim();
+        const existingFileSize = tpl.scriptFileSize || (tpl.scriptFileData ? 'Đã tải lên' : (existingFileName ? 'File đính kèm' : ''));
+        this.updateTplFileUI(existingFileName, existingFileSize);
 
         this.updateIndustrySelectOptions(tpl.industry || '');
 
         document.getElementById('cb-tpl-modal-title').textContent = 'Chỉnh Sửa Kịch Bản Mẫu';
         modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    handleTplFileChange(e) {
+        const file = e && e.target && e.target.files ? e.target.files[0] : null;
+        if (!file) return;
+
+        this.selectedTplFile = file;
+        this.clearExistingTplFile = false;
+        this.updateTplFileUI(file.name, this.formatFileSize(file.size));
+    }
+
+    clearTplFile() {
+        this.selectedTplFile = null;
+        this.clearExistingTplFile = true;
+        const fileInput = document.getElementById('cb-tpl-file-input');
+        if (fileInput) fileInput.value = '';
+        this.updateTplFileUI('', '');
+    }
+
+    updateTplFileUI(fileName, fileSizeText) {
+        const hiddenInput = document.getElementById('cb-tpl-filename');
+        const emptyBox = document.getElementById('cb-tpl-file-empty');
+        const previewBox = document.getElementById('cb-tpl-file-preview');
+        const nameEl = document.getElementById('cb-tpl-file-name-display');
+        const sizeEl = document.getElementById('cb-tpl-file-size-display');
+
+        if (hiddenInput) hiddenInput.value = fileName || '';
+
+        if (fileName && fileName.trim()) {
+            if (emptyBox) emptyBox.classList.add('hidden');
+            if (previewBox) {
+                previewBox.classList.remove('hidden');
+                previewBox.classList.add('flex');
+            }
+            if (nameEl) nameEl.textContent = fileName;
+            if (sizeEl) sizeEl.textContent = fileSizeText || 'File đính kèm';
+        } else {
+            if (emptyBox) emptyBox.classList.remove('hidden');
+            if (previewBox) {
+                previewBox.classList.add('hidden');
+                previewBox.classList.remove('flex');
+            }
+            if (nameEl) nameEl.textContent = '';
+            if (sizeEl) sizeEl.textContent = '';
+        }
+
         if (window.lucide) lucide.createIcons();
     }
 
@@ -1578,13 +1690,13 @@ class CallbotHub {
         this.updateIndustrySelectOptions(indId);
     }
 
-    saveTemplateFromModal(e) {
+    async saveTemplateFromModal(e) {
         e.preventDefault();
         const id = document.getElementById('cb-tpl-id').value;
         const title = document.getElementById('cb-tpl-title').value.trim();
         const industry = document.getElementById('cb-tpl-industry').value;
         const scriptUrl = document.getElementById('cb-tpl-url').value.trim();
-        const scriptFileName = document.getElementById('cb-tpl-filename').value.trim();
+        const scriptFileName = (document.getElementById('cb-tpl-filename')?.value || '').trim();
         const botUrl = (document.getElementById('cb-tpl-boturl')?.value || '').trim();
 
         if (!title) {
@@ -1592,13 +1704,40 @@ class CallbotHub {
             return;
         }
 
-        if (!scriptUrl && !scriptFileName && !botUrl) {
-            window.salesApp.showNotification('Vui lòng điền link Drive/Sheets, link Bot hệ thống hoặc file Excel!', 'warning');
+        if (!scriptUrl && !botUrl && !this.selectedTplFile && !scriptFileName) {
+            window.salesApp.showNotification('Vui lòng điền link Drive/Sheets, link Bot hệ thống hoặc tải lên file Excel!', 'warning');
             return;
         }
 
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
         const targetInd = industries.find(i => i.id === industry);
+
+        let finalFileName = '';
+        let finalFileData = '';
+        let finalFileSize = '';
+
+        if (this.selectedTplFile) {
+            const file = this.selectedTplFile;
+            finalFileName = file.name;
+            finalFileSize = this.formatFileSize(file.size);
+
+            if (file.size <= 750 * 1024) {
+                try {
+                    finalFileData = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (re) => resolve(re.target.result || '');
+                        reader.onerror = () => resolve('');
+                        reader.readAsDataURL(file);
+                    });
+                } catch {}
+            }
+        } else if (!this.clearExistingTplFile && scriptFileName) {
+            // Giữ nguyên file đính kèm hiện có khi chỉnh sửa mà không đổi/xóa file
+            const existing = id ? window.salesStore.getCallbotTemplates().find(t => t.id === id) : null;
+            finalFileName = scriptFileName;
+            finalFileData = existing?.scriptFileData || '';
+            finalFileSize = existing?.scriptFileSize || '';
+        }
 
         const tplData = {
             id: id || null,
@@ -1606,12 +1745,30 @@ class CallbotHub {
             industry,
             industryName: targetInd ? targetInd.name : 'Ngành khác',
             scriptUrl,
-            scriptFileName: scriptFileName || (scriptUrl ? 'Kich_ban.xlsx' : ''),
+            scriptFileName: finalFileName,
+            scriptFileData: finalFileData,
+            scriptFileSize: finalFileSize,
             botUrl
         };
         if (!id) tplData.pinned = false;
 
-        window.salesStore.saveCallbotTemplate(tplData);
+        const savedTpl = window.salesStore.saveCallbotTemplate(tplData);
+
+        if (this.selectedTplFile && savedTpl && savedTpl.id && window.documentHub && window.documentHub.fileStore) {
+            try {
+                await window.documentHub.fileStore.saveFile(savedTpl.id, this.selectedTplFile);
+            } catch (err) {
+                console.warn('Lỗi lưu file kịch bản vào IndexedDB:', err);
+            }
+        } else if (this.clearExistingTplFile && id && window.documentHub && window.documentHub.fileStore) {
+            try {
+                await window.documentHub.fileStore.deleteFile(id);
+            } catch {}
+        }
+
+        this.selectedTplFile = null;
+        this.clearExistingTplFile = false;
+
         document.getElementById('modal-callbot-template').classList.add('hidden');
         this.render();
         window.salesApp.showNotification(id ? 'Đã cập nhật kịch bản mẫu!' : 'Đã thêm kịch bản mẫu mới vào kho!', 'success');
