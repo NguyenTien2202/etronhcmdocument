@@ -120,6 +120,7 @@ class DocumentHub {
         this.activeCategoryForIconPicker = null;
         this.isModalCatDropdownOpen = false;
         this.selectedModalCategory = null;
+        this.isSortDropdownOpen = false;
     }
 
     init() {
@@ -129,21 +130,23 @@ class DocumentHub {
         this.renderCategoryPills();
         this.updateCategorySelectOptions();
         this.renderAddIconPickerGrid();
-        
-        const sortSelect = document.getElementById('doc-sort-select');
-        if (sortSelect) {
-            sortSelect.value = this.sortBy;
-        }
+        this.renderSortDropdown();
 
         this.renderDocumentsList();
         this.setupModalEventListeners();
 
-        // Đóng dropdown phân loại danh mục trong modal khi click ra ngoài
+        // Đóng các dropdown khi click ra ngoài
         document.addEventListener('click', (e) => {
             if (!e.target.closest('#doc-modal-cat-dropdown-wrapper')) {
                 if (this.isModalCatDropdownOpen) {
                     this.isModalCatDropdownOpen = false;
                     this.renderModalCategoryDropdown();
+                }
+            }
+            if (!e.target.closest('#doc-sort-dropdown-wrapper')) {
+                if (this.isSortDropdownOpen) {
+                    this.isSortDropdownOpen = false;
+                    this.renderSortDropdown();
                 }
             }
         });
@@ -451,15 +454,68 @@ class DocumentHub {
         this.renderDocumentsList();
     }
 
+    getSortOptions() {
+        return [
+            { value: 'date-desc', label: 'Mới nhất trước', icon: 'clock' },
+            { value: 'date-asc', label: 'Cũ nhất trước', icon: 'history' },
+            { value: 'title-asc', label: 'Tên (A ➔ Z)', icon: 'arrow-down-a-z' },
+            { value: 'title-desc', label: 'Tên (Z ➔ A)', icon: 'arrow-up-z-a' }
+        ];
+    }
+
+    renderSortDropdown() {
+        const wrapper = document.getElementById('doc-sort-dropdown-wrapper');
+        if (!wrapper) return;
+
+        const options = this.getSortOptions();
+        const activeObj = options.find(o => o.value === this.sortBy) || options[0];
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="doc-sort-select" value="${this.sortBy}">
+            <button type="button" onclick="window.documentHub.toggleSortDropdown(event)"
+                class="w-full sm:w-auto flex items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all min-w-[165px] focus:outline-none">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${activeObj.icon}" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span class="truncate">${activeObj.label}</span>
+                </div>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${this.isSortDropdownOpen ? 'rotate-180' : ''}"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isSortDropdownOpen ? '' : 'hidden'} absolute right-0 top-full mt-1.5 w-52 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                ${options.map(opt => {
+                    const isSelected = opt.value === this.sortBy;
+                    return `
+                        <button type="button" onclick="window.documentHub.setSortBy('${opt.value}')"
+                            class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${opt.label}</span>
+                            </span>
+                            ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleSortDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isSortDropdownOpen = !this.isSortDropdownOpen;
+        this.renderSortDropdown();
+    }
+
     setSortBy(sortKey) {
         this.sortBy = sortKey;
+        this.isSortDropdownOpen = false;
         localStorage.setItem('etron_doc_sort_by', sortKey);
 
-        const sortSelect = document.getElementById('doc-sort-select');
-        if (sortSelect && sortSelect.value !== sortKey) {
-            sortSelect.value = sortKey;
-        }
-
+        this.renderSortDropdown();
         this.renderDocumentsList();
     }
 
@@ -1134,7 +1190,7 @@ class DocumentHub {
             </button>
 
             <!-- Dropdown Menu -->
-            <div class="${this.isModalCatDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto">
+            <div class="${this.isModalCatDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto no-scrollbar">
                 ${categories.map(cat => {
                     const isSelected = (cat.name === currentName);
                     return `

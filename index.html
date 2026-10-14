@@ -30,7 +30,7 @@
     <!-- html2pdf.js (Local) -->
     <script src="js/html2pdf.bundle.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261014_v55">
+    <link rel="stylesheet" href="css/styles.css?v=20261014_v60">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -244,7 +244,7 @@
                     </div>
 
                     <!-- Table of items -->
-                    <div class="qb-items-wrap overflow-x-auto -mx-6 px-6">
+                    <div class="qb-items-wrap overflow-visible -mx-6 px-6">
                         <table class="qb-items-table w-full text-left border-collapse">
                             <thead>
                                 <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase bg-slate-50">
@@ -281,12 +281,9 @@
                         <div class="flex items-center justify-between w-full max-w-sm">
                             <div class="flex items-center gap-2">
                                 <span class="text-slate-600 font-medium">Thuế GTGT (VAT):</span>
-                                <select id="qb-vatRate" class="p-1 font-semibold text-slate-700 border border-slate-200 rounded-lg bg-white text-xs">
-                                    <option value="0">0% (Không thuế)</option>
-                                    <option value="5">5%</option>
-                                    <option value="8" selected>8% (Mặc định Etron)</option>
-                                    <option value="10">10%</option>
-                                </select>
+                                <div id="qb-vat-dropdown-wrapper" class="relative">
+                                    <input type="hidden" id="qb-vatRate" value="8">
+                                </div>
                             </div>
                             <span id="qb-display-vat" class="font-bold text-slate-900 text-sm">0 ₫</span>
                         </div>
@@ -479,17 +476,9 @@
 
                     <!-- Right Controls: Sort Selector + View Mode Switcher -->
                     <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-                        <!-- Sort Dropdown -->
-                        <div class="flex items-center gap-1.5 bg-slate-100/90 border border-slate-200 px-2.5 py-1.5 rounded-xl text-xs">
-                            <i data-lucide="arrow-down-up" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
-                            <span class="text-slate-500 text-[11px] font-medium hidden md:inline">Sắp xếp:</span>
-                            <select id="doc-sort-select" onchange="window.documentHub.setSortBy(this.value)"
-                                class="bg-transparent border-none text-xs font-bold text-slate-700 focus:outline-none cursor-pointer pr-1">
-                                <option value="date-desc">Mới nhất trước</option>
-                                <option value="date-asc">Cũ nhất trước</option>
-                                <option value="title-asc">Tên (A ➔ Z)</option>
-                                <option value="title-desc">Tên (Z ➔ A)</option>
-                            </select>
+                        <!-- Sort Dropdown (Unified Rounded Popover Style) -->
+                        <div id="doc-sort-dropdown-wrapper" class="relative shrink-0">
+                            <input type="hidden" id="doc-sort-select" value="date-desc">
                         </div>
 
                         <!-- View Mode Switcher -->
@@ -1304,10 +1293,9 @@
 
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ngành Nghề <span class="text-rose-500">*</span></label>
-                        <select id="cb-tpl-industry" required
-                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
-                            <!-- Populated dynamically -->
-                        </select>
+                        <div id="cb-tpl-ind-dropdown-wrapper" class="relative w-full">
+                            <input type="hidden" id="cb-tpl-industry" value="">
+                        </div>
                     </div>
 
                     <div class="sm:col-span-2">
@@ -1377,19 +1365,16 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Ngành Nghề <span class="text-rose-500">*</span></label>
-                        <select id="cb-med-industry" required
-                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white">
-                            <!-- Populated dynamically -->
-                        </select>
+                        <div id="cb-med-ind-dropdown-wrapper" class="relative w-full">
+                            <input type="hidden" id="cb-med-industry" value="">
+                        </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Định Dạng Media <span class="text-rose-500">*</span></label>
-                        <select id="cb-med-type" required
-                            class="w-full text-xs p-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-white font-bold text-indigo-700">
-                            <option value="audio">🎵 Audio (MP3, WAV, Giọng đọc)</option>
-                            <option value="video">🎬 Video (MP4, YouTube, Demo)</option>
-                        </select>
+                        <div id="cb-med-type-dropdown-wrapper" class="relative w-full">
+                            <input type="hidden" id="cb-med-type" value="audio">
+                        </div>
                     </div>
                 </div>
 
@@ -1525,7 +1510,7 @@
             </div>
 
             <!-- Form Thêm / Cập nhật Ngành Nghề Mới (Bố cục 2 hàng rộng rãi, không bị đè hay cắt nút) -->
-            <div class="p-4 border-b border-slate-200 bg-white shrink-0">
+            <div class="p-4 border-b border-slate-200 bg-white shrink-0 relative z-20">
                 <form id="cb-ind-quick-form" onsubmit="window.callbotHub.handleSaveIndustryFromManager(event)" class="space-y-2.5">
                     <input type="hidden" id="cb-mgr-ind-id" value="">
                     <div class="flex items-center justify-between">
@@ -1535,18 +1520,8 @@
 
                     <!-- Hàng 1: Icon Selector + Tên ngành nghề -->
                     <div class="flex items-center gap-2">
-                        <div class="relative shrink-0">
-                            <select id="cb-mgr-ind-icon" class="h-9 px-2 text-xs border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-medium">
-                                <option value="building-2">🏢 BĐS</option>
-                                <option value="smile">🙂 Nha khoa</option>
-                                <option value="graduation-cap">🎓 Giáo dục</option>
-                                <option value="cpu">💻 Phần mềm</option>
-                                <option value="heart-pulse">❤️ Y tế</option>
-                                <option value="shopping-bag">🛍️ Bán lẻ</option>
-                                <option value="car">🚗 Vận tải</option>
-                                <option value="phone-call">📞 CSKH</option>
-                                <option value="layers">📑 Khác</option>
-                            </select>
+                        <div id="cb-mgr-ind-icon-wrapper" class="relative shrink-0">
+                            <input type="hidden" id="cb-mgr-ind-icon" value="building-2">
                         </div>
                         <input type="text" id="cb-mgr-ind-name" required placeholder="Tên ngành nghề (VD: Bất Động Sản...)"
                             class="flex-1 min-w-0 text-xs px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
@@ -1598,18 +1573,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261014_v59"></script>
+    <script src="js/firebase-config.js?v=20261014_v60"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261014_v59"></script>
-    <script src="js/callbot-data.js?v=20261014_v59"></script>
-    <script src="js/number-to-words.js?v=20261014_v59"></script>
-    <script src="js/store.js?v=20261014_v59"></script>
-    <script src="js/quote-builder.js?v=20261014_v59"></script>
-    <script src="js/document-hub.js?v=20261014_v59"></script>
-    <script src="js/callbot-hub.js?v=20261014_v59"></script>
-    <script src="js/product-catalog.js?v=20261014_v59"></script>
-    <script src="js/pdf-export.js?v=20261014_v59"></script>
-    <script src="js/app.js?v=20261014_v59"></script>
+    <script src="js/logo-data.js?v=20261014_v60"></script>
+    <script src="js/callbot-data.js?v=20261014_v60"></script>
+    <script src="js/number-to-words.js?v=20261014_v60"></script>
+    <script src="js/store.js?v=20261014_v60"></script>
+    <script src="js/quote-builder.js?v=20261014_v60"></script>
+    <script src="js/document-hub.js?v=20261014_v60"></script>
+    <script src="js/callbot-hub.js?v=20261014_v60"></script>
+    <script src="js/product-catalog.js?v=20261014_v60"></script>
+    <script src="js/pdf-export.js?v=20261014_v60"></script>
+    <script src="js/app.js?v=20261014_v60"></script>
 </body>
 </html>

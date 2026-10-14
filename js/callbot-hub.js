@@ -15,6 +15,14 @@ class CallbotHub {
         this.mediaSearchQuery = '';
         this.isTplDropdownOpen = false;
         this.isMedDropdownOpen = false;
+        this.isModalTplIndDropdownOpen = false;
+        this.selectedModalTplIndustry = '';
+        this.isModalMedIndDropdownOpen = false;
+        this.selectedModalMedIndustry = '';
+        this.isModalMedTypeDropdownOpen = false;
+        this.selectedModalMedType = 'audio';
+        this.isMgrIconDropdownOpen = false;
+        this.selectedMgrIcon = 'building-2';
         this.isSectionAOpen = true;
         this.isSectionBOpen = true;
     }
@@ -57,6 +65,30 @@ class CallbotHub {
                 if (this.isMedDropdownOpen) {
                     this.isMedDropdownOpen = false;
                     this.renderMediaDropdown();
+                }
+            }
+            if (!e.target.closest('#cb-tpl-ind-dropdown-wrapper')) {
+                if (this.isModalTplIndDropdownOpen) {
+                    this.isModalTplIndDropdownOpen = false;
+                    this.updateIndustrySelectOptions();
+                }
+            }
+            if (!e.target.closest('#cb-med-ind-dropdown-wrapper')) {
+                if (this.isModalMedIndDropdownOpen) {
+                    this.isModalMedIndDropdownOpen = false;
+                    this.updateMediaIndustrySelectOptions();
+                }
+            }
+            if (!e.target.closest('#cb-med-type-dropdown-wrapper')) {
+                if (this.isModalMedTypeDropdownOpen) {
+                    this.isModalMedTypeDropdownOpen = false;
+                    this.renderMediaTypeDropdown();
+                }
+            }
+            if (!e.target.closest('#cb-mgr-ind-icon-wrapper')) {
+                if (this.isMgrIconDropdownOpen) {
+                    this.isMgrIconDropdownOpen = false;
+                    this.renderMgrIndustryIconDropdown();
                 }
             }
         });
@@ -826,7 +858,7 @@ class CallbotHub {
             </button>
 
             <!-- Dropdown Menu -->
-            <div class="${this.isTplDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 sm:right-auto sm:w-72 top-full mt-1.5 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-72 overflow-y-auto">
+            <div class="${this.isTplDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 sm:right-auto sm:w-72 top-full mt-1.5 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-72 overflow-y-auto no-scrollbar">
                 <!-- Option: Tất cả ngành nghề -->
                 <button type="button" onclick="window.callbotHub.selectTemplateIndustry('all')"
                     class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${this.templateFilter === 'all' ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
@@ -1095,7 +1127,7 @@ class CallbotHub {
             </button>
 
             <!-- Dropdown Menu -->
-            <div class="${this.isMedDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 sm:right-auto sm:w-72 top-full mt-1.5 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-72 overflow-y-auto">
+            <div class="${this.isMedDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 sm:right-auto sm:w-72 top-full mt-1.5 z-40 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-72 overflow-y-auto no-scrollbar">
                 <!-- Option: Tất cả ngành nghề -->
                 <button type="button" onclick="window.callbotHub.selectMediaIndustry('all')"
                     class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${this.mediaIndustryFilter === 'all' ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
@@ -1152,8 +1184,12 @@ class CallbotHub {
     openIndustryManagerFromDropdown(tab) {
         this.isTplDropdownOpen = false;
         this.isMedDropdownOpen = false;
+        this.isModalTplIndDropdownOpen = false;
+        this.isModalMedIndDropdownOpen = false;
         this.renderTemplateDropdown();
         this.renderMediaDropdown();
+        this.updateIndustrySelectOptions();
+        this.updateMediaIndustrySelectOptions();
         this.openIndustryManagerModal();
     }
 
@@ -1170,7 +1206,13 @@ class CallbotHub {
         document.getElementById('cb-med-id').value = '';
         document.getElementById('cb-med-modal-title').textContent = 'Thêm Audio / Video Demo Mới';
 
+        this.isModalMedIndDropdownOpen = false;
+        this.isModalMedTypeDropdownOpen = false;
+        this.selectedModalMedIndustry = '';
+        this.selectedModalMedType = 'audio';
         this.updateMediaIndustrySelectOptions();
+        this.renderMediaTypeDropdown('audio');
+
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
@@ -1186,28 +1228,167 @@ class CallbotHub {
         const form = document.getElementById('cb-med-form');
         if (form) form.reset();
 
-        this.updateMediaIndustrySelectOptions();
+        this.isModalMedIndDropdownOpen = false;
+        this.isModalMedTypeDropdownOpen = false;
 
         document.getElementById('cb-med-id').value = item.id;
         document.getElementById('cb-med-title').value = item.title || '';
-        document.getElementById('cb-med-industry').value = item.industry || '';
-        document.getElementById('cb-med-type').value = item.type || 'audio';
         document.getElementById('cb-med-url').value = item.mediaUrl || '';
         document.getElementById('cb-med-filename').value = item.fileName || '';
+
+        this.updateMediaIndustrySelectOptions(item.industry || '');
+        this.renderMediaTypeDropdown(item.type || 'audio');
 
         document.getElementById('cb-med-modal-title').textContent = 'Chỉnh Sửa Audio / Video Demo';
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
 
-    updateMediaIndustrySelectOptions() {
-        const sel = document.getElementById('cb-med-industry');
-        if (!sel) return;
+    updateMediaIndustrySelectOptions(selectedIndId = null) {
+        const wrapper = document.getElementById('cb-med-ind-dropdown-wrapper');
+        if (!wrapper) return;
 
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
-        sel.innerHTML = industries.map(ind => `
-            <option value="${ind.id}">${this.escapeHtml(ind.name)}</option>
-        `).join('');
+        const mediaList = window.salesStore.getCallbotMedia();
+
+        if (selectedIndId) {
+            this.selectedModalMedIndustry = selectedIndId;
+        } else if (!this.selectedModalMedIndustry || !industries.some(i => i.id === this.selectedModalMedIndustry)) {
+            const hiddenVal = document.getElementById('cb-med-industry')?.value;
+            if (hiddenVal && industries.some(i => i.id === hiddenVal)) {
+                this.selectedModalMedIndustry = hiddenVal;
+            } else {
+                this.selectedModalMedIndustry = industries[0]?.id || '';
+            }
+        }
+
+        const currentInd = industries.find(i => i.id === this.selectedModalMedIndustry) || industries[0] || { id: '', name: 'Chưa có ngành nghề', icon: 'layers' };
+        const currentIcon = currentInd.icon || 'layers';
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="cb-med-industry" value="${this.escapeHtml(currentInd.id)}">
+            <button type="button" onclick="window.callbotHub.toggleModalMediaIndustryDropdown(event)"
+                class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${currentIcon}" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span class="truncate">${this.escapeHtml(currentInd.name)}</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${this.isModalMedIndDropdownOpen ? 'rotate-180' : ''}"></i>
+                </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isModalMedIndDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-56 overflow-y-auto no-scrollbar">
+                ${industries.map(ind => {
+                    const isSelected = ind.id === currentInd.id;
+                    const count = mediaList.filter(m => m.industry === ind.id).length;
+                    return `
+                        <button type="button" onclick="window.callbotHub.selectModalMediaIndustry('${this.escapeJs(ind.id)}')"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${ind.icon || 'layers'}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${this.escapeHtml(ind.name)}</span>
+                            </span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-slate-100 text-slate-500 font-mono'}">${count}</span>
+                        </button>
+                    `;
+                }).join('')}
+
+                <div class="border-t border-slate-100 my-1 pt-1"></div>
+                <button type="button" onclick="window.callbotHub.openIndustryManagerFromDropdown('media-modal')"
+                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 transition-colors">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-indigo-600"></i>
+                        <span>Quản lý ngành nghề...</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-indigo-400"></i>
+                </button>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleModalMediaIndustryDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isModalMedTypeDropdownOpen = false;
+        this.isModalMedIndDropdownOpen = !this.isModalMedIndDropdownOpen;
+        this.renderMediaTypeDropdown();
+        this.updateMediaIndustrySelectOptions();
+    }
+
+    selectModalMediaIndustry(indId) {
+        this.selectedModalMedIndustry = indId;
+        this.isModalMedIndDropdownOpen = false;
+        this.updateMediaIndustrySelectOptions(indId);
+    }
+
+    renderMediaTypeDropdown(selectedType = null) {
+        const wrapper = document.getElementById('cb-med-type-dropdown-wrapper');
+        if (!wrapper) return;
+
+        if (selectedType) {
+            this.selectedModalMedType = selectedType;
+        } else if (!this.selectedModalMedType) {
+            const hiddenVal = document.getElementById('cb-med-type')?.value;
+            this.selectedModalMedType = hiddenVal || 'audio';
+        }
+
+        const options = [
+            { value: 'audio', label: 'Audio (MP3, WAV, Giọng đọc)', icon: 'music', badge: 'MP3/WAV' },
+            { value: 'video', label: 'Video (MP4, YouTube, Demo)', icon: 'video', badge: 'MP4/Link' }
+        ];
+        const currentOpt = options.find(o => o.value === this.selectedModalMedType) || options[0];
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="cb-med-type" value="${currentOpt.value}">
+            <button type="button" onclick="window.callbotHub.toggleModalMediaTypeDropdown(event)"
+                class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${currentOpt.icon}" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span class="truncate">${this.escapeHtml(currentOpt.label)}</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${this.isModalMedTypeDropdownOpen ? 'rotate-180' : ''}"></i>
+                </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isModalMedTypeDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                ${options.map(opt => {
+                    const isSelected = opt.value === currentOpt.value;
+                    return `
+                        <button type="button" onclick="window.callbotHub.selectModalMediaType('${opt.value}')"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${this.escapeHtml(opt.label)}</span>
+                            </span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-slate-100 text-slate-500 font-mono'}">${opt.badge}</span>
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleModalMediaTypeDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isModalMedIndDropdownOpen = false;
+        this.isModalMedTypeDropdownOpen = !this.isModalMedTypeDropdownOpen;
+        this.updateMediaIndustrySelectOptions();
+        this.renderMediaTypeDropdown();
+    }
+
+    selectModalMediaType(type) {
+        this.selectedModalMedType = type;
+        this.isModalMedTypeDropdownOpen = false;
+        this.renderMediaTypeDropdown(type);
     }
 
     saveMediaFromModal(e) {
@@ -1284,6 +1465,8 @@ class CallbotHub {
         if (botInput) botInput.value = '';
         document.getElementById('cb-tpl-modal-title').textContent = 'Thêm Kịch Bản Mẫu Mới';
 
+        this.isModalTplIndDropdownOpen = false;
+        this.selectedModalTplIndustry = '';
         this.updateIndustrySelectOptions();
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
@@ -1300,29 +1483,99 @@ class CallbotHub {
         const form = document.getElementById('cb-tpl-form');
         if (form) form.reset();
 
-        this.updateIndustrySelectOptions();
+        this.isModalTplIndDropdownOpen = false;
 
         document.getElementById('cb-tpl-id').value = tpl.id;
         document.getElementById('cb-tpl-title').value = tpl.title || '';
-        document.getElementById('cb-tpl-industry').value = tpl.industry || '';
         document.getElementById('cb-tpl-url').value = tpl.scriptUrl || '';
         document.getElementById('cb-tpl-filename').value = tpl.scriptFileName || '';
         const botInput = document.getElementById('cb-tpl-boturl');
         if (botInput) botInput.value = tpl.botUrl || '';
+
+        this.updateIndustrySelectOptions(tpl.industry || '');
 
         document.getElementById('cb-tpl-modal-title').textContent = 'Chỉnh Sửa Kịch Bản Mẫu';
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
 
-    updateIndustrySelectOptions() {
-        const sel = document.getElementById('cb-tpl-industry');
-        if (!sel) return;
+    updateIndustrySelectOptions(selectedIndId = null) {
+        const wrapper = document.getElementById('cb-tpl-ind-dropdown-wrapper');
+        if (!wrapper) return;
 
         const industries = (window.salesStore.getCallbotKeywords().industries || []);
-        sel.innerHTML = industries.map(ind => `
-            <option value="${ind.id}">${this.escapeHtml(ind.name)}</option>
-        `).join('');
+        const templates = window.salesStore.getCallbotTemplates();
+
+        if (selectedIndId) {
+            this.selectedModalTplIndustry = selectedIndId;
+        } else if (!this.selectedModalTplIndustry || !industries.some(i => i.id === this.selectedModalTplIndustry)) {
+            const hiddenVal = document.getElementById('cb-tpl-industry')?.value;
+            if (hiddenVal && industries.some(i => i.id === hiddenVal)) {
+                this.selectedModalTplIndustry = hiddenVal;
+            } else {
+                this.selectedModalTplIndustry = industries[0]?.id || '';
+            }
+        }
+
+        const currentInd = industries.find(i => i.id === this.selectedModalTplIndustry) || industries[0] || { id: '', name: 'Chưa có ngành nghề', icon: 'layers' };
+        const currentIcon = currentInd.icon || 'layers';
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="cb-tpl-industry" value="${this.escapeHtml(currentInd.id)}">
+            <button type="button" onclick="window.callbotHub.toggleModalTplIndustryDropdown(event)"
+                class="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${currentIcon}" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span class="truncate">${this.escapeHtml(currentInd.name)}</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${this.isModalTplIndDropdownOpen ? 'rotate-180' : ''}"></i>
+                </div>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isModalTplIndDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-56 overflow-y-auto no-scrollbar">
+                ${industries.map(ind => {
+                    const isSelected = ind.id === currentInd.id;
+                    const count = templates.filter(t => t.industry === ind.id).length;
+                    return `
+                        <button type="button" onclick="window.callbotHub.selectModalTplIndustry('${this.escapeJs(ind.id)}')"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${ind.icon || 'layers'}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${this.escapeHtml(ind.name)}</span>
+                            </span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? 'bg-indigo-100 text-indigo-700 font-bold' : 'bg-slate-100 text-slate-500 font-mono'}">${count}</span>
+                        </button>
+                    `;
+                }).join('')}
+
+                <div class="border-t border-slate-100 my-1 pt-1"></div>
+                <button type="button" onclick="window.callbotHub.openIndustryManagerFromDropdown('tpl-modal')"
+                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-bold text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100 transition-colors">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-indigo-600"></i>
+                        <span>Quản lý ngành nghề...</span>
+                    </span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-indigo-400"></i>
+                </button>
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleModalTplIndustryDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isModalTplIndDropdownOpen = !this.isModalTplIndDropdownOpen;
+        this.updateIndustrySelectOptions();
+    }
+
+    selectModalTplIndustry(indId) {
+        this.selectedModalTplIndustry = indId;
+        this.isModalTplIndDropdownOpen = false;
+        this.updateIndustrySelectOptions(indId);
     }
 
     saveTemplateFromModal(e) {
@@ -1729,6 +1982,7 @@ class CallbotHub {
         const modal = document.getElementById('modal-callbot-industry-manager');
         if (!modal) return;
 
+        this.isMgrIconDropdownOpen = false;
         this.cancelEditIndustryInManager();
         this.renderIndustryManagerList();
         modal.classList.remove('hidden');
@@ -1736,8 +1990,84 @@ class CallbotHub {
     }
 
     closeIndustryManagerModal() {
+        this.isMgrIconDropdownOpen = false;
         const modal = document.getElementById('modal-callbot-industry-manager');
         if (modal) modal.classList.add('hidden');
+        this.updateIndustrySelectOptions();
+        this.updateMediaIndustrySelectOptions();
+    }
+
+    getCuratedIndustryIcons() {
+        return [
+            { value: 'building-2', label: 'BĐS' },
+            { value: 'smile', label: 'Nha khoa' },
+            { value: 'graduation-cap', label: 'Giáo dục' },
+            { value: 'cpu', label: 'Phần mềm' },
+            { value: 'heart-pulse', label: 'Y tế' },
+            { value: 'shopping-bag', label: 'Bán lẻ' },
+            { value: 'car', label: 'Vận tải' },
+            { value: 'phone-call', label: 'CSKH' },
+            { value: 'layers', label: 'Khác' }
+        ];
+    }
+
+    renderMgrIndustryIconDropdown(selectedIcon = null) {
+        const wrapper = document.getElementById('cb-mgr-ind-icon-wrapper');
+        if (!wrapper) return;
+
+        const icons = this.getCuratedIndustryIcons();
+        if (selectedIcon) {
+            this.selectedMgrIcon = selectedIcon;
+        } else if (!this.selectedMgrIcon) {
+            const hiddenVal = document.getElementById('cb-mgr-ind-icon')?.value;
+            this.selectedMgrIcon = hiddenVal || 'building-2';
+        }
+
+        const currentOpt = icons.find(i => i.value === this.selectedMgrIcon) || icons[0];
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="cb-mgr-ind-icon" value="${this.escapeHtml(currentOpt.value)}">
+            <button type="button" onclick="window.callbotHub.toggleMgrIconDropdown(event)"
+                class="h-9 flex items-center justify-between gap-2 px-2.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                <span class="flex items-center gap-1.5">
+                    <span class="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${currentOpt.value}" class="w-3.5 h-3.5"></i>
+                    </span>
+                    <span class="whitespace-nowrap">${this.escapeHtml(currentOpt.label)}</span>
+                </span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${this.isMgrIconDropdownOpen ? 'rotate-180' : ''}"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isMgrIconDropdownOpen ? '' : 'hidden'} absolute left-0 w-44 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100 max-h-60 overflow-y-auto no-scrollbar">
+                ${icons.map(opt => {
+                    const isSelected = opt.value === currentOpt.value;
+                    return `
+                        <button type="button" onclick="window.callbotHub.selectMgrIcon('${opt.value}')"
+                            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${opt.value}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${this.escapeHtml(opt.label)}</span>
+                            </span>
+                            ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleMgrIconDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isMgrIconDropdownOpen = !this.isMgrIconDropdownOpen;
+        this.renderMgrIndustryIconDropdown();
+    }
+
+    selectMgrIcon(iconVal) {
+        this.selectedMgrIcon = iconVal;
+        this.isMgrIconDropdownOpen = false;
+        this.renderMgrIndustryIconDropdown(iconVal);
     }
 
     renderIndustryManagerList() {
@@ -1796,7 +2126,6 @@ class CallbotHub {
         const idInput = document.getElementById('cb-mgr-ind-id');
         const nameInput = document.getElementById('cb-mgr-ind-name');
         const descInput = document.getElementById('cb-mgr-ind-desc');
-        const iconInput = document.getElementById('cb-mgr-ind-icon');
         const formTitle = document.getElementById('cb-mgr-form-title');
         const submitBtn = document.getElementById('cb-mgr-submit-btn');
         const cancelBtn = document.getElementById('cb-mgr-cancel-edit-btn');
@@ -1804,7 +2133,8 @@ class CallbotHub {
         if (idInput) idInput.value = ind.id;
         if (nameInput) nameInput.value = ind.name || '';
         if (descInput) descInput.value = ind.description || '';
-        if (iconInput) iconInput.value = ind.icon || 'layers';
+        this.isMgrIconDropdownOpen = false;
+        this.renderMgrIndustryIconDropdown(ind.icon || 'layers');
         if (formTitle) formTitle.textContent = `Chỉnh sửa: ${ind.name}`;
         if (submitBtn) {
             submitBtn.innerHTML = `<i id="cb-mgr-submit-icon" data-lucide="check" class="w-4 h-4"></i><span id="cb-mgr-submit-text">Cập nhật</span>`;
@@ -1825,6 +2155,8 @@ class CallbotHub {
         const cancelBtn = document.getElementById('cb-mgr-cancel-edit-btn');
 
         if (idInput) idInput.value = '';
+        this.isMgrIconDropdownOpen = false;
+        this.renderMgrIndustryIconDropdown('building-2');
         if (formTitle) formTitle.textContent = 'Thêm ngành nghề mới';
         if (submitBtn) {
             submitBtn.innerHTML = `<i id="cb-mgr-submit-icon" data-lucide="plus" class="w-4 h-4"></i><span id="cb-mgr-submit-text">Thêm</span>`;
@@ -1848,6 +2180,7 @@ class CallbotHub {
 
         const data = window.salesStore.getCallbotKeywords();
         if (!data.industries) data.industries = [];
+        let activeIndId = id;
 
         if (id) {
             const idx = data.industries.findIndex(i => i.id === id);
@@ -1894,6 +2227,7 @@ class CallbotHub {
             window.salesApp.showNotification(`Đã cập nhật ngành nghề "${name}"!`, 'success');
         } else {
             const newId = 'ind-' + Date.now();
+            activeIndId = newId;
             data.industries.push({
                 id: newId,
                 name,
@@ -1908,6 +2242,8 @@ class CallbotHub {
 
         this.cancelEditIndustryInManager();
         this.renderIndustryManagerList();
+        this.updateIndustrySelectOptions(activeIndId);
+        this.updateMediaIndustrySelectOptions(activeIndId);
         this.render();
     }
 
@@ -1929,6 +2265,8 @@ class CallbotHub {
             window.salesStore.saveCallbotKeywords(data);
             this.cancelEditIndustryInManager();
             this.renderIndustryManagerList();
+            this.updateIndustrySelectOptions();
+            this.updateMediaIndustrySelectOptions();
             this.render();
             window.salesApp.showNotification(`Đã xóa ngành nghề "${ind.name}"!`, 'info');
         }

@@ -99,6 +99,23 @@ class QuoteBuilder {
         this.currentQuote = this.getInitialQuote();
         this.selectedProductIds = new Set();
         this.previewScale = 1;
+        this.isVatDropdownOpen = false;
+        this.openCbNumTypeIdx = null;
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#qb-vat-dropdown-wrapper')) {
+                if (this.isVatDropdownOpen) {
+                    this.isVatDropdownOpen = false;
+                    this.renderVatDropdown();
+                }
+            }
+            if (!e.target.closest('[data-cb-numtype-wrapper]')) {
+                if (this.openCbNumTypeIdx !== null) {
+                    this.openCbNumTypeIdx = null;
+                    this.renderItemsList();
+                }
+            }
+        });
     }
 
     isCallbotItem(item) {
@@ -1476,8 +1493,7 @@ class QuoteBuilder {
         const discEl = document.getElementById('qb-overallDiscount');
         if (discEl) discEl.value = q.overallDiscountPercent || 0;
 
-        const vatEl = document.getElementById('qb-vatRate');
-        if (vatEl) vatEl.value = q.vatRate !== undefined ? q.vatRate : 8;
+        this.renderVatDropdown();
 
         const pkgEl = document.getElementById('qb-packageDetails');
         if (pkgEl) pkgEl.value = (q.packageDetails || []).join('\n');
@@ -1488,6 +1504,93 @@ class QuoteBuilder {
         this.renderItemsList();
         this.renderTotalsDisplay();
         this.updateFloatingDock();
+    }
+
+    getVatOptions() {
+        return [
+            { value: 0, label: '0% (Không thuế)', icon: 'percent' },
+            { value: 5, label: '5%', icon: 'percent' },
+            { value: 8, label: '8% (Mặc định Etron)', icon: 'badge-percent' },
+            { value: 10, label: '10%', icon: 'percent' }
+        ];
+    }
+
+    renderVatDropdown() {
+        const wrapper = document.getElementById('qb-vat-dropdown-wrapper');
+        if (!wrapper) return;
+
+        const currentVat = this.currentQuote?.vatRate !== undefined ? Number(this.currentQuote.vatRate) : 8;
+        const options = this.getVatOptions();
+        const activeObj = options.find(o => o.value === currentVat) || options[2];
+
+        wrapper.innerHTML = `
+            <input type="hidden" id="qb-vatRate" value="${currentVat}">
+            <button type="button" onclick="window.quoteBuilder.toggleVatDropdown(event)"
+                class="w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                <div class="flex items-center gap-2 truncate">
+                    <div class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="${activeObj.icon}" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <span class="truncate">${activeObj.label}</span>
+                </div>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${this.isVatDropdownOpen ? 'rotate-180' : ''}"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="${this.isVatDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                ${options.map(opt => {
+                    const isSelected = opt.value === currentVat;
+                    return `
+                        <button type="button" onclick="window.quoteBuilder.selectVatRate(${opt.value})"
+                            class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                            <span class="flex items-center gap-2 truncate">
+                                <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                <span class="truncate">${opt.label}</span>
+                            </span>
+                            ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleVatDropdown(e) {
+        if (e) e.stopPropagation();
+        this.isVatDropdownOpen = !this.isVatDropdownOpen;
+        this.renderVatDropdown();
+    }
+
+    selectVatRate(rate) {
+        this.currentQuote.vatRate = Number(rate);
+        this.isVatDropdownOpen = false;
+        this.renderVatDropdown();
+        this.syncTermsWithItems();
+        this.recalculate();
+        this.renderPreview();
+    }
+
+    getCallbotNumberTypeOptions() {
+        return [
+            { value: 'chung_codinh', label: 'Số chung cố định (Kho Etron - Mặc định, 70đ/block)', icon: 'phone-call' },
+            { value: 'rieng_didong', label: 'Số riêng di động (80đ/block 6s)', icon: 'smartphone' },
+            { value: 'rieng_codinh', label: 'Số riêng cố định (70đ/block 6s)', icon: 'phone' },
+            { value: 'brandname', label: 'Brandname (70đ/block 6s, gọi nội mạng)', icon: 'award' },
+            { value: 'so_ngoai', label: 'Số tự chuẩn bị (0đ/block, khách tự trả nhà mạng)', icon: 'plug-zap' }
+        ];
+    }
+
+    toggleCbNumTypeDropdown(idx, e) {
+        if (e) e.stopPropagation();
+        this.openCbNumTypeIdx = (this.openCbNumTypeIdx === idx) ? null : idx;
+        this.renderItemsList();
+    }
+
+    selectCbNumType(idx, numType) {
+        this.openCbNumTypeIdx = null;
+        this.setCallbotNumberType(idx, numType);
     }
 
     renderItemsList() {
@@ -1586,7 +1689,12 @@ class QuoteBuilder {
                 </td>
             </tr>
 
-            ${isCallbot ? `
+            ${isCallbot ? (() => {
+                const cbNumOptions = this.getCallbotNumberTypeOptions();
+                const currentNumType = item.numberType || 'chung_codinh';
+                const activeNumObj = cbNumOptions.find(o => o.value === currentNumType) || cbNumOptions[0];
+                const isNumOpen = this.openCbNumTypeIdx === idx;
+                return `
             <tr class="border-b border-slate-200 bg-amber-50/20" data-callbot-row="${idx}">
                 <td colspan="7" class="px-3 pb-3 pt-1">
                     <div class="p-3 bg-amber-50/60 border border-amber-200/80 rounded-xl w-full">
@@ -1625,31 +1733,42 @@ class QuoteBuilder {
                             </div>
 
                             <div class="flex items-center gap-2">
-                                <span class="text-xs font-bold text-amber-950 flex items-center gap-1">
+                                <span class="text-xs font-bold text-amber-950 flex items-center gap-1 shrink-0">
                                     <i data-lucide="phone-call" class="w-3.5 h-3.5 text-amber-700"></i>
                                     Đầu số gọi:
                                 </span>
-                                <select onchange="window.quoteBuilder.setCallbotNumberType(${idx}, this.value)"
-                                    class="text-xs font-semibold text-slate-800 bg-white border border-amber-200 rounded-lg py-1 px-2.5 focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
-                                    <option value="chung_codinh" ${(item.numberType === 'chung_codinh' || !item.numberType) ? 'selected' : ''}>
-                                        Số chung cố định (Kho Etron - Mặc định, 70đ/block)
-                                    </option>
-                                    <option value="rieng_didong" ${item.numberType === 'rieng_didong' ? 'selected' : ''}>
-                                        Số riêng di động (80đ/block 6s)
-                                    </option>
-                                    <option value="rieng_codinh" ${item.numberType === 'rieng_codinh' ? 'selected' : ''}>
-                                        Số riêng cố định (70đ/block 6s)
-                                    </option>
-                                    <option value="brandname" ${item.numberType === 'brandname' ? 'selected' : ''}>
-                                        Brandname (70đ/block 6s, gọi nội mạng)
-                                    </option>
-                                    <option value="so_ngoai" ${item.numberType === 'so_ngoai' ? 'selected' : ''}>
-                                        Số tự chuẩn bị (0đ/block, khách tự trả nhà mạng)
-                                    </option>
-                                </select>
+                                <div class="relative min-w-[260px]" data-cb-numtype-wrapper="${idx}">
+                                    <button type="button" onclick="window.quoteBuilder.toggleCbNumTypeDropdown(${idx}, event)"
+                                        class="w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs hover:border-indigo-300 transition-all focus:outline-none">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <div class="w-5 h-5 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                                                <i data-lucide="${activeNumObj.icon}" class="w-3 h-3"></i>
+                                            </div>
+                                            <span class="truncate">${activeNumObj.label}</span>
+                                        </div>
+                                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform duration-200 ${isNumOpen ? 'rotate-180' : ''}"></i>
+                                    </button>
+
+                                    <div class="${isNumOpen ? '' : 'hidden'} absolute right-0 left-0 sm:left-auto sm:w-80 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                                        ${cbNumOptions.map(opt => {
+                                            const isSelected = opt.value === currentNumType;
+                                            return `
+                                                <button type="button" onclick="window.quoteBuilder.selectCbNumType(${idx}, '${opt.value}')"
+                                                    class="w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs transition-colors text-left ${isSelected ? 'bg-indigo-50 text-indigo-800 font-bold' : 'text-slate-700 hover:bg-slate-100 font-medium'}">
+                                                    <span class="flex items-center gap-2 truncate">
+                                                        <i data-lucide="${opt.icon}" class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-indigo-600' : 'text-slate-400'}"></i>
+                                                        <span class="truncate">${opt.label}</span>
+                                                    </span>
+                                                    ${isSelected ? '<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>' : ''}
+                                                </button>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        
+                        `;
+            })() + `
                         ${cbDetails ? `
                         <div class="qb-cb-quota mt-2 text-[11px] text-amber-900/90 font-medium flex items-center gap-2 bg-white/70 px-2.5 py-1.5 rounded-lg border border-amber-200/50">
                             <span class="font-bold text-amber-950">Định mức gói:</span>
