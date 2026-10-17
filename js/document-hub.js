@@ -164,6 +164,7 @@ class DocumentHub {
         return [
             { id: 'all', name: 'Tất cả định dạng', icon: 'layout-grid' },
             { id: 'doc', name: 'Tài liệu & PDF', icon: 'file-text', countBadge: 'PDF, Word' },
+            { id: 'note', name: 'Thông báo & Ghi chú', icon: 'message-square-text', countBadge: 'Note' },
             { id: 'sheet', name: 'Bảng tính', icon: 'table', countBadge: 'Sheets' },
             { id: 'image', name: 'Hình ảnh & Salekit', icon: 'image', countBadge: 'Ảnh' },
             { id: 'video', name: 'Video Demo', icon: 'video', countBadge: 'Video' },
@@ -177,6 +178,7 @@ class DocumentHub {
 
         const docs = window.salesStore.getDocuments();
         const docsCount = docs.filter(d => ['pdf', 'doc', 'docx', 'gdoc'].includes(d.fileType) || d.type === 'file').length;
+        const notesCount = docs.filter(d => d.type === 'note' || d.fileType === 'note').length;
         const sheetsCount = docs.filter(d => ['xlsx', 'xls', 'gsheet'].includes(d.fileType)).length;
         const mediaCount = docs.filter(d => d.type === 'image' || d.type === 'video' || ['png', 'jpg', 'mp4', 'youtube'].includes(d.fileType)).length;
         const cloudCount = docs.filter(d => d.type === 'link').length;
@@ -190,6 +192,10 @@ class DocumentHub {
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
                     <span class="w-2 h-2 rounded-full bg-rose-500"></span>
                     ${docsCount} Văn bản
+                </span>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    ${notesCount} Thông báo
                 </span>
                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium shrink-0 text-[11px]">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
@@ -280,6 +286,8 @@ class DocumentHub {
             const badge = this.getFileBadge(doc.fileType, doc.type);
             const isImage = doc.type === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(doc.fileType);
             const isVideo = doc.type === 'video' || doc.fileType === 'youtube';
+            const isNote = doc.type === 'note' || doc.fileType === 'note';
+            const displayDesc = doc.description || (isNote && doc.content ? doc.content.replace(/\s+/g, ' ').trim() : 'Chưa có mô tả chi tiết');
 
             return `
                 <div class="w-[270px] sm:w-auto shrink-0 snap-start bg-white rounded-xl border-2 ${badge.border} p-3.5 sm:p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group relative overflow-hidden">
@@ -310,24 +318,29 @@ class DocumentHub {
                             ${this.escapeHtml(doc.title)}
                         </h4>
                         <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
-                            ${this.escapeHtml(doc.description || 'Chưa có mô tả chi tiết')}
+                            ${this.escapeHtml(displayDesc)}
                         </p>
                     </div>
 
                     <!-- Footer Thẻ -->
                     <div class="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                         <span class="text-[10px] sm:text-[11px] text-slate-400 font-medium">
-                            ${this.escapeHtml(doc.fileSize || 'Trực tuyến')}
+                            ${this.escapeHtml(doc.fileSize || (isNote ? 'Thông báo' : 'Trực tuyến'))}
                         </span>
                         
                         <div class="flex items-center gap-1.5">
                             <button onclick="window.documentHub.openDocument('${doc.id}')"
                                 class="px-2.5 sm:px-3 py-1 rounded-lg ${badge.bg} ${badge.color} font-bold text-xs hover:opacity-90 transition-all flex items-center gap-1">
-                                <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : 'external-link')}" class="w-3.5 h-3.5"></i>
-                                <span>${isImage ? 'Xem ảnh' : (isVideo ? 'Phát' : 'Mở')}</span>
+                                <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : (isNote ? 'book-open' : 'external-link'))}" class="w-3.5 h-3.5"></i>
+                                <span>${isImage ? 'Xem ảnh' : (isVideo ? 'Phát' : (isNote ? 'Đọc tin' : 'Mở'))}</span>
                             </button>
 
-                            ${doc.fileUrl ? `
+                            ${isNote ? `
+                                <button onclick="window.documentHub.copyNoteContent('${doc.id}')"
+                                    class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Sao chép nội dung thông báo">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            ` : (doc.fileUrl ? `
                                 <button onclick="window.documentHub.copyDocLink('${doc.id}')"
                                     class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
@@ -337,7 +350,7 @@ class DocumentHub {
                                     class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                     <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                 </button>
-                            `}
+                            `)}
                         </div>
                     </div>
                 </div>
@@ -541,6 +554,8 @@ class DocumentHub {
             let matchesType = true;
             if (this.selectedType === 'doc') {
                 matchesType = ['pdf', 'doc', 'docx', 'gdoc'].includes(doc.fileType) || doc.type === 'file';
+            } else if (this.selectedType === 'note') {
+                matchesType = doc.type === 'note' || doc.fileType === 'note';
             } else if (this.selectedType === 'sheet') {
                 matchesType = ['xlsx', 'xls', 'gsheet'].includes(doc.fileType);
             } else if (this.selectedType === 'image') {
@@ -551,10 +566,11 @@ class DocumentHub {
                 matchesType = doc.type === 'link';
             }
 
-            // Lọc tìm kiếm
+            // Lọc tìm kiếm (bao gồm tìm kiếm toàn văn trong nội dung thông báo/tin nhắn doc.content)
             const matchesSearch = !this.searchQuery || 
                 doc.title.toLowerCase().includes(this.searchQuery) ||
                 (doc.description && doc.description.toLowerCase().includes(this.searchQuery)) ||
+                (doc.content && doc.content.toLowerCase().includes(this.searchQuery)) ||
                 (doc.category && doc.category.toLowerCase().includes(this.searchQuery)) ||
                 (doc.tags && doc.tags.some(t => t.toLowerCase().includes(this.searchQuery)));
 
@@ -609,7 +625,7 @@ class DocumentHub {
                     </div>
                     <p class="text-sm font-bold text-slate-700">Không tìm thấy tài liệu phù hợp</p>
                     <p class="text-xs text-slate-400 mt-1 max-w-md mx-auto">
-                        Thử điều chỉnh lại bộ lọc hoặc bấm nút <b class="text-indigo-600 font-semibold cursor-pointer" onclick="document.getElementById('document-add-modal').classList.remove('hidden')">"+ Thêm tài liệu mới"</b> để tải tệp hoặc liên kết vào kho.
+                        Thử điều chỉnh lại bộ lọc hoặc bấm nút <b class="text-indigo-600 font-semibold cursor-pointer" onclick="window.documentHub.openAddModal()">"+ Thêm tài liệu mới"</b> để tải tệp, liên kết hoặc dán thông báo vào kho.
                     </p>
                 </div>
             `;
@@ -656,6 +672,8 @@ class DocumentHub {
                                 const badge = this.getFileBadge(doc.fileType, doc.type);
                                 const isImage = doc.type === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(doc.fileType);
                                 const isVideo = doc.type === 'video' || doc.fileType === 'youtube';
+                                const isNote = doc.type === 'note' || doc.fileType === 'note';
+                                const displayDesc = doc.description || (isNote && doc.content ? doc.content.replace(/\s+/g, ' ').trim() : '');
 
                                 return `
                                     <tr class="hover:bg-indigo-50/40 transition-colors group">
@@ -674,9 +692,9 @@ class DocumentHub {
                                                             <span class="text-amber-500 text-[10px]" title="Đang ghim ở mục Truy cập nhanh">⭐</span>
                                                         ` : ''}
                                                     </div>
-                                                    ${doc.description ? `
-                                                        <p class="text-[11px] text-slate-400 truncate mt-0.5" title="${this.escapeHtml(doc.description)}">
-                                                            ${this.escapeHtml(doc.description)}
+                                                    ${displayDesc ? `
+                                                        <p class="text-[11px] text-slate-400 truncate mt-0.5" title="${this.escapeHtml(displayDesc)}">
+                                                            ${this.escapeHtml(displayDesc)}
                                                         </p>
                                                     ` : ''}
                                                     ${doc.tags && doc.tags.length > 0 ? `
@@ -699,7 +717,7 @@ class DocumentHub {
                                         </td>
 
                                         <td class="py-3 px-2 sm:px-3 text-slate-500 font-mono text-[11px] hidden lg:table-cell">
-                                            ${this.escapeHtml(doc.fileSize || (doc.type === 'link' ? 'Cloud Link' : 'Tệp tải lên'))}
+                                            ${this.escapeHtml(doc.fileSize || (isNote ? 'Văn bản / Thông báo' : (doc.type === 'link' ? 'Cloud Link' : 'Tệp tải lên')))}
                                         </td>
 
                                         <td class="py-3 px-2 sm:px-3 text-slate-400 text-[11px] hidden sm:table-cell">
@@ -710,12 +728,17 @@ class DocumentHub {
                                             <div class="flex items-center justify-end gap-1">
                                                 <button onclick="window.documentHub.openDocument('${doc.id}')"
                                                     class="px-2 sm:px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-bold transition-colors flex items-center gap-1"
-                                                    title="Mở tài liệu">
-                                                    <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : 'external-link')}" class="w-3.5 h-3.5"></i>
-                                                    <span class="hidden sm:inline">${isImage ? 'Xem' : (isVideo ? 'Phát' : 'Mở')}</span>
+                                                    title="${isNote ? 'Đọc nội dung thông báo' : 'Mở tài liệu'}">
+                                                    <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : (isNote ? 'book-open' : 'external-link'))}" class="w-3.5 h-3.5"></i>
+                                                    <span class="hidden sm:inline">${isImage ? 'Xem' : (isVideo ? 'Phát' : (isNote ? 'Đọc' : 'Mở'))}</span>
                                                 </button>
 
-                                                ${doc.fileUrl ? `
+                                                ${isNote ? `
+                                                    <button onclick="window.documentHub.copyNoteContent('${doc.id}')"
+                                                        class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Sao chép toàn bộ nội dung thông báo">
+                                                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                ` : (doc.fileUrl ? `
                                                     <button onclick="window.documentHub.copyDocLink('${doc.id}')"
                                                         class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                                         <i data-lucide="copy" class="w-3.5 h-3.5"></i>
@@ -725,7 +748,7 @@ class DocumentHub {
                                                         class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                                         <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                                     </button>
-                                                `}
+                                                `)}
 
                                                 <button onclick="window.documentHub.openEditModal('${doc.id}')"
                                                     class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa tài liệu">
@@ -761,6 +784,7 @@ class DocumentHub {
                     const badge = this.getFileBadge(doc.fileType, doc.type);
                     const isImage = doc.type === 'image' || ['png', 'jpg', 'jpeg', 'webp'].includes(doc.fileType);
                     const isVideo = doc.type === 'video' || doc.fileType === 'youtube';
+                    const isNote = doc.type === 'note' || doc.fileType === 'note';
 
                     return `
                         <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 p-4 sm:p-5 hover:shadow-lg hover:border-indigo-200 transition-all flex flex-col justify-between group">
@@ -801,13 +825,21 @@ class DocumentHub {
                                     </div>
                                 ` : ''}
 
+                                <!-- Trích đoạn thông báo / ghi chú (nếu là note) -->
+                                ${isNote && doc.content ? `
+                                    <div class="w-full mb-3 rounded-lg bg-amber-50/70 border border-amber-200/80 p-2.5 text-[11px] text-slate-700 line-clamp-3 whitespace-pre-line leading-relaxed cursor-pointer hover:bg-amber-100/50 transition-colors"
+                                        onclick="window.documentHub.openDocument('${doc.id}')" title="Bấm để đọc toàn bộ nội dung thông báo">
+                                        ${this.escapeHtml(doc.content)}
+                                    </div>
+                                ` : ''}
+
                                 <!-- Tiêu đề & Mô tả -->
                                 <h4 class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
                                     onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
                                     ${this.escapeHtml(doc.title)}
                                 </h4>
                                 <p class="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
-                                    ${this.escapeHtml(doc.description || 'Chưa có mô tả chi tiết')}
+                                    ${this.escapeHtml(doc.description || (isNote ? 'Bấm để đọc chi tiết thông báo / tin nhắn' : 'Chưa có mô tả chi tiết'))}
                                 </p>
 
                                 <!-- Tags -->
@@ -830,12 +862,17 @@ class DocumentHub {
                                 <div class="flex items-center gap-1.5">
                                     <button onclick="window.documentHub.openDocument('${doc.id}')" 
                                         class="px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-semibold text-xs transition-colors flex items-center gap-1"
-                                        title="Mở / Xem tài liệu">
-                                        <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : 'external-link')}" class="w-3.5 h-3.5"></i>
-                                        <span>${isImage ? 'Xem' : (isVideo ? 'Phát' : 'Mở')}</span>
+                                        title="${isNote ? 'Đọc nội dung thông báo' : 'Mở / Xem tài liệu'}">
+                                        <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : (isNote ? 'book-open' : 'external-link'))}" class="w-3.5 h-3.5"></i>
+                                        <span>${isImage ? 'Xem' : (isVideo ? 'Phát' : (isNote ? 'Đọc' : 'Mở'))}</span>
                                     </button>
 
-                                    ${doc.fileUrl ? `
+                                    ${isNote ? `
+                                        <button onclick="window.documentHub.copyNoteContent('${doc.id}')"
+                                            class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Sao chép toàn bộ nội dung thông báo">
+                                            <i data-lucide="copy" class="w-4 h-4"></i>
+                                        </button>
+                                    ` : (doc.fileUrl ? `
                                         <button onclick="window.documentHub.copyDocLink('${doc.id}')"
                                             class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                             <i data-lucide="copy" class="w-4 h-4"></i>
@@ -845,7 +882,7 @@ class DocumentHub {
                                             class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                             <i data-lucide="download" class="w-4 h-4"></i>
                                         </button>
-                                    `}
+                                    `)}
 
                                     <button onclick="window.documentHub.openEditModal('${doc.id}')"
                                         class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa tài liệu">
@@ -867,6 +904,9 @@ class DocumentHub {
 
     getFileBadge(fileType, type) {
         const ft = (fileType || '').toLowerCase();
+        if (ft === 'note' || type === 'note') {
+            return { label: 'NOTE', fullName: 'Thông báo / Ghi chú', bg: 'bg-amber-100 text-amber-800', color: 'text-amber-800', border: 'border-amber-200', subtleBg: 'bg-amber-500/10' };
+        }
         if (ft === 'pdf') {
             return { label: 'PDF', fullName: 'PDF Document', bg: 'bg-rose-100 text-rose-700', color: 'text-rose-700', border: 'border-rose-200', subtleBg: 'bg-rose-500/10' };
         }
@@ -898,6 +938,12 @@ class DocumentHub {
         const docs = window.salesStore.getDocuments();
         const doc = docs.find(d => d.id === id);
         if (!doc) return;
+
+        // Nếu là Thông báo / Ghi chú văn bản (Note)
+        if (doc.type === 'note' || doc.fileType === 'note') {
+            this.openNotePreview(doc);
+            return;
+        }
 
         // Nếu là YouTube link
         if (doc.fileType === 'youtube' || (doc.fileUrl && doc.fileUrl.includes('youtube.com')) || (doc.fileUrl && doc.fileUrl.includes('youtu.be'))) {
@@ -965,6 +1011,11 @@ class DocumentHub {
         const doc = docs.find(d => d.id === id);
         if (!doc) return;
 
+        if (doc.type === 'note' || doc.fileType === 'note') {
+            this.copyNoteContent(id);
+            return;
+        }
+
         if (doc.fileUrl) {
             window.open(doc.fileUrl, '_blank');
             return;
@@ -986,10 +1037,33 @@ class DocumentHub {
         }
     }
 
+    copyNoteContent(id) {
+        const docs = window.salesStore.getDocuments();
+        const doc = docs.find(d => d.id === id);
+        if (!doc) return;
+
+        const textToCopy = doc.content || doc.description || doc.title || '';
+        if (!textToCopy) {
+            window.salesApp.showNotification('Không có nội dung để sao chép!', 'error');
+            return;
+        }
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            window.salesApp.showNotification('Đã sao chép toàn bộ nội dung thông báo!', 'success');
+        }).catch(() => {
+            prompt('Sao chép nội dung thông báo:', textToCopy);
+        });
+    }
+
     copyDocLink(id) {
         const docs = window.salesStore.getDocuments();
         const doc = docs.find(d => d.id === id);
         if (!doc) return;
+
+        if (doc.type === 'note' || doc.fileType === 'note') {
+            this.copyNoteContent(id);
+            return;
+        }
 
         if (doc.fileUrl) {
             navigator.clipboard.writeText(doc.fileUrl).then(() => {
@@ -1066,26 +1140,67 @@ class DocumentHub {
                 }
             });
         }
+
+        const noteContentInput = document.getElementById('new-doc-content');
+        if (noteContentInput) {
+            noteContentInput.addEventListener('paste', () => {
+                setTimeout(() => {
+                    this.autoSuggestTitleFromNote(noteContentInput.value);
+                }, 50);
+            });
+        }
+    }
+
+    autoSuggestTitleFromNote(text) {
+        const titleInput = document.getElementById('new-doc-title');
+        if (!titleInput || titleInput.value.trim()) return;
+        const firstLine = (text || '')
+            .split(/\r?\n/)
+            .map(l => l.trim())
+            .find(l => l.length > 0);
+        if (firstLine) {
+            titleInput.value = firstLine.length > 75 ? firstLine.substring(0, 75) + '...' : firstLine;
+        }
+    }
+
+    async pasteFromClipboardToNote() {
+        const noteContentInput = document.getElementById('new-doc-content');
+        if (!noteContentInput) return;
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text && text.trim()) {
+                noteContentInput.value = text;
+                this.autoSuggestTitleFromNote(text);
+                noteContentInput.focus();
+                window.salesApp.showNotification('Đã dán nội dung từ Clipboard!', 'success');
+            } else {
+                window.salesApp.showNotification('Clipboard hiện đang trống!', 'info');
+            }
+        } catch (err) {
+            noteContentInput.focus();
+            window.salesApp.showNotification('Hãy nhấn Ctrl+V (hoặc chạm giữ -> Dán) vào ô nội dung nhé!', 'info');
+        }
     }
 
     switchModalTab(tab) {
         this.activeModalTab = tab;
         const tabUpload = document.getElementById('modal-tab-upload');
         const tabLink = document.getElementById('modal-tab-link');
+        const tabNote = document.getElementById('modal-tab-note');
         const sectionUpload = document.getElementById('modal-section-upload');
         const sectionLink = document.getElementById('modal-section-link');
+        const sectionNote = document.getElementById('modal-section-note');
 
-        if (tab === 'upload') {
-            tabUpload.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5";
-            tabLink.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
-            sectionUpload.classList.remove('hidden');
-            sectionLink.classList.add('hidden');
-        } else {
-            tabLink.className = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5";
-            tabUpload.className = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
-            sectionLink.classList.remove('hidden');
-            sectionUpload.classList.add('hidden');
-        }
+        const activeClass = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5";
+        const inactiveClass = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
+
+        if (tabUpload) tabUpload.className = tab === 'upload' ? activeClass : inactiveClass;
+        if (tabLink) tabLink.className = tab === 'link' ? activeClass : inactiveClass;
+        if (tabNote) tabNote.className = tab === 'note' ? activeClass : inactiveClass;
+
+        if (sectionUpload) sectionUpload.classList.toggle('hidden', tab !== 'upload');
+        if (sectionLink) sectionLink.classList.toggle('hidden', tab !== 'link');
+        if (sectionNote) sectionNote.classList.toggle('hidden', tab !== 'note');
     }
 
     handleFileSelect(file) {
@@ -1655,18 +1770,21 @@ class DocumentHub {
         window.salesApp.showNotification(`Đã xóa danh mục "${cat.name}"!`, 'info');
     }
 
-    openAddModal() {
+    openAddModal(defaultTab = null) {
         const form = document.getElementById('document-add-form');
         if (form) form.reset();
 
         const idInput = document.getElementById('editing-doc-id');
         if (idInput) idInput.value = '';
 
+        const noteContentInput = document.getElementById('new-doc-content');
+        if (noteContentInput) noteContentInput.value = '';
+
         const titleText = document.getElementById('doc-modal-title-text');
         if (titleText) titleText.textContent = 'Thêm Tài Nguyên Sales Mới';
 
         const subTitle = document.getElementById('doc-modal-subtitle');
-        if (subTitle) subTitle.textContent = 'Tải tệp từ máy tính (PDF, Word, Excel, Ảnh, Video) hoặc lưu liên kết Cloud.';
+        if (subTitle) subTitle.textContent = 'Tải tệp từ máy tính, lưu liên kết Cloud hoặc dán văn bản thông báo / tin nhắn.';
 
         const submitText = document.getElementById('doc-modal-submit-text');
         if (submitText) submitText.textContent = 'Lưu Vào Kho Tài Nguyên';
@@ -1676,7 +1794,8 @@ class DocumentHub {
         this.updateCategorySelectOptions();
 
         this.clearSelectedFile();
-        this.switchModalTab('upload');
+        const initialTab = defaultTab || (this.selectedType === 'note' ? 'note' : (this.selectedType === 'link' ? 'link' : 'upload'));
+        this.switchModalTab(initialTab);
 
         const modal = document.getElementById('document-add-modal');
         if (modal) modal.classList.remove('hidden');
@@ -1698,7 +1817,7 @@ class DocumentHub {
         if (titleText) titleText.textContent = 'Chỉnh Sửa Tài Liệu';
 
         const subTitle = document.getElementById('doc-modal-subtitle');
-        if (subTitle) subTitle.textContent = 'Cập nhật tên, danh mục, liên kết hoặc thông tin mô tả.';
+        if (subTitle) subTitle.textContent = 'Cập nhật tên, danh mục, nội dung thông báo, liên kết hoặc mô tả.';
 
         const submitText = document.getElementById('doc-modal-submit-text');
         if (submitText) submitText.textContent = 'Lưu Thay Đổi';
@@ -1721,7 +1840,11 @@ class DocumentHub {
 
         this.clearSelectedFile();
 
-        if (doc.type === 'link' || doc.fileUrl) {
+        if (doc.type === 'note' || doc.fileType === 'note') {
+            this.switchModalTab('note');
+            const noteContentInput = document.getElementById('new-doc-content');
+            if (noteContentInput) noteContentInput.value = doc.content || doc.description || '';
+        } else if (doc.type === 'link' || doc.fileUrl) {
             this.switchModalTab('link');
             const urlInput = document.getElementById('new-doc-url');
             if (urlInput) urlInput.value = doc.fileUrl || '';
@@ -1808,6 +1931,7 @@ class DocumentHub {
                 targetDoc.fileName = file.name;
                 targetDoc.fileSize = this.formatFileSize(file.size);
                 delete targetDoc.fileUrl;
+                delete targetDoc.content;
 
                 if (type === 'image') {
                     try {
@@ -1820,6 +1944,28 @@ class DocumentHub {
                 alert('Vui lòng chọn tệp từ máy tính để tải lên!');
                 return;
             }
+        } else if (this.activeModalTab === 'note') {
+            // Chế độ thêm hoặc sửa Thông báo / Ghi chú văn bản (dán từ tin nhắn)
+            const noteContentEl = document.getElementById('new-doc-content');
+            const noteContent = noteContentEl ? noteContentEl.value.trim() : '';
+            if (!noteContent) {
+                alert('Vui lòng dán nội dung thông báo / tin nhắn cần lưu!');
+                return;
+            }
+
+            targetDoc.type = 'note';
+            targetDoc.fileType = 'note';
+            targetDoc.content = noteContent;
+            targetDoc.fileSize = 'Văn bản / Thông báo';
+            delete targetDoc.fileUrl;
+            delete targetDoc.fileName;
+            delete targetDoc.thumbnail;
+
+            // Nếu người dùng để trống ô mô tả tóm tắt, tự tạo trích đoạn ngắn từ nội dung tin nhắn
+            if (!targetDoc.description) {
+                const cleanSnippet = noteContent.replace(/\s+/g, ' ').trim();
+                targetDoc.description = cleanSnippet.length > 140 ? cleanSnippet.substring(0, 140) + '...' : cleanSnippet;
+            }
         } else {
             // Chế độ thêm hoặc sửa liên kết Cloud
             const fileUrl = document.getElementById('new-doc-url').value.trim();
@@ -1829,6 +1975,7 @@ class DocumentHub {
             }
 
             targetDoc.fileUrl = fileUrl;
+            delete targetDoc.content;
             const lowerUrl = fileUrl.toLowerCase();
 
             if (lowerUrl.includes('docs.google.com/spreadsheets')) {
@@ -1873,7 +2020,7 @@ class DocumentHub {
         this.renderQuickAccess();
         this.renderDocumentsList();
 
-        const notifMsg = editingId ? `Đã cập nhật tài liệu: "${title}"!` : `Đã thêm tài liệu mới: "${title}"!`;
+        const notifMsg = editingId ? `Đã cập nhật tài liệu: "${title}"!` : `Đã thêm vào kho tài liệu: "${title}"!`;
         window.salesApp.showNotification(notifMsg, 'success');
     }
 
@@ -1914,8 +2061,83 @@ class DocumentHub {
     }
 
     // ==========================================
-    // 5. MEDIA PREVIEWS (LIGHTBOX & VIDEO PLAYER)
+    // 5. MEDIA & NOTE PREVIEWS (LIGHTBOX, VIDEO, NOTE READER)
     // ==========================================
+    formatNoteContentHtml(rawText) {
+        const escaped = this.escapeHtml(rawText || '');
+        // Tự động chuyển các URL http/https trong tin nhắn thành liên kết bấm được
+        return escaped.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 underline font-medium break-all">${url}</a>`;
+        });
+    }
+
+    openNotePreview(doc) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+
+        if (!modal || !container || !doc) return;
+
+        titleEl.textContent = doc.title || 'Nội dung thông báo';
+        const bodyText = doc.content || doc.description || '';
+
+        container.innerHTML = `
+            <div class="w-full max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 text-left space-y-4">
+                <!-- Metadata Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                            <i data-lucide="message-square-text" class="w-3 h-3"></i>
+                            <span>Thông báo / Ghi chú</span>
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700">
+                            ${this.escapeHtml(doc.category || 'Chung')}
+                        </span>
+                        <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
+                            <span>Cập nhật: ${this.escapeHtml(doc.updatedAt || 'Hôm nay')}</span>
+                        </span>
+                    </div>
+                    <button type="button" onclick="window.documentHub.closeMediaPreview(); window.documentHub.openEditModal('${doc.id}')"
+                        class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-colors flex items-center gap-1">
+                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                        <span>Chỉnh sửa</span>
+                    </button>
+                </div>
+
+                <!-- Nội dung văn bản / tin nhắn -->
+                <div class="bg-slate-50/80 rounded-xl p-4 sm:p-5 border border-slate-200/80 max-h-[60vh] overflow-y-auto">
+                    <div class="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed select-text font-sans">${this.formatNoteContentHtml(bodyText)}</div>
+                </div>
+
+                <!-- Tags (nếu có) -->
+                ${doc.tags && doc.tags.length > 0 ? `
+                    <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                        <span class="text-[11px] text-slate-400 font-medium mr-1">Tags:</span>
+                        ${doc.tags.map(tag => `
+                            <span class="text-[11px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-medium">#${this.escapeHtml(tag)}</span>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            </div>
+        `;
+
+        if (downloadBtn) {
+            downloadBtn.classList.remove('hidden');
+            downloadBtn.innerHTML = `
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                <span>Sao chép nội dung</span>
+            `;
+            downloadBtn.onclick = () => {
+                this.copyNoteContent(doc.id);
+            };
+        }
+
+        modal.classList.remove('hidden');
+        lucide.createIcons();
+    }
+
     openImagePreview(src, title, size) {
         const modal = document.getElementById('media-preview-modal');
         const titleEl = document.getElementById('media-preview-title');
@@ -1931,14 +2153,21 @@ class DocumentHub {
             </div>
         `;
 
-        downloadBtn.onclick = () => {
-            const a = document.createElement('a');
-            a.href = src;
-            a.download = (title || 'hinh-anh-etron').replace(/\s+/g, '_') + '.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        };
+        if (downloadBtn) {
+            downloadBtn.classList.remove('hidden');
+            downloadBtn.innerHTML = `
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Tải về</span>
+            `;
+            downloadBtn.onclick = () => {
+                const a = document.createElement('a');
+                a.href = src;
+                a.download = (title || 'hinh-anh-etron').replace(/\s+/g, '_') + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        }
 
         modal.classList.remove('hidden');
         lucide.createIcons();
@@ -1965,7 +2194,7 @@ class DocumentHub {
                     <iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
             `;
-            downloadBtn.classList.add('hidden');
+            if (downloadBtn) downloadBtn.classList.add('hidden');
         } else {
             // HTML5 Video Player
             container.innerHTML = `
@@ -1973,15 +2202,21 @@ class DocumentHub {
                     <video src="${src}" controls autoplay class="w-full h-full object-contain"></video>
                 </div>
             `;
-            downloadBtn.classList.remove('hidden');
-            downloadBtn.onclick = () => {
-                const a = document.createElement('a');
-                a.href = src;
-                a.download = (title || 'video-demo-etron').replace(/\s+/g, '_') + '.mp4';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            };
+            if (downloadBtn) {
+                downloadBtn.classList.remove('hidden');
+                downloadBtn.innerHTML = `
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                    <span>Tải về</span>
+                `;
+                downloadBtn.onclick = () => {
+                    const a = document.createElement('a');
+                    a.href = src;
+                    a.download = (title || 'video-demo-etron').replace(/\s+/g, '_') + '.mp4';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                };
+            }
         }
 
         modal.classList.remove('hidden');
