@@ -30,7 +30,7 @@
     <!-- html2pdf.js (Local) -->
     <script src="js/html2pdf.bundle.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261017_v65">
+    <link rel="stylesheet" href="css/styles.css?v=20261017_v67">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -1141,10 +1141,10 @@
     <!-- ========================================== -->
     <!-- MODAL 4: XEM TRƯỚC MEDIA (LIGHTBOX & VIDEO) -->
     <!-- ========================================== -->
-    <div id="media-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 hidden">
-        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div id="media-preview-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-6 hidden overscroll-contain">
+        <div class="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[92vh]">
             <!-- Header -->
-            <div class="p-3.5 sm:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+            <div class="p-3 sm:px-6 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
                 <div class="min-w-0 pr-3">
                     <h4 id="media-preview-title" class="font-bold text-xs sm:text-sm text-slate-900 truncate">Xem trước tài nguyên</h4>
                 </div>
@@ -1159,8 +1159,8 @@
                 </div>
             </div>
 
-            <!-- Media Content -->
-            <div id="media-preview-content" class="p-4 overflow-auto flex-1 flex items-center justify-center bg-slate-900/5">
+            <!-- Media Content (Single unified scroll container) -->
+            <div id="media-preview-content" class="p-3 sm:p-5 overflow-y-auto overscroll-contain flex-1 min-h-0 bg-slate-100/90">
                 <!-- Rendered dynamically by document-hub.js -->
             </div>
         </div>
@@ -1644,18 +1644,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261017_v66"></script>
+    <script src="js/firebase-config.js?v=20261017_v67"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261017_v66"></script>
-    <script src="js/callbot-data.js?v=20261017_v66"></script>
-    <script src="js/number-to-words.js?v=20261017_v66"></script>
-    <script src="js/store.js?v=20261017_v66"></script>
-    <script src="js/quote-builder.js?v=20261017_v66"></script>
-    <script src="js/document-hub.js?v=20261017_v66"></script>
-    <script src="js/callbot-hub.js?v=20261017_v66"></script>
-    <script src="js/product-catalog.js?v=20261017_v66"></script>
-    <script src="js/pdf-export.js?v=20261017_v66"></script>
-    <script src="js/app.js?v=20261017_v66"></script>
+    <script src="js/logo-data.js?v=20261017_v67"></script>
+    <script src="js/callbot-data.js?v=20261017_v67"></script>
+    <script src="js/number-to-words.js?v=20261017_v67"></script>
+    <script src="js/store.js?v=20261017_v67"></script>
+    <script src="js/quote-builder.js?v=20261017_v67"></script>
+    <script src="js/document-hub.js?v=20261017_v67"></script>
+    <script src="js/callbot-hub.js?v=20261017_v67"></script>
+    <script src="js/product-catalog.js?v=20261017_v67"></script>
+    <script src="js/pdf-export.js?v=20261017_v67"></script>
+    <script src="js/app.js?v=20261017_v67"></script>
 </body>
 </html>

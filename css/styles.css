@@ -173,6 +173,8 @@ body {
     }
 
     html, body {
+        position: static !important;
+        top: auto !important;
         background: #ffffff !important;
         color: #000000 !important;
         margin: 0 !important;
@@ -377,3 +379,46 @@ a:focus, a:focus-visible { outline: none !important; }
 /* No scrollbar utility for mobile touch carousels & clean modals */
 .no-scrollbar::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 .no-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+
+/* Khóa cứng trang nền phía sau khi mở bất kỳ hộp thoại / popup / preview nào (chống vuốt kéo nền trên iOS & Android) */
+html.modal-open-lock {
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+}
+body.modal-open-lock {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    overscroll-behavior: none !important;
+}
+
+/* Chống kéo dây chuyền (scroll chaining) từ bên trong tất cả các modal ra trang nền */
+#a4-preview-drawer,
+#product-picker-modal,
+#document-add-modal,
+#media-preview-modal,
+#category-manager-modal,
+#category-icon-picker-modal,
+#modal-callbot-template,
+#modal-callbot-media,
+#modal-callbot-group,
+#modal-callbot-industry-manager {
+    overscroll-behavior: contain !important;
+}
+
+#preview-wrapper,
+#picker-items-container,
+#document-add-form,
+#media-preview-content,
+#category-manager-list,
+#category-icons-grid,
+#add-icon-grid,
+#cb-tpl-form,
+#cb-med-form,
+#cb-grp-form,
+#cb-ind-manager-list {
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+}

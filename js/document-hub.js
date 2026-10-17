@@ -681,15 +681,15 @@ class DocumentHub {
 
                                 return `
                                     <tr class="hover:bg-indigo-50/40 transition-colors group">
-                                        <td class="py-2.5 sm:py-3 px-3 sm:px-4 max-w-[200px] sm:max-w-md">
+                                        <td class="py-2.5 sm:py-3 px-3 sm:px-4 max-w-[200px] sm:max-w-md cursor-pointer" onclick="window.documentHub.openDocument('${doc.id}')">
                                             <div class="flex items-start gap-2.5 sm:gap-3">
                                                 <div class="w-8 h-8 rounded-lg ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                                                     ${badge.label}
                                                 </div>
                                                 <div class="min-w-0">
                                                     <div class="flex items-center gap-1.5">
-                                                        <h5 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors cursor-pointer truncate text-xs sm:text-sm"
-                                                            onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
+                                                        <h5 class="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate text-xs sm:text-sm"
+                                                            title="${this.escapeHtml(doc.title)}">
                                                             ${this.escapeHtml(doc.title)}
                                                         </h5>
                                                         ${doc.pinned ? `
@@ -1003,12 +1003,7 @@ class DocumentHub {
 
         // Nếu là tài liệu PDF tải lên
         if (doc.fileType === 'pdf' && !doc.fileUrl) {
-            const fileData = await this.getOrFetchFile(doc);
-            if (fileData && fileData.blob) {
-                this.openPdfPreview(fileData.blob, doc);
-            } else {
-                window.salesApp.showNotification('Tệp PDF này vừa được lưu cục bộ trên máy tính. Bạn chỉ cần mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp PDF lên Cloud cho điện thoại nhé!', 'info');
-            }
+            this.openPdfDocument(doc);
             return;
         }
 
@@ -2177,35 +2172,69 @@ class DocumentHub {
         }
     }
 
+    async fetchCloudChunkViaRest(docId, chunkIndex) {
+        try {
+            const url = `https://firestore.googleapis.com/v1/projects/etron-sales-hub-ec234/databases/(default)/documents/document_files/${encodeURIComponent(docId + '_chunk_' + chunkIndex)}`;
+            const res = await fetch(url);
+            if (!res.ok) return null;
+            const json = await res.json();
+            if (!json || !json.fields) return null;
+            const f = json.fields;
+            return {
+                data: f.data?.stringValue || '',
+                totalChunks: Number(f.totalChunks?.integerValue || 1),
+                fileName: f.fileName?.stringValue || '',
+                mimeType: f.mimeType?.stringValue || ''
+            };
+        } catch (err) {
+            return null;
+        }
+    }
+
     async getOrFetchFile(doc) {
         if (!doc || !doc.id) return null;
 
         // 1. Ưu tiên đọc từ IndexedDB cục bộ trên thiết bị
-        const localData = await this.fileStore.getFile(doc.id);
-        if (localData && localData.blob) {
-            // Nếu thiết bị này có tệp cục bộ mà trên Cloud chưa có cờ hasCloudFile, đẩy ngầm lên Cloud luôn
-            if (!doc.hasCloudFile && window.firebaseDb) {
-                this.uploadFileToCloud(
-                    doc.id,
-                    localData.blob,
-                    localData.fileName || doc.fileName || doc.title,
-                    localData.fileType || doc.mimeType || ''
-                );
+        try {
+            const localData = await this.fileStore.getFile(doc.id);
+            if (localData && localData.blob) {
+                if (!doc.hasCloudFile && window.firebaseDb) {
+                    this.uploadFileToCloud(
+                        doc.id,
+                        localData.blob,
+                        localData.fileName || doc.fileName || doc.title,
+                        localData.fileType || doc.mimeType || ''
+                    );
+                }
+                return localData;
             }
-            return localData;
+        } catch (localErr) {
+            console.warn('IndexedDB read warning:', localErr);
         }
 
         // 2. Nếu thiết bị hiện tại (ví dụ: điện thoại) chưa có tệp trong IndexedDB, tải từ Firebase Cloud về
-        if (!window.firebaseDb) return null;
-
         try {
-            window.salesApp?.showNotification('Đang tải tệp từ Cloud...', 'info');
-            const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_0`).get();
-            if (!firstChunkSnap.exists) {
+            let firstChunk = null;
+
+            if (window.firebaseDb) {
+                try {
+                    const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_0`).get();
+                    if (firstChunkSnap && firstChunkSnap.exists) {
+                        firstChunk = firstChunkSnap.data();
+                    }
+                } catch (sdkErr) {
+                    console.warn('Firestore SDK chunk read fallback to REST:', sdkErr);
+                }
+            }
+
+            if (!firstChunk) {
+                firstChunk = await this.fetchCloudChunkViaRest(doc.id, 0);
+            }
+
+            if (!firstChunk || !firstChunk.data) {
                 return null;
             }
 
-            const firstChunk = firstChunkSnap.data();
             const totalChunks = firstChunk.totalChunks || doc.cloudChunkCount || 1;
             const chunks = new Array(totalChunks);
             chunks[0] = firstChunk.data || '';
@@ -2213,17 +2242,21 @@ class DocumentHub {
             if (totalChunks > 1) {
                 const promises = [];
                 for (let i = 1; i < totalChunks; i++) {
-                    promises.push(
-                        window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_${i}`).get()
-                    );
+                    promises.push((async (idx) => {
+                        if (window.firebaseDb) {
+                            try {
+                                const snap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_${idx}`).get();
+                                if (snap && snap.exists) return snap.data().data || '';
+                            } catch (e) {}
+                        }
+                        const restChunk = await this.fetchCloudChunkViaRest(doc.id, idx);
+                        return restChunk ? (restChunk.data || '') : null;
+                    })(i));
                 }
-                const snaps = await Promise.all(promises);
-                for (let i = 0; i < snaps.length; i++) {
-                    const snap = snaps[i];
-                    if (!snap.exists) {
-                        return null;
-                    }
-                    chunks[i + 1] = snap.data().data || '';
+                const results = await Promise.all(promises);
+                for (let i = 0; i < results.length; i++) {
+                    if (results[i] === null) return null;
+                    chunks[i + 1] = results[i];
                 }
             }
 
@@ -2233,19 +2266,17 @@ class DocumentHub {
             if (!blob) return null;
 
             const fileName = firstChunk.fileName || doc.fileName || (doc.title + (doc.fileType ? `.${doc.fileType}` : ''));
-            let fileToCache = blob;
-            try {
-                fileToCache = new File([blob], fileName, { type: blob.type || fallbackMime });
-            } catch (e) {
-                fileToCache.name = fileName;
-            }
 
-            // Lưu đệm vào IndexedDB của điện thoại để lần sau mở tức thì không cần tải lại
-            await this.fileStore.saveFile(doc.id, fileToCache);
+            // Lưu đệm vào IndexedDB của điện thoại (bọc trong try/catch để không bao giờ làm gián đoạn việc mở file trên iOS/WebView)
+            try {
+                await this.fileStore.saveFile(doc.id, blob);
+            } catch (cacheErr) {
+                console.warn('Mobile IndexedDB cache skip:', cacheErr);
+            }
 
             return {
                 id: doc.id,
-                blob: fileToCache,
+                blob: blob,
                 fileName: fileName,
                 fileType: blob.type || fallbackMime,
                 fileSize: blob.size
@@ -2273,7 +2304,6 @@ class DocumentHub {
                     );
                     if (ok) {
                         console.log(`☁️ Đã đồng bộ tệp "${doc.title}" từ máy tính lên Cloud!`);
-                        window.salesApp?.showNotification(`☁️ Đã đồng bộ tệp "${doc.title}" lên Cloud cho điện thoại!`, 'success');
                     }
                 }
             }
@@ -2308,6 +2338,47 @@ class DocumentHub {
         return this.pdfJsLoadingPromise;
     }
 
+    async openPdfDocument(doc) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+
+        if (!modal || !container || !doc) return;
+
+        // Mở ngay lập tức cửa sổ xem trước để phản hồi tức thì khi chạm trên điện thoại
+        titleEl.textContent = doc.title || 'Xem tài liệu PDF';
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+        container.scrollTop = 0;
+        container.innerHTML = `
+            <div class="w-full py-16 flex flex-col items-center justify-center text-slate-600 gap-3">
+                <div class="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs sm:text-sm font-bold text-slate-700">Đang mở tài liệu PDF...</p>
+                <p class="text-[11px] text-slate-400">Vui lòng đợi trong giây lát</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        const fileData = await this.getOrFetchFile(doc);
+        if (fileData && fileData.blob) {
+            await this.openPdfPreview(fileData.blob, doc);
+        } else {
+            container.innerHTML = `
+                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3 shadow-sm">
+                    <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
+                        <i data-lucide="file-warning" class="w-6 h-6"></i>
+                    </div>
+                    <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp PDF trên Cloud</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
+                    </p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
     async openPdfPreview(blob, doc) {
         const modal = document.getElementById('media-preview-modal');
         const titleEl = document.getElementById('media-preview-title');
@@ -2321,13 +2392,14 @@ class DocumentHub {
         const fileName = (doc && (doc.fileName || `${doc.title || 'tai-lieu'}.pdf`)) || 'tai-lieu.pdf';
 
         titleEl.textContent = (doc && doc.title) ? doc.title : 'Xem tài liệu PDF';
+        container.scrollTop = 0;
 
         container.innerHTML = `
-            <div class="w-full max-w-4xl mx-auto flex flex-col items-center">
-                <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-3 px-3 py-2 bg-white rounded-xl border border-slate-200 shadow-2xs">
+            <div class="w-full max-w-4xl mx-auto space-y-3">
+                <div class="w-full flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-white rounded-xl border border-slate-200 shadow-2xs">
                     <div class="flex items-center gap-2 text-xs font-semibold text-slate-600">
                         <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 font-bold border border-rose-200/60">PDF</span>
-                        <span id="pdf-viewer-page-info">Đang tải trang...</span>
+                        <span id="pdf-viewer-page-info">Đang hiển thị các trang...</span>
                     </div>
                     <div class="flex items-center gap-2">
                         <a href="${objectUrl}" target="_blank" rel="noopener noreferrer"
@@ -2337,10 +2409,10 @@ class DocumentHub {
                         </a>
                     </div>
                 </div>
-                <div id="pdf-pages-wrapper" class="w-full max-h-[70vh] overflow-y-auto space-y-3 bg-slate-200/70 p-2 sm:p-4 rounded-xl border border-slate-200 flex flex-col items-center">
-                    <div class="py-12 flex flex-col items-center justify-center text-slate-500 gap-2">
+                <div id="pdf-pages-wrapper" class="w-full space-y-4 pb-4">
+                    <div class="py-12 flex flex-col items-center justify-center text-slate-500 gap-2 bg-white rounded-xl border border-slate-200">
                         <div class="w-7 h-7 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span class="text-xs font-medium">Đang hiển thị tài liệu PDF...</span>
+                        <span class="text-xs font-medium">Đang kết xuất trang PDF sắc nét...</span>
                     </div>
                 </div>
             </div>
@@ -2365,6 +2437,9 @@ class DocumentHub {
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
 
+        // Đợi 1 nhịp khung hình để trình duyệt tính xong kích thước thực tế của modal
+        await new Promise(r => requestAnimationFrame(r));
+
         try {
             const pdfjsLib = await this.ensurePdfJsLoaded();
             const arrayBuffer = await pdfBlob.arrayBuffer();
@@ -2375,28 +2450,34 @@ class DocumentHub {
             if (!wrapper) return;
 
             if (pageInfo) {
-                pageInfo.textContent = `${pdf.numPages} trang • Vuốt/cuộn để đọc`;
+                pageInfo.textContent = `Tổng cộng ${pdf.numPages} trang • Cuộn xuống để xem tiếp`;
             }
             wrapper.innerHTML = '';
 
             for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
                 const page = await pdf.getPage(pageNum);
                 const unscaledViewport = page.getViewport({ scale: 1 });
-                const containerWidth = Math.min(wrapper.clientWidth - 16, 820) || 340;
-                const dpr = Math.min(window.devicePixelRatio || 1.5, 2.5);
-                const cssScale = Math.max(containerWidth / unscaledViewport.width, 0.8);
+                const availWidth = Math.max((wrapper.clientWidth || container.clientWidth || 340) - 16, 260);
+                const dpr = Math.min(window.devicePixelRatio || 1.5, 2);
+                const cssScale = availWidth / unscaledViewport.width;
                 const renderViewport = page.getViewport({ scale: cssScale * dpr });
 
                 const pageCard = document.createElement('div');
-                pageCard.className = 'w-full bg-white rounded-lg shadow-sm border border-slate-200/80 overflow-hidden flex flex-col items-center';
+                pageCard.className = 'w-full bg-white rounded-xl shadow-sm border border-slate-200 p-1.5 sm:p-3';
+
+                const pageHeader = document.createElement('div');
+                pageHeader.className = 'flex items-center justify-between px-2 pb-1.5 mb-1.5 border-b border-slate-100 text-[11px] font-semibold text-slate-400';
+                pageHeader.innerHTML = `<span>Trang ${pageNum} / ${pdf.numPages}</span><span>${this.escapeHtml(doc?.title || '')}</span>`;
 
                 const canvas = document.createElement('canvas');
                 canvas.width = renderViewport.width;
                 canvas.height = renderViewport.height;
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
-                canvas.className = 'block';
+                canvas.style.display = 'block';
+                canvas.className = 'rounded-lg';
 
+                pageCard.appendChild(pageHeader);
                 pageCard.appendChild(canvas);
                 wrapper.appendChild(pageCard);
 
@@ -2408,7 +2489,7 @@ class DocumentHub {
             const wrapper = document.getElementById('pdf-pages-wrapper');
             if (wrapper) {
                 wrapper.innerHTML = `
-                    <iframe src="${objectUrl}" class="w-full h-[68vh] rounded-lg bg-white border-0"></iframe>
+                    <iframe src="${objectUrl}" class="w-full h-[72vh] rounded-xl bg-white border border-slate-200"></iframe>
                 `;
             }
         }
@@ -2432,6 +2513,7 @@ class DocumentHub {
 
         titleEl.textContent = doc.title || 'Nội dung thông báo';
         const bodyText = doc.content || doc.description || '';
+        container.scrollTop = 0;
 
         container.innerHTML = `
             <div class="w-full max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 text-left space-y-4">
@@ -2458,7 +2540,7 @@ class DocumentHub {
                 </div>
 
                 <!-- Nội dung văn bản / tin nhắn -->
-                <div class="bg-slate-50/80 rounded-xl p-4 sm:p-5 border border-slate-200/80 max-h-[60vh] overflow-y-auto">
+                <div class="bg-slate-50/80 rounded-xl p-4 sm:p-5 border border-slate-200/80">
                     <div class="text-xs sm:text-sm text-slate-800 whitespace-pre-wrap break-words leading-relaxed select-text font-sans">${this.formatNoteContentHtml(bodyText)}</div>
                 </div>
 
@@ -2498,9 +2580,10 @@ class DocumentHub {
         if (!modal || !container) return;
 
         titleEl.textContent = title || 'Xem trước hình ảnh';
+        container.scrollTop = 0;
         container.innerHTML = `
-            <div class="flex items-center justify-center p-2 max-h-[75vh]">
-                <img src="${src}" alt="${this.escapeHtml(title)}" class="max-h-[70vh] max-w-full object-contain rounded-xl shadow-lg border border-slate-200">
+            <div class="w-full flex items-center justify-center p-2">
+                <img src="${src}" alt="${this.escapeHtml(title)}" class="max-h-[75vh] max-w-full object-contain rounded-xl shadow-lg border border-slate-200 bg-white">
             </div>
         `;
 
@@ -2533,6 +2616,7 @@ class DocumentHub {
         if (!modal || !container) return;
 
         titleEl.textContent = title || 'Phát Video Demo';
+        container.scrollTop = 0;
 
         // Kiểm tra YouTube URL
         const ytRegExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -2541,7 +2625,7 @@ class DocumentHub {
         if (ytMatch && ytMatch[2].length === 11) {
             const embedUrl = `https://www.youtube.com/embed/${ytMatch[2]}?autoplay=1`;
             container.innerHTML = `
-                <div class="w-full aspect-video rounded-xl overflow-hidden shadow-xl bg-black">
+                <div class="w-full max-w-4xl mx-auto aspect-video rounded-xl overflow-hidden shadow-xl bg-black">
                     <iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
             `;
@@ -2549,7 +2633,7 @@ class DocumentHub {
         } else {
             // HTML5 Video Player
             container.innerHTML = `
-                <div class="w-full aspect-video rounded-xl overflow-hidden shadow-xl bg-black flex items-center justify-center">
+                <div class="w-full max-w-4xl mx-auto aspect-video rounded-xl overflow-hidden shadow-xl bg-black flex items-center justify-center">
                     <video src="${src}" controls autoplay class="w-full h-full object-contain"></video>
                 </div>
             `;

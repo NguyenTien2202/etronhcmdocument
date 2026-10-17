@@ -14,6 +14,7 @@ class SalesApp {
 
         this.setupNavigation();
         this.setupEventListeners();
+        this.setupModalScrollLock();
         this.renderStats();
         this.renderCompanySettingsForm();
         this.renderQuotesHistory();
@@ -397,6 +398,81 @@ class SalesApp {
                 window.quoteBuilder.renderPreview();
             });
         }
+    }
+
+    setupModalScrollLock() {
+        this._lockedScrollY = 0;
+        this._isBodyLocked = false;
+        this._touchStartY = 0;
+        this._touchStartX = 0;
+
+        const modalSelector = '#a4-preview-drawer, #product-picker-modal, #document-add-modal, #media-preview-modal, #category-manager-modal, #category-icon-picker-modal, #modal-callbot-template, #modal-callbot-media, #modal-callbot-group, #modal-callbot-industry-manager';
+
+        const updateLock = () => {
+            const modals = document.querySelectorAll(modalSelector);
+            const anyOpen = Array.from(modals).some(m => !m.classList.contains('hidden'));
+
+            if (anyOpen && !this._isBodyLocked) {
+                this._lockedScrollY = window.scrollY || window.pageYOffset || 0;
+                this._isBodyLocked = true;
+                document.documentElement.classList.add('modal-open-lock');
+                document.body.classList.add('modal-open-lock');
+                document.body.style.top = `-${this._lockedScrollY}px`;
+            } else if (!anyOpen && this._isBodyLocked) {
+                this._isBodyLocked = false;
+                document.documentElement.classList.remove('modal-open-lock');
+                document.body.classList.remove('modal-open-lock');
+                document.body.style.top = '';
+                window.scrollTo(0, this._lockedScrollY);
+            }
+        };
+
+        const observer = new MutationObserver(updateLock);
+        document.querySelectorAll(modalSelector).forEach(modal => {
+            observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (!this._isBodyLocked || !e.touches || !e.touches.length) return;
+            this._touchStartY = e.touches[0].clientY;
+            this._touchStartX = e.touches[0].clientX;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!this._isBodyLocked || !e.touches || !e.touches.length) return;
+            const currentY = e.touches[0].clientY;
+            const currentX = e.touches[0].clientX;
+            const deltaY = currentY - this._touchStartY;
+            const deltaX = currentX - this._touchStartX;
+
+            let el = e.target;
+            while (el && el !== document.body && el !== document.documentElement) {
+                if (el.tagName === 'INPUT' && el.type === 'range') return;
+                const style = window.getComputedStyle(el);
+                const overflowY = style.overflowY;
+                const overflowX = style.overflowX;
+                const canScrollY = (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1;
+                const canScrollX = (overflowX === 'auto' || overflowX === 'scroll') && el.scrollWidth > el.clientWidth + 1;
+
+                if (canScrollX && Math.abs(deltaX) > Math.abs(deltaY)) {
+                    return;
+                }
+
+                if (canScrollY) {
+                    const isAtTop = el.scrollTop <= 0 && deltaY > 0;
+                    const isAtBottom = (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) && deltaY < 0;
+                    if (isAtTop || isAtBottom) {
+                        if (e.cancelable) e.preventDefault();
+                    }
+                    return;
+                }
+                el = el.parentElement;
+            }
+
+            if (e.cancelable) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     showNotification(message, type = 'info') {
