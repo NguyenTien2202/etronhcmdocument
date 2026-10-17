@@ -9,6 +9,24 @@ class OnboardingViewer {
     constructor() {
         this.activeDayFilter = 'all';
         this.candidateId = null;
+        this.expandedModules = new Set();
+    }
+
+    toggleModule(taskId) {
+        const bodyEl = document.getElementById('mod-body-' + taskId);
+        const iconEl = document.getElementById('mod-icon-' + taskId);
+        if (!bodyEl) return;
+        const isHidden = bodyEl.classList.contains('hidden');
+        if (isHidden) {
+            bodyEl.classList.remove('hidden');
+            if (iconEl) iconEl.classList.add('rotate-180', 'text-indigo-600');
+            this.expandedModules.add(taskId);
+        } else {
+            bodyEl.classList.add('hidden');
+            if (iconEl) iconEl.classList.remove('rotate-180', 'text-indigo-600');
+            this.expandedModules.delete(taskId);
+        }
+        if (window.lucide) lucide.createIcons();
     }
 
     init() {
@@ -338,27 +356,97 @@ class OnboardingViewer {
 
                                 <!-- Nội dung chính của Ngày -->
                                 <div class="p-4 sm:p-5 space-y-4">
-                                    <!-- Danh sách đầu việc / bài học -->
-                                    <div class="space-y-2">
-                                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                                            <i data-lucide="list-checks" class="w-4 h-4 text-indigo-600"></i>
-                                            <span>Nội dung học tập & thực hành trong ngày</span>
-                                        </h4>
-                                        <div class="divide-y divide-slate-100 border border-slate-200/80 rounded-xl overflow-hidden bg-slate-50/40">
+                                    <!-- Danh sách các Module đào tạo (Click để xổ xuống xem chi tiết & link) -->
+                                    <div class="space-y-2.5">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                                <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
+                                                <span>Các Module học tập & thực hành trong ngày (${dayTasks.length} module)</span>
+                                            </h4>
+                                            <span class="text-[11px] text-slate-400">Bấm từng module để xem chi tiết & link</span>
+                                        </div>
+                                        <div class="space-y-2">
                                             ${dayTasks.map(task => {
                                                 const isDone = !!progress[task.id];
+                                                const isExpanded = this.expandedModules.has(task.id);
+                                                const taskLinks = task.links || [];
+
                                                 return `
-                                                    <label class="flex items-start gap-3 p-3 sm:p-3.5 cursor-pointer hover:bg-white transition-colors select-none ${isDone ? 'bg-emerald-50/30' : ''}">
-                                                        <input type="checkbox" ${isDone ? 'checked' : ''}
-                                                            onchange="window.onboardingViewer.toggleTask('${task.id}')"
-                                                            class="mt-0.5 w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 shrink-0 cursor-pointer">
-                                                        <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                                            <span class="text-xs sm:text-sm font-medium leading-relaxed ${isDone ? 'line-through text-slate-400' : 'text-slate-800'}">
-                                                                ${this.escapeHtml(task.title)}
-                                                            </span>
-                                                            ${this.getTaskTypeBadge(task.type)}
+                                                    <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-all hover:border-indigo-300">
+                                                        <!-- Module Header Row -->
+                                                        <div class="p-3 sm:p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors ${isDone ? 'bg-emerald-50/20' : ''}"
+                                                            onclick="window.onboardingViewer.toggleModule('${task.id}')">
+                                                            <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                                <input type="checkbox" ${isDone ? 'checked' : ''}
+                                                                    onclick="event.stopPropagation();"
+                                                                    onchange="window.onboardingViewer.toggleTask('${task.id}')"
+                                                                    class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 shrink-0 cursor-pointer">
+                                                                <span class="text-xs sm:text-sm font-extrabold text-slate-800 truncate ${isDone ? 'line-through text-slate-400 font-medium' : ''}">
+                                                                    ${this.escapeHtml(task.title)}
+                                                                </span>
+                                                            </div>
+                                                            <div class="flex items-center gap-2 shrink-0">
+                                                                ${taskLinks.length > 0 ? `
+                                                                    <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                                        <i data-lucide="paperclip" class="w-3 h-3 text-indigo-500"></i>
+                                                                        <span>${taskLinks.length} tài liệu</span>
+                                                                    </span>
+                                                                ` : ''}
+                                                                ${this.getTaskTypeBadge(task.type)}
+                                                                <button type="button" aria-label="Xổ xuống xem chi tiết" id="mod-icon-${task.id}"
+                                                                    class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 transition-transform ${isExpanded ? 'rotate-180 text-indigo-600' : ''}">
+                                                                    <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    </label>
+
+                                                        <!-- Module Dropdown Details (xổ xuống) -->
+                                                        <div id="mod-body-${task.id}" class="${isExpanded ? '' : 'hidden'} border-t border-slate-100 bg-slate-50/60 p-3.5 sm:p-4 space-y-3">
+                                                            ${task.activity ? `
+                                                                <div class="space-y-1">
+                                                                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                                                                        <span>Hoạt động & Nội dung đào tạo</span>
+                                                                    </span>
+                                                                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5">${this.escapeHtml(task.activity)}</p>
+                                                                </div>
+                                                            ` : ''}
+
+                                                            ${task.outcome ? `
+                                                                <div class="space-y-1">
+                                                                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                                        <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                                        <span>Kết quả cần đạt được</span>
+                                                                    </span>
+                                                                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5">${this.escapeHtml(task.outcome)}</p>
+                                                                </div>
+                                                            ` : ''}
+
+                                                            ${taskLinks.length > 0 ? `
+                                                                <div class="space-y-1.5 pt-1">
+                                                                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                                        <i data-lucide="link-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                                                        <span>Tài liệu & Liên kết học tập (${taskLinks.length})</span>
+                                                                    </span>
+                                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
+                                                                        ${taskLinks.map(link => `
+                                                                            <div onclick="window.onboardingViewer.handleCustomLink('${this.escapeJs(link.url)}', '${this.escapeJs(link.type || '')}')"
+                                                                                class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-white hover:bg-indigo-50/70 border border-slate-200/90 hover:border-indigo-300 transition-all cursor-pointer group shadow-2xs">
+                                                                                <div class="flex items-center gap-2 min-w-0">
+                                                                                    <i data-lucide="${link.type === 'internal' ? 'folder' : 'external-link'}" class="w-4 h-4 text-indigo-500 shrink-0"></i>
+                                                                                    <div class="min-w-0">
+                                                                                        <p class="text-xs font-bold text-slate-800 group-hover:text-indigo-700 truncate">${this.escapeHtml(link.title)}</p>
+                                                                                        ${link.note ? `<p class="text-[10px] text-slate-400 truncate">${this.escapeHtml(link.note)}</p>` : ''}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 shrink-0"></i>
+                                                                            </div>
+                                                                        `).join('')}
+                                                                    </div>
+                                                                </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    </div>
                                                 `;
                                             }).join('')}
                                         </div>

@@ -28,6 +28,26 @@ class HrHubApp {
         this.editingDayId = null;
         this.attachingDayId = null;
         this.docPickerSearch = '';
+        this.expandedModules = new Set();
+        this.linkTargetDayId = null;
+        this.linkTargetTaskId = null;
+    }
+
+    toggleModule(taskId) {
+        const bodyEl = document.getElementById('hr-mod-body-' + taskId);
+        const iconEl = document.getElementById('hr-mod-icon-' + taskId);
+        if (!bodyEl) return;
+        const isHidden = bodyEl.classList.contains('hidden');
+        if (isHidden) {
+            bodyEl.classList.remove('hidden');
+            if (iconEl) iconEl.classList.add('rotate-180', 'text-indigo-600');
+            this.expandedModules.add(taskId);
+        } else {
+            bodyEl.classList.add('hidden');
+            if (iconEl) iconEl.classList.remove('rotate-180', 'text-indigo-600');
+            this.expandedModules.delete(taskId);
+        }
+        if (window.lucide) lucide.createIcons();
     }
 
     getPublicOnboardUrl(candidateId = null) {
@@ -903,6 +923,7 @@ class HrHubApp {
                 .map(id => allDocs.find(d => d.id === id))
                 .filter(Boolean);
             const tasks = day.tasks || [];
+            const customLinks = day.customLinks || [];
 
             return `
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
@@ -916,14 +937,12 @@ class HrHubApp {
                                 <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-white text-slate-600 border border-slate-200">
                                     ${this.escapeHtml(day.duration || '08:30 – 17:30')}
                                 </span>
-                                ${day.trainer ? `
-                                    <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-                                        <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>
-                                        <span>Phụ trách: ${this.escapeHtml(day.trainer)}</span>
-                                    </span>
-                                ` : ''}
+                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                                    <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>
+                                    <span>Phụ trách: ${this.escapeHtml(day.trainer || 'Nguyễn Thủy Tiên')}</span>
+                                </span>
                                 <span class="text-[11px] font-semibold text-slate-500">
-                                    • ${tasks.length} mục bài học • ${attachedDocs.length} tài liệu đính kèm
+                                    • ${tasks.length} module đào tạo
                                 </span>
                             </div>
                             <h3 class="text-base font-extrabold text-slate-900 pt-0.5">${this.escapeHtml(day.title)}</h3>
@@ -932,14 +951,21 @@ class HrHubApp {
 
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}')"
-                                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all flex items-center gap-1.5">
-                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
-                                <span>Gắn Tài Liệu (${attachedDocs.length})</span>
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all flex items-center gap-1.5"
+                                title="Chọn tài liệu từ Kho Tài Liệu SalesHub">
+                                <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
+                                <span>Kho Tài Liệu (${attachedDocs.length})</span>
+                            </button>
+                            <button type="button" onclick="window.hrHub.openAddLinkModal('${day.id}')"
+                                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-all flex items-center gap-1.5"
+                                title="Thêm link Google Drive, Docs, Sheets, Canva ngoài">
+                                <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                                <span>Thêm Link Ngoài</span>
                             </button>
                             <button type="button" onclick="window.hrHub.openRoadmapDayModal('${day.id}')"
                                 class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center gap-1.5">
                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                <span>Sửa nội dung</span>
+                                <span>Sửa ngày</span>
                             </button>
                             ${roadmap.length > 1 ? `
                                 <button type="button" onclick="window.hrHub.deleteRoadmapDay('${day.id}')"
@@ -952,36 +978,132 @@ class HrHubApp {
 
                     <!-- Day Body -->
                     <div class="p-4 sm:p-5 space-y-4">
-                        <!-- Tasks -->
-                        <div class="space-y-1.5">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Các đầu việc / Bài học nhân sự mới sẽ thấy:</span>
-                            <ul class="space-y-1.5">
-                                ${tasks.map(t => `
-                                    <li class="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 bg-slate-50/70 px-3 py-2 rounded-xl border border-slate-100">
-                                        <i data-lucide="check-square" class="w-4 h-4 text-indigo-500 shrink-0 mt-0.5"></i>
-                                        <span class="flex-1">${this.escapeHtml(t.title)}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-
-                        <!-- Attached Documents from Kho Tài Liệu -->
-                        <div class="space-y-2 pt-1">
+                        <!-- Modules List (Accordion) -->
+                        <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tài liệu học tập đính kèm trong ngày:</span>
-                                <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}')"
-                                    class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                                    <span>Chọn từ Kho Tài Liệu</span>
-                                </button>
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                    <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                    <span>Danh sách Module học tập (${tasks.length} module - Bấm để xổ xuống xem nội dung & link):</span>
+                                </span>
                             </div>
 
-                            ${attachedDocs.length === 0 ? `
-                                <div class="p-3 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 flex items-center justify-between">
-                                    <span>Chưa gắn file tài liệu cụ thể nào từ kho cho ${this.escapeHtml(day.dayNumber)}.</span>
-                                    <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}')" class="text-indigo-600 font-bold hover:underline">Gắn tài liệu ngay</button>
+                            <div class="space-y-2">
+                                ${tasks.map(task => {
+                                    const isExpanded = this.expandedModules.has(task.id);
+                                    const taskLinks = task.links || [];
+
+                                    return `
+                                        <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-all hover:border-indigo-300">
+                                            <!-- Module Header -->
+                                            <div class="p-3 sm:p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors"
+                                                onclick="window.hrHub.toggleModule('${task.id}')">
+                                                <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                    <i data-lucide="check-square" class="w-4 h-4 text-indigo-500 shrink-0"></i>
+                                                    <span class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
+                                                        ${this.escapeHtml(task.title)}
+                                                    </span>
+                                                </div>
+                                                <div class="flex items-center gap-2 shrink-0">
+                                                    ${taskLinks.length > 0 ? `
+                                                        <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                                            <i data-lucide="paperclip" class="w-3 h-3 text-indigo-500"></i>
+                                                            <span>${taskLinks.length} tài liệu</span>
+                                                        </span>
+                                                    ` : ''}
+                                                    ${window.onboardingViewer ? window.onboardingViewer.getTaskTypeBadge(task.type) : ''}
+                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.openAddLinkModal('${day.id}', '${task.id}')"
+                                                        class="px-2 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center gap-1"
+                                                        title="Gắn thêm link cho module này">
+                                                        <i data-lucide="plus" class="w-3 h-3"></i>
+                                                        <span class="hidden sm:inline">Gắn link</span>
+                                                    </button>
+                                                    <button type="button" aria-label="Xổ xuống" id="hr-mod-icon-${task.id}"
+                                                        class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 transition-transform ${isExpanded ? 'rotate-180 text-indigo-600' : ''}">
+                                                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <!-- Module Expanded Content -->
+                                            <div id="hr-mod-body-${task.id}" class="${isExpanded ? '' : 'hidden'} border-t border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 space-y-3">
+                                                ${task.activity ? `
+                                                    <div class="space-y-1">
+                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                                                            <span>Hoạt động & Nội dung kèm theo:</span>
+                                                        </span>
+                                                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5">${this.escapeHtml(task.activity)}</p>
+                                                    </div>
+                                                ` : ''}
+
+                                                ${task.outcome ? `
+                                                    <div class="space-y-1">
+                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                            <span>Kết quả cần đạt:</span>
+                                                        </span>
+                                                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5">${this.escapeHtml(task.outcome)}</p>
+                                                    </div>
+                                                ` : ''}
+
+                                                <!-- Links đính kèm của Module -->
+                                                <div class="space-y-1.5 pt-1">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                            <i data-lucide="link-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                                            <span>Tài liệu & Link đính kèm (${taskLinks.length}):</span>
+                                                        </span>
+                                                        <button type="button" onclick="window.hrHub.openAddLinkModal('${day.id}', '${task.id}')"
+                                                            class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                                                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                                            <span>Thêm link/note cho module này</span>
+                                                        </button>
+                                                    </div>
+
+                                                    ${taskLinks.length === 0 ? `
+                                                        <div class="p-2.5 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 pl-5">
+                                                            Chưa có tài liệu đính kèm riêng cho module này.
+                                                        </div>
+                                                    ` : `
+                                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
+                                                            ${taskLinks.map((link, lIdx) => `
+                                                                <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs group hover:border-indigo-300">
+                                                                    <a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer"
+                                                                        class="flex items-center gap-2 min-w-0 flex-1 text-xs font-bold text-slate-800 hover:text-indigo-600">
+                                                                        <i data-lucide="${link.type === 'internal' ? 'folder' : 'external-link'}" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i>
+                                                                        <span class="truncate">${this.escapeHtml(link.title)}</span>
+                                                                    </a>
+                                                                    <div class="flex items-center gap-1 shrink-0">
+                                                                        <a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer"
+                                                                            class="p-1 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-indigo-50" title="Mở xem link">
+                                                                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                                                                        </a>
+                                                                        <button type="button" onclick="window.hrHub.deleteLinkFromModule('${day.id}', '${task.id}', ${lIdx})"
+                                                                            class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Xóa link khỏi module">
+                                                                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            `).join('')}
+                                                        </div>
+                                                    `}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Tài liệu đính kèm từ Kho Tài Liệu (Cấp Ngày) -->
+                        ${attachedDocs.length > 0 ? `
+                            <div class="space-y-2 pt-2 border-t border-slate-100">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                        <i data-lucide="folder" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                        <span>Tài liệu đính kèm từ Kho Tài Liệu SalesHub (${attachedDocs.length}):</span>
+                                    </span>
                                 </div>
-                            ` : `
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     ${attachedDocs.map(doc => {
                                         const badge = window.documentHub ? window.documentHub.getFileBadge(doc.fileType, doc.type) : { bg: 'bg-indigo-50', color: 'text-indigo-700', label: 'DOC' };
@@ -1005,20 +1127,26 @@ class HrHubApp {
                                         `;
                                     }).join('')}
                                 </div>
-                            `}
-                        </div>
+                            </div>
+                        ` : ''}
 
-                        <!-- Custom Links & Slide Đào Tạo -->
-                        ${(day.customLinks && day.customLinks.length > 0) ? `
-                            <div class="space-y-1.5 pt-1">
-                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Liên kết tài liệu & Slide đào tạo (${day.customLinks.length}):</span>
+                        <!-- Custom Links Cấp Ngày (nếu có) -->
+                        ${customLinks.length > 0 ? `
+                            <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Liên kết ngoài cấp ngày (${customLinks.length}):</span>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    ${day.customLinks.map(link => `
-                                        <a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer"
-                                            class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50/50 border border-slate-200/80 hover:border-indigo-300 transition-all text-xs font-semibold text-slate-700 hover:text-indigo-700 group">
-                                            <span class="truncate">${this.escapeHtml(link.title)}</span>
-                                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 shrink-0 ml-1 text-slate-400 group-hover:text-indigo-600"></i>
-                                        </a>
+                                    ${customLinks.map((link, cIdx) => `
+                                        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs">
+                                            <a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer"
+                                                class="flex items-center gap-2 min-w-0 flex-1 font-semibold text-slate-700 hover:text-indigo-700">
+                                                <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                                                <span class="truncate">${this.escapeHtml(link.title)}</span>
+                                            </a>
+                                            <button type="button" onclick="window.hrHub.deleteCustomLinkFromDay('${day.id}', ${cIdx})"
+                                                class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" title="Xóa link">
+                                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </div>
                                     `).join('')}
                                 </div>
                             </div>
@@ -1048,7 +1176,7 @@ class HrHubApp {
         document.getElementById('hr-day-duration').value = day ? (day.duration || '08:30 – 17:30') : '08:30 – 17:30';
         document.getElementById('hr-day-title').value = day ? (day.title || '') : '';
         const trainerEl = document.getElementById('hr-day-trainer');
-        if (trainerEl) trainerEl.value = day ? (day.trainer || '') : '';
+        if (trainerEl) trainerEl.value = day ? (day.trainer || 'Nguyễn Thủy Tiên') : 'Nguyễn Thủy Tiên';
         document.getElementById('hr-day-goal').value = day ? (day.goal || '') : '';
         document.getElementById('hr-day-color').value = day ? (day.badgeColor || 'indigo') : 'indigo';
         document.getElementById('hr-day-note').value = day ? (day.mentorNote || '') : '';
@@ -1078,7 +1206,7 @@ class HrHubApp {
 
         const duration = document.getElementById('hr-day-duration').value.trim();
         const trainerEl = document.getElementById('hr-day-trainer');
-        const trainer = trainerEl ? trainerEl.value.trim() : '';
+        const trainer = (trainerEl && trainerEl.value.trim()) ? trainerEl.value.trim() : 'Nguyễn Thủy Tiên';
         const goal = document.getElementById('hr-day-goal').value.trim();
         const badgeColor = document.getElementById('hr-day-color').value;
         const mentorNote = document.getElementById('hr-day-note').value.trim();
@@ -1104,7 +1232,10 @@ class HrHubApp {
                 return {
                     id: existing ? existing.id : `t-${Date.now()}-${idx}`,
                     title: line,
-                    type: existing ? existing.type : (line.toLowerCase().includes('thực hành') ? 'practice' : 'learn')
+                    type: existing ? existing.type : (line.toLowerCase().includes('thực hành') ? 'practice' : 'learn'),
+                    activity: existing ? existing.activity : '',
+                    outcome: existing ? existing.outcome : '',
+                    links: existing ? existing.links : []
                 };
             });
         } else {
@@ -1122,7 +1253,10 @@ class HrHubApp {
                 tasks: rawLines.map((line, idx) => ({
                     id: `t-${Date.now()}-${idx}`,
                     title: line,
-                    type: line.toLowerCase().includes('thực hành') ? 'practice' : 'learn'
+                    type: line.toLowerCase().includes('thực hành') ? 'practice' : 'learn',
+                    activity: '',
+                    outcome: '',
+                    links: []
                 }))
             };
             roadmap.push(target);
@@ -1130,6 +1264,7 @@ class HrHubApp {
 
         window.hrOnboardingStore.saveRoadmap(roadmap);
         this.closeRoadmapDayModal();
+        this.renderRoadmapTab();
         this.showToast(`Đã lưu cập nhật "${dayNumber}" lên Cloud (Trang Onboard của nhân sự mới đã tự động cập nhật)!`, 'success');
     }
 
@@ -1141,18 +1276,109 @@ class HrHubApp {
 
         const next = roadmap.filter(d => d.id !== dayId);
         window.hrOnboardingStore.saveRoadmap(next);
+        this.renderRoadmapTab();
         this.showToast('Đã xóa ngày khỏi lộ trình.', 'info');
     }
 
     async resetRoadmapToDefault() {
-        if (!confirm('Bạn có chắc muốn khôi phục Lộ trình Onboard về 6 ngày đào tạo chuẩn của Etron (Hội nhập, Callbot AI, Adahub CRM, Tổng đài VoIP, Bảng giá & Lập báo giá, Quy trình bán hàng & Thực chiến)?')) return;
+        if (!confirm('Bạn có chắc muốn khôi phục Lộ trình Onboard về 8 ngày đào tạo chuẩn của Etron (Hội nhập, Callbot AI, Adahub CRM, Tổng đài VoIP, Bảng giá & Lập báo giá, Quy trình bán hàng & Gọi điện, Kỹ năng Meeting & HDSD, Nghiên cứu tài liệu & CSKH)?')) return;
         try {
             await window.hrOnboardingStore.saveRoadmap(DEFAULT_ONBOARDING_ROADMAP);
             this.renderRoadmapTab();
-            this.showToast('Đã khôi phục và đồng bộ Lộ trình 6 ngày chuẩn của Etron lên Cloud!', 'success');
+            this.showToast('Đã khôi phục và đồng bộ Lộ trình 8 ngày chuẩn của Etron lên Cloud!', 'success');
         } catch (e) {
             this.showToast('Chưa lưu được lộ trình. Vui lòng kiểm tra kết nối mạng!', 'error');
         }
+    }
+
+    openAddLinkModal(dayId, taskId = null) {
+        this.linkTargetDayId = dayId;
+        this.linkTargetTaskId = taskId;
+        const modal = document.getElementById('hr-add-link-modal');
+        if (!modal) return;
+
+        const day = window.hrOnboardingStore.getRoadmap().find(d => d.id === dayId);
+        const task = taskId && day ? (day.tasks || []).find(t => t.id === taskId) : null;
+
+        const targetDescEl = document.getElementById('hr-link-target-desc');
+        if (targetDescEl) {
+            targetDescEl.textContent = task
+                ? `Thêm link cho ${day.dayNumber} > ${task.title}`
+                : `Thêm link tài liệu chung cho ${day ? day.dayNumber : ''}`;
+        }
+        document.getElementById('hr-link-title').value = '';
+        document.getElementById('hr-link-url').value = '';
+        document.getElementById('hr-link-note').value = '';
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    closeAddLinkModal() {
+        const modal = document.getElementById('hr-add-link-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    handleSaveCustomLink(e) {
+        if (e) e.preventDefault();
+        const title = document.getElementById('hr-link-title').value.trim();
+        const url = document.getElementById('hr-link-url').value.trim();
+        const note = document.getElementById('hr-link-note').value.trim();
+        if (!title || !url) {
+            alert('Vui lòng nhập Tên tài liệu và Đường dẫn URL!');
+            return;
+        }
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === this.linkTargetDayId);
+        if (!day) return;
+
+        const newLink = {
+            title,
+            url,
+            note: note || undefined,
+            type: url.startsWith('http') ? 'external' : 'internal'
+        };
+
+        if (this.linkTargetTaskId) {
+            const task = (day.tasks || []).find(t => t.id === this.linkTargetTaskId);
+            if (task) {
+                if (!Array.isArray(task.links)) task.links = [];
+                task.links.push(newLink);
+                this.expandedModules.add(task.id);
+            }
+        } else {
+            if (!Array.isArray(day.customLinks)) day.customLinks = [];
+            day.customLinks.push(newLink);
+        }
+
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.closeAddLinkModal();
+        this.renderRoadmapTab();
+        this.showToast('Đã lưu link tài liệu thành công!', 'success');
+    }
+
+    deleteLinkFromModule(dayId, taskId, linkIdx) {
+        if (!confirm('Bạn có chắc muốn xóa link tài liệu này?')) return;
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day) return;
+        const task = (day.tasks || []).find(t => t.id === taskId);
+        if (!task || !Array.isArray(task.links)) return;
+        task.links.splice(linkIdx, 1);
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.renderRoadmapTab();
+        this.showToast('Đã xóa link tài liệu.', 'info');
+    }
+
+    deleteCustomLinkFromDay(dayId, linkIdx) {
+        if (!confirm('Bạn có chắc muốn xóa link tài liệu này khỏi ngày?')) return;
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day || !Array.isArray(day.customLinks)) return;
+        day.customLinks.splice(linkIdx, 1);
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.renderRoadmapTab();
+        this.showToast('Đã xóa link tài liệu khỏi ngày.', 'info');
     }
 
     openAttachDocModal(dayId) {

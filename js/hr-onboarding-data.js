@@ -8,151 +8,460 @@
 const DEFAULT_ONBOARDING_ROADMAP = [
     {
         id: 'day-1',
-        dayNumber: 'Ngày 1 (n)',
+        dayNumber: 'Ngày 1',
         title: 'Hội Nhập Công Ty, Văn Hóa Etron, Quy Định & Thiết Lập Công Cụ',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Hiểu về công ty, tầm nhìn sứ mệnh, cơ cấu tổ chức các phòng ban, hệ sinh thái sản phẩm, nắm vững chính sách sale và chuẩn bị đầy đủ công cụ làm việc.',
         badgeColor: 'indigo',
-        trainer: 'Mai - HR (Nguyễn Nhật Mai)',
+        trainer: 'Nguyễn Thủy Tiên',
         tasks: [
-            { id: 't-101', title: 'Giới thiệu công ty: Tầm nhìn, sứ mệnh, cơ cấu tổ chức, các phòng ban chính và cách phối hợp làm việc', type: 'learn' },
-            { id: 't-102', title: 'Văn hóa & Quy định: Nội quy làm việc, chính sách sales, quy trình chấm công, xin nghỉ phép, báo cáo công việc', type: 'learn' },
-            { id: 't-103', title: 'Tổng quan hệ sinh thái sản phẩm: Sản phẩm chủ lực (Callbot AI Ucall, Adahub CRM, Tổng đài VoIP), đối tượng khách hàng mục tiêu', type: 'learn' },
-            { id: 't-104', title: 'Thiết lập công cụ làm việc: Tạo và đăng nhập tài khoản (Admin, UCALL, nhóm chat nội bộ Zalo, Kho tài liệu SalesHub)', type: 'action' },
-            { id: 't-105', title: 'Chính sách SALE & Hoa hồng: Nắm rõ các định nghĩa, thuật ngữ sale, KPI cá nhân/team và cơ chế hoa hồng, level thăng tiến', type: 'learn' },
-            { id: 't-106', title: 'Bài tập Ngày 1: Tóm tắt lại các lợi ích, giải pháp của công ty và giải pháp đó hỗ trợ khách hàng như thế nào', type: 'practice' }
+            {
+                id: 'm-101',
+                title: 'Module 1: Giới thiệu công ty',
+                type: 'learn',
+                activity: 'Giới thiệu về công ty Etron, tầm nhìn, sứ mệnh, cơ cấu tổ chức, các phòng ban chính và cách phối hợp làm việc.',
+                outcome: 'Trình bày được cơ cấu tổ chức của công ty; nêu được chức năng các phòng ban chính; biết đầu mối liên hệ khi cần phối hợp công việc.',
+                links: [
+                    { title: 'Slide Giới thiệu công ty & Cơ cấu tổ chức', url: 'https://drive.google.com/file/d/1oI19ZE7BUm55qoma_d65fw7N44MwULsc/view?usp=sharing', type: 'external' },
+                    { title: 'Thư mục tài liệu tham khảo chung Etron', url: 'https://drive.google.com/drive/folders/1E2RJWKPbq-7OdXYmgGS-Iic9rIa59G1Q?usp=drive_link', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-102',
+                title: 'Module 2: Văn hóa & Quy định làm việc',
+                type: 'learn',
+                activity: 'Nội quy làm việc, quy chế ứng xử, quy trình chấm công, xin nghỉ phép, báo cáo công việc và văn hóa doanh nghiệp Etron.',
+                outcome: 'Đã đọc và hiểu nội quy công ty, nắm vững quy trình chấm công, xin nghỉ phép và báo cáo công việc hàng ngày.',
+                links: [
+                    { title: 'Tài liệu Nội quy & Văn hóa làm việc Etron', url: 'https://docs.google.com/document/d/1TUp4Nam4AKsslvIP6HrlErfN9NosOLP-sI22PdlJLFk/edit?tab=t.0', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-103',
+                title: 'Module 3: Tổng quan hệ sinh thái sản phẩm',
+                type: 'learn',
+                activity: 'Giới thiệu hệ sinh thái sản phẩm Etron: Sản phẩm chủ lực (Trợ lý ảo Callbot AI Ucall, Phần mềm CSKH Adahub CRM, Tổng đài VoIP), sản phẩm mở rộng và chân dung khách hàng mục tiêu.',
+                outcome: 'Mô tả được chức năng cơ bản của từng sản phẩm, xác định sản phẩm chủ lực và bài toán mà từng sản phẩm giải quyết cho doanh nghiệp.',
+                links: [
+                    { title: 'Slide Tổng quan Hệ sinh thái Etron', url: 'https://drive.google.com/file/d/1_Y0BSuXJzm0xD40Sgz-Xliv2_vySQlsR/view?usp=sharing', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-104',
+                title: 'Module 4: Thiết lập công cụ làm việc',
+                type: 'action',
+                activity: 'Tạo và đăng nhập tài khoản phục vụ công việc: Email công ty, Admin, UCALL portal (app.ucall.vn & staging), tham gia các nhóm chat Zalo nội bộ, mở Kho tài liệu SalesHub.',
+                outcome: 'Đăng nhập thành công tất cả tài khoản được cấp, gia nhập đầy đủ nhóm làm việc nội bộ và kiểm tra các công cụ sẵn sàng.',
+                links: [
+                    { title: 'Mở Kho Tài Liệu Etron SalesHub', url: 'index.html?tab=documents', type: 'internal' }
+                ]
+            },
+            {
+                id: 'm-105',
+                title: 'Module 5: Chính sách SALE & Cơ chế hoa hồng',
+                type: 'learn',
+                activity: 'Tìm hiểu chính sách sales, định nghĩa và thuật ngữ sale, KPI cá nhân/team, cơ chế tính hoa hồng và các level thăng tiến tại Etron.',
+                outcome: 'Nắm rõ các định nghĩa, thuật ngữ sale, hiểu cách tính hoa hồng và lộ trình thăng tiến level KPI.',
+                links: [
+                    { title: 'Chính sách Sale & Quy chế KPI Etron', url: 'https://docs.google.com/document/d/1Ys5zRhMs16a07fwD-c4ka_DL-VazDRKRaGyJDV0PzWk/edit?tab=t.0', type: 'external' },
+                    { title: 'Bảng Mức lương theo Level KPI', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-106',
+                title: 'Module 6: Bài tập thực hành Ngày 1',
+                type: 'practice',
+                activity: 'Thực hiện bài tập tổng kết: Tóm tắt lại các lợi ích, giải pháp cốt lõi của công ty và giải pháp đó hỗ trợ giải quyết bài toán gì cho khách hàng.',
+                outcome: 'Nộp bản tóm tắt cho người hướng dẫn và được giải đáp thắc mắc cuối ngày.',
+                links: []
+            }
         ],
         attachedDocIds: [],
-        customLinks: [
-            { title: 'Slide Giới thiệu công ty & Văn hóa', url: 'https://drive.google.com/file/d/1oI19ZE7BUm55qoma_d65fw7N44MwULsc/view?usp=sharing', type: 'external' },
-            { title: 'Thư mục tài liệu tham khảo chung', url: 'https://drive.google.com/drive/folders/1E2RJWKPbq-7OdXYmgGS-Iic9rIa59G1Q?usp=drive_link', type: 'external' },
-            { title: 'Nội quy & Văn hóa làm việc Etron', url: 'https://docs.google.com/document/d/1TUp4Nam4AKsslvIP6HrlErfN9NosOLP-sI22PdlJLFk/edit?tab=t.0', type: 'external' },
-            { title: 'Slide Tổng quan Hệ sinh thái Etron', url: 'https://drive.google.com/file/d/1_Y0BSuXJzm0xD40Sgz-Xliv2_vySQlsR/view?usp=sharing', type: 'external' },
-            { title: 'Chính sách Sale & Quy chế KPI', url: 'https://docs.google.com/document/d/1Ys5zRhMs16a07fwD-c4ka_DL-VazDRKRaGyJDV0PzWk/edit?tab=t.0', type: 'external' },
-            { title: 'Bảng Mức lương theo Level KPI', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' },
-            { title: 'Mở Kho Tài Liệu SalesHub', url: 'index.html?tab=documents', type: 'internal' }
-        ],
-        mentorNote: 'Phụ trách: Mai - HR. Ngày đầu tiên bạn thoải mái làm quen môi trường, thiết lập đầy đủ công cụ và ghi chú lại các thắc mắc để được giải đáp nhé!'
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Ngày đầu tiên bạn thoải mái làm quen môi trường, thiết lập đầy đủ công cụ và ghi chú lại các thắc mắc để được giải đáp nhé!'
     },
     {
         id: 'day-2',
-        dayNumber: 'Ngày 2 (n+1)',
+        dayNumber: 'Ngày 2',
         title: 'Đào Tạo Chuyên Sâu Sản Phẩm Trợ Lý Ảo Callbot AI Ucall',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Trình bày được tổng quan, nguyên lý hoạt động và quy trình vận hành Callbot; thành thạo xây dựng kịch bản và setup chiến dịch gọi tự động.',
         badgeColor: 'blue',
-        trainer: 'Vy / Mai Tester / Tiên',
+        trainer: 'Nguyễn Thủy Tiên',
         tasks: [
-            { id: 't-201', title: 'Tổng quan Callbot AI Ucall: Nguyên lý hoạt động, nhận diện giọng nói, xử lý ngôn ngữ tự nhiên và bài toán tiết kiệm chi phí', type: 'learn' },
-            { id: 't-202', title: 'Phân loại bot: CB2 (45N), CB3 (90N), CB4 (120N), cách tính cước theo phút gọi và chọn bot phù hợp từng ngành', type: 'learn' },
-            { id: 't-203', title: 'Xây dựng kịch bản Callbot: Thiết kế luồng hội thoại, tạo intent câu hỏi - câu trả lời, xử lý ngắt lời và kịch bản rẽ nhánh', type: 'learn' },
-            { id: 't-204', title: 'Thực hành Callbot + Chữa kịch bản: Tự xây dựng kịch bản mẫu và được mentor chữa trực tiếp', type: 'practice' },
-            { id: 't-205', title: 'Thiết lập chiến dịch: Thực hành setup chạy chiến dịch gọi thử nghiệm trên app.ucall.vn và kiểm tra báo cáo cuộc gọi', type: 'practice' }
+            {
+                id: 'm-201',
+                title: 'Module 1: Tổng quan sản phẩm Callbot AI',
+                type: 'learn',
+                activity: 'Tổng quan công nghệ Callbot AI Voice Bot, nguyên lý nhận diện giọng nói (STT), xử lý ngôn ngữ tự nhiên (NLU), chuyển đổi văn bản thành giọng nói (TTS) và bài toán tối ưu chi phí vận hành cho doanh nghiệp.',
+                outcome: 'Trình bày được tổng quan công nghệ và quy trình hoạt động của Callbot trong thực tế.',
+                links: [
+                    { title: 'Video Đào tạo Callbot & Kịch bản', url: 'https://drive.google.com/file/d/1GYV3gLQu-3_8KuntZI7B7MWjouHAhsgh/view?usp=sharing', type: 'external' },
+                    { title: 'Cổng Quản Trị Callbot Ucall', url: 'https://app.ucall.vn', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-202',
+                title: 'Module 2: Phân loại bot & Tính cước phút gọi',
+                type: 'learn',
+                activity: 'Phân loại các gói bot: CB2 (45N), CB3 (90N), CB4 (120N), cách tính cước theo phút gọi phát sinh và cách tư vấn gói bot tối ưu cho từng lĩnh vực ngành nghề.',
+                outcome: 'Tư vấn đúng loại bot theo nhu cầu và ngân sách của khách hàng.',
+                links: [
+                    { title: 'Kho Kịch Bản & Ghi Âm Mẫu trên SalesHub', url: 'index.html?tab=callbot-hub', type: 'internal' }
+                ]
+            },
+            {
+                id: 'm-203',
+                title: 'Module 3: Xây dựng kịch bản Callbot',
+                type: 'learn',
+                activity: 'Kỹ thuật thiết kế luồng hội thoại, tạo intent câu hỏi - câu trả lời, xử lý ngắt lời khi khách nói và xây dựng kịch bản rẽ nhánh thông minh.',
+                outcome: 'Tự lên được luồng kịch bản sơ bộ cho một ngành nghề cụ thể (BĐS, Tài chính, Tuyển sinh).',
+                links: [
+                    { title: 'Video Đào tạo Callbot & Kịch bản', url: 'https://drive.google.com/file/d/1GYV3gLQu-3_8KuntZI7B7MWjouHAhsgh/view?usp=sharing', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-204',
+                title: 'Module 4: Thực hành & Chữa kịch bản Callbot',
+                type: 'practice',
+                activity: 'Thực hành tạo kịch bản thực tế trên hệ thống và được Trainer / Mentor chữa trực tiếp từng câu intent.',
+                outcome: 'Hoàn thiện 01 kịch bản Callbot hoàn chỉnh chuẩn kịch bản bán hàng.',
+                links: []
+            },
+            {
+                id: 'm-205',
+                title: 'Module 5: Thiết lập và chạy chiến dịch gọi thử nghiệm',
+                type: 'practice',
+                activity: 'Thao tác tạo chiến dịch gọi tự động trên app.ucall.vn, import danh sách số điện thoại test, gán kịch bản bot, kiểm tra báo cáo cuộc gọi và nghe lại ghi âm bot gọi.',
+                outcome: 'Tự tạo và chạy thành công 01 chiến dịch test, đọc hiểu các trường trong báo cáo cuộc gọi.',
+                links: [
+                    { title: 'Hệ thống Quản lý Callbot Ucall', url: 'https://app.ucall.vn', type: 'external' }
+                ]
+            }
         ],
         attachedDocIds: [],
-        customLinks: [
-            { title: 'Video Đào tạo Callbot & Kịch bản', url: 'https://drive.google.com/file/d/1GYV3gLQu-3_8KuntZI7B7MWjouHAhsgh/view?usp=sharing', type: 'external' },
-            { title: 'Hệ thống Quản lý Callbot Ucall', url: 'https://app.ucall.vn', type: 'external' },
-            { title: 'Kho Kịch Bản & Ghi Âm Mẫu trên SalesHub', url: 'index.html?tab=callbot-hub', type: 'internal' }
-        ],
-        mentorNote: 'Phụ trách: Vy / Mai Tester / Tiên. Nghe kỹ các file ghi âm mẫu trên SalesHub để cảm nhận cách Callbot AI phản hồi thông minh nhé!'
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Nghe kỹ các file ghi âm mẫu trên SalesHub để cảm nhận cách Callbot AI phản hồi thông minh nhé!'
     },
     {
         id: 'day-3',
-        dayNumber: 'Ngày 3 (n+2)',
+        dayNumber: 'Ngày 3',
         title: 'Phần Mềm Quản Lý CSKH Adahub CRM, Dịch Vụ ZNS & Dashboard KPI',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Làm chủ hệ thống Adahub CRM, quy trình đăng ký & gửi tin Zalo ZNS và biết cách theo dõi chỉ số hiệu quả trên Dashboard KPI.',
         badgeColor: 'amber',
-        trainer: 'Vy / Mai Tester / Tiên',
+        trainer: 'Nguyễn Thủy Tiên',
         tasks: [
-            { id: 't-301', title: 'Tổng quan hệ thống CRM: Vai trò của Adahub CRM, quản lý lead, chăm sóc khách hàng đa kênh (Omni-channel) và phễu bán hàng', type: 'learn' },
-            { id: 't-302', title: 'Hướng dẫn sử dụng Adahub CRM chi tiết: Thao tác tạo contact, chia deal, cập nhật trạng thái pipeline, gắn tag, đặt lịch nhắc hẹn', type: 'practice' },
-            { id: 't-303', title: 'Giải pháp ZNS (Zalo Notification Service): Giới thiệu về ZNS, các loại mẫu tin chăm sóc khách hàng, chi phí và quy trình duyệt mẫu', type: 'learn' },
-            { id: 't-304', title: 'Quy trình vận hành ZNS: Cách thức gửi tin tự động từ CRM/Callbot sang Zalo khách hàng', type: 'learn' },
-            { id: 't-305', title: 'Hướng dẫn Dashboard & KPI: Cách đọc chỉ số cuộc gọi, tỷ lệ chuyển đổi, doanh số cá nhân và báo cáo tiến độ tuần/tháng', type: 'practice' }
+            {
+                id: 'm-301',
+                title: 'Module 1: Tổng quan hệ thống Adahub CRM',
+                type: 'learn',
+                activity: 'Vai trò của CRM trong quy trình bán hàng B2B, quản lý lead, phân bổ khách hàng tiềm năng, lưu trữ lịch sử tương tác và phễu chuyển đổi bán hàng.',
+                outcome: 'Trình bày được vai trò của CRM và các phân hệ chức năng chính.',
+                links: [
+                    { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-302',
+                title: 'Module 2: Các tính năng Adahub CRM chi tiết',
+                type: 'practice',
+                activity: 'Thực hành thao tác tạo contact, chia deal, cập nhật trạng thái pipeline, gắn tag phân loại, đặt lịch nhắc hẹn và ghi nhận lịch sử tương tác.',
+                outcome: 'Sử dụng thành thạo CRM để quản lý khách hàng hàng ngày.',
+                links: [
+                    { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-303',
+                title: 'Module 3: Giải pháp ZNS & Quy trình tích hợp',
+                type: 'learn',
+                activity: 'Giới thiệu về Zalo Notification Service (ZNS), các loại mẫu tin chăm sóc khách hàng, chi phí gửi tin và quy trình kiểm duyệt mẫu tin Zalo OA.',
+                outcome: 'Nắm được quy trình gửi tin ZNS tự động từ hệ thống Callbot/CRM đến Zalo của khách hàng.',
+                links: [
+                    { title: 'Slide Đào tạo Zalo ZNS', url: 'https://drive.google.com/file/d/10ZoR56MtKPpgy941pW61Sk5hsqZwBRio/view?usp=drive_link', type: 'external' },
+                    { title: 'Quy trình Vận hành ZNS', url: 'https://drive.google.com/file/d/1JAiRRcL2EFO1bKt7AM4bOHz3oShTyrFz/view?usp=drive_link', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-304',
+                title: 'Module 4: Dashboard & Quản lý KPI Bán hàng',
+                type: 'practice',
+                activity: 'Hướng dẫn đọc báo cáo chỉ số cuộc gọi, tỷ lệ chuyển đổi, doanh số cá nhân và báo cáo tiến độ tuần/tháng trên hệ thống Dashboard.',
+                outcome: 'Biết cách tự theo dõi mục tiêu doanh số và báo cáo kết quả định kỳ cho quản lý.',
+                links: [
+                    { title: 'Thư mục Dashboard & KPI Bán hàng', url: 'https://drive.google.com/drive/folders/11dYYmc8GL7MxCoovDEsDgxC4rB_fLnGY?usp=drive_link', type: 'external' }
+                ]
+            }
         ],
         attachedDocIds: [],
-        customLinks: [
-            { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' },
-            { title: 'Slide Đào tạo Zalo ZNS', url: 'https://drive.google.com/file/d/10ZoR56MtKPpgy941pW61Sk5hsqZwBRio/view?usp=drive_link', type: 'external' },
-            { title: 'Quy trình Vận hành ZNS', url: 'https://drive.google.com/file/d/1JAiRRcL2EFO1bKt7AM4bOHz3oShTyrFz/view?usp=drive_link', type: 'external' },
-            { title: 'Thư mục Dashboard & KPI Bán hàng', url: 'https://drive.google.com/drive/folders/11dYYmc8GL7MxCoovDEsDgxC4rB_fLnGY?usp=drive_link', type: 'external' }
-        ],
-        mentorNote: 'Phụ trách: Vy / Mai Tester / Tiên. CRM là công cụ sống còn của Sales, hãy thực hành nhập thử lead và quản lý deal để quen tay.'
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. CRM là công cụ sống còn của Sales, hãy thực hành nhập thử lead và quản lý deal để quen tay.'
     },
     {
         id: 'day-4',
-        dayNumber: 'Ngày 4 (n+3)',
+        dayNumber: 'Ngày 4',
         title: 'Hệ Thống Tổng Đài VoIP, Quay Số Telesale Tự Động & Các Loại Đầu Số',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Trình bày được chức năng tổng đài, phân biệt chính xác các loại đầu số viễn thông và tự thiết lập chiến dịch quay số telesale.',
         badgeColor: 'emerald',
-        trainer: 'Tiên / Leaders / CS Ucall',
+        trainer: 'Nguyễn Thủy Tiên',
         tasks: [
-            { id: 't-401', title: 'Tổng quan hệ thống Tổng đài VoIP: Lợi ích của tổng đài đám mây, tính năng ghi âm, chuyển tiếp máy nhánh và định tuyến cuộc gọi', type: 'learn' },
-            { id: 't-402', title: 'Quay số Telesale tự động: Nguyên lý auto-dialer, cách tự tạo chiến dịch gọi điện, cài đặt thông số gọi và giải thích các case thực tế', type: 'practice' },
-            { id: 't-403', title: 'Phân biệt các loại Đầu số: Đầu số cố định (024/028), đầu số di động doanh nghiệp, đầu số 1800/1900 và Voice Brandname', type: 'learn' },
-            { id: 't-404', title: 'Tư vấn đúng gói cước đầu số: Xác định trường hợp khách hàng nào nên dùng đầu số nào để tối ưu chi phí và tỷ lệ nghe máy', type: 'learn' },
-            { id: 't-405', title: 'Tham gia buổi Meeting Hướng dẫn sử dụng (HDSD) cùng đội ngũ CS Ucall để học cách hỗ trợ khách hàng thực tế', type: 'practice' }
+            {
+                id: 'm-401',
+                title: 'Module 1: Tổng quan hệ thống Tổng đài VoIP',
+                type: 'learn',
+                activity: 'Lợi ích của tổng đài Cloud VoIP, tính năng ghi âm cuộc gọi, chuyển tiếp máy nhánh, định tuyến thông minh và tích hợp phần mềm CRM.',
+                outcome: 'Trình bày được chức năng và lợi ích của giải pháp tổng đài đám mây so với tổng đài truyền thống.',
+                links: [
+                    { title: 'Kho Tài Liệu Tổng Hợp Sản Phẩm & Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
+                ]
+            },
+            {
+                id: 'm-402',
+                title: 'Module 2: Quay số Telesale tự động (Auto Dialer)',
+                type: 'practice',
+                activity: 'Nguyên lý hoạt động của hệ thống quay số tự động (Progressive / Predictive dialer), tự tạo chiến dịch gọi, cài đặt thông số cuộc gọi và phân tích các trường hợp ứng dụng.',
+                outcome: 'Tự tạo được chiến dịch quay số phục vụ công việc gọi điện hàng ngày.',
+                links: [
+                    { title: 'Kho Tài Liệu Tổng Hợp Sản Phẩm & Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
+                ]
+            },
+            {
+                id: 'm-403',
+                title: 'Module 3: Tìm hiểu các loại Đầu số viễn thông',
+                type: 'learn',
+                activity: 'Phân loại các đầu số phổ biến trên thị trường: Đầu số cố định (024/028), đầu số di động doanh nghiệp, đầu số 1800/1900 và Voice Brandname (hiển thị tên thương hiệu).',
+                outcome: 'Phân biệt chính xác ưu nhược điểm, chi phí và thủ tục đăng ký từng loại đầu số.',
+                links: [
+                    { title: 'Bảng Giá & Tra Cứu Cước Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
+                ]
+            },
+            {
+                id: 'm-404',
+                title: 'Module 4: Tư vấn phương án đầu số tối ưu cho khách hàng',
+                type: 'learn',
+                activity: 'Phân tích nhu cầu từng ngành để tư vấn đúng loại đầu số, tối ưu chi phí cước viễn thông và nâng cao tỷ lệ bắt máy.',
+                outcome: 'Đưa ra được giải pháp đầu số phù hợp khi khách hàng yêu cầu phương án gọi ra/gọi vào.',
+                links: []
+            }
         ],
         attachedDocIds: [],
-        customLinks: [
-            { title: 'Kho Tài Liệu Tổng Hợp Sản Phẩm & Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
-        ],
-        mentorNote: 'Phụ trách: Tiên & CS Ucall. Hiểu đúng đầu số và cước viễn thông sẽ giúp bạn tư vấn phương án tiết kiệm nhất cho khách hàng.'
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Hiểu đúng đầu số và cước viễn thông sẽ giúp bạn tư vấn phương án tiết kiệm nhất cho khách hàng.'
     },
     {
         id: 'day-5',
-        dayNumber: 'Ngày 5 (n+4)',
+        dayNumber: 'Ngày 5',
         title: 'Chính Sách Bán Hàng, Bảng Giá, Quy Trình Thanh Toán & Lập Báo Giá',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Thuộc lòng bảng giá các gói sản phẩm, quy trình thanh toán, xuất hóa đơn VAT và thành thạo công cụ lập báo giá PDF trên SalesHub trong 2 phút.',
         badgeColor: 'violet',
-        trainer: 'Tiên / Mai - HR',
+        trainer: 'Nguyễn Thủy Tiên',
         tasks: [
-            { id: 't-501', title: 'Giá sản phẩm & Gói dịch vụ: Nắm rõ bảng giá Callbot, Adahub CRM, phí khởi tạo, chi phí duy trì và các gói kết hợp', type: 'learn' },
-            { id: 't-502', title: 'Quy trình thanh toán: Tư vấn đúng quy trình thanh toán (đặt cọc, nghiệm thu, thanh lý) theo quy định công ty', type: 'learn' },
-            { id: 't-503', title: 'Chính sách xuất hóa đơn: Hướng dẫn khách hàng chuẩn bị đúng thông tin pháp nhân và xuất hóa đơn VAT điện tử', type: 'learn' },
-            { id: 't-504', title: 'Làm bài test Bảng giá & Chính sách bán hàng cùng Trainer để kiểm tra mức độ nắm bắt', type: 'practice' },
-            { id: 't-505', title: 'Thực hành Lập Báo Giá trên Etron SalesHub: Tự tạo 02 bản báo giá PDF hoàn chỉnh (01 bản Callbot AI, 01 bản Adahub CRM)', type: 'practice' }
+            {
+                id: 'm-501',
+                title: 'Module 1: Giá sản phẩm & Gói dịch vụ',
+                type: 'learn',
+                activity: 'Phân tích chi tiết bảng giá các gói dịch vụ: Phút gọi Ucall, phí khởi tạo/triển khai, phí duy trì tổng đài hàng tháng, gói Adahub CRM và các gói combo tích hợp.',
+                outcome: 'Tư vấn chuẩn xác giá thành các gói theo từng quy mô và nhu cầu khách hàng.',
+                links: [
+                    { title: 'Bảng Mức lương & Chính sách Bán hàng Etron', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-502',
+                title: 'Module 2: Quy trình thanh toán & Hợp đồng',
+                type: 'learn',
+                activity: 'Nắm vững quy trình thanh toán (tạm ứng, đặt cọc, thanh toán đợt cuối), quy trình ký kết hợp đồng, bảo mật thông tin và thủ tục kích hoạt dịch vụ.',
+                outcome: 'Tư vấn đúng quy trình pháp lý và thanh toán cho khách hàng theo đúng quy chế công ty.',
+                links: [
+                    { title: 'Tài liệu Quy trình Hợp đồng & Thanh toán', url: 'https://docs.google.com/document/d/1TUp4Nam4AKsslvIP6HrlErfN9NosOLP-sI22PdlJLFk/edit?tab=t.0', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-503',
+                title: 'Module 3: Chính sách xuất hóa đơn VAT điện tử',
+                type: 'learn',
+                activity: 'Hướng dẫn thông tin cần lấy từ khách hàng (Tên công ty, MST, địa chỉ đăng ký kinh doanh, email nhận hóa đơn) và quy trình kế toán xuất hóa đơn VAT.',
+                outcome: 'Thu thập đầy đủ thông tin chuẩn xác và phối hợp mượt mà với kế toán công ty.',
+                links: []
+            },
+            {
+                id: 'm-504',
+                title: 'Module 4: Thực hành Lập Báo Giá trên Etron SalesHub',
+                type: 'practice',
+                activity: 'Sử dụng công cụ Tạo Báo Giá Online trên Etron SalesHub để tự tạo 02 bản báo giá PDF hoàn chỉnh (01 bản Callbot AI, 01 bản Adahub CRM/Tổng đài) và gửi cho Trainer duyệt.',
+                outcome: 'Thành thạo lập báo giá chuyên nghiệp chỉ trong 2 phút.',
+                links: [
+                    { title: 'Công cụ Tạo Báo Giá Online Etron SalesHub', url: 'index.html?tab=quote-builder', type: 'internal' }
+                ]
+            }
         ],
         attachedDocIds: [],
-        customLinks: [
-            { title: 'Mức lương theo Level & Chính sách KPI', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' },
-            { title: 'Công cụ Tạo Báo Giá Online Etron SalesHub', url: 'index.html?tab=quote-builder', type: 'internal' }
-        ],
-        mentorNote: 'Phụ trách: Tiên & Mai HR. Hãy tận dụng công cụ Báo giá trên SalesHub để có thể tạo báo giá gửi khách ngay trên điện thoại hoặc máy tính nhé!'
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Hãy tận dụng công cụ Báo giá trên SalesHub để có thể tạo báo giá gửi khách ngay trên điện thoại hoặc máy tính nhé!'
     },
     {
         id: 'day-6',
-        dayNumber: 'Ngày 6 (n+5)',
-        title: 'Quy Trình Bán Hàng Thực Chiến, Kỹ Năng Meeting, Xử Lý Từ Chối & Chốt Deal',
+        dayNumber: 'Ngày 6',
+        title: 'Quy Trình Bán Hàng & Kỹ Năng Gọi Điện Tiếp Cận Chuyên Sâu',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
-        goal: 'Trình bày trọn vẹn quy trình từ lead đến chốt deal; thành thạo kỹ năng gọi điện tiếp cận, meeting demo, follow-up và vượt qua kỳ đánh giá Onboard.',
+        goal: 'Nắm vững quy trình bán hàng B2B từ đầu đến cuối; thành thạo kỹ năng gọi điện tiếp cận, kịch bản mở lời, khơi gợi nhu cầu và chốt lịch hẹn meeting.',
         badgeColor: 'rose',
-        trainer: 'Thu / Tươi / Kiên / Liên / Leaders',
+        trainer: 'Nguyễn Thủy Tiên',
         tasks: [
-            { id: 't-601', title: 'Tổng quan Quy trình bán hàng B2B (Thu): Từ tiếp nhận lead, phân loại nhu cầu, hẹn meeting, demo, báo giá, follow-up đến chốt ký hợp đồng', type: 'learn' },
-            { id: 't-602', title: 'Kỹ năng Gọi điện tiếp cận chuyên sâu (Tươi): Cấu trúc 10 giây mở lời, khơi gợi nỗi đau vận hành và kỹ thuật chốt lịch hẹn meeting', type: 'learn' },
-            { id: 't-603', title: 'Kỹ năng Meeting tư vấn & Demo giải pháp (Kiên): Cấu trúc buổi meeting chuẩn, demo sản phẩm thực tế và chốt bán', type: 'practice' },
-            { id: 't-604', title: 'Quy trình Follow-up khách hàng mới & Chốt bán (Thu): Thời điểm follow-up vàng, kịch bản thúc đẩy và xử lý do dự', type: 'practice' },
-            { id: 't-605', title: 'Xử lý từ chối trong cuộc gọi đầu & Sau meeting (Liên): Phân tích tình huống thực tế khi khách chê giá, ngại công nghệ mới, đang dùng đối thủ...', type: 'learn' },
-            { id: 't-606', title: 'Nghiên cứu Thị trường, Đối thủ & Giữ chân khách hàng (Tươi & Kiên): Phân tích đối thủ cạnh tranh và tư duy Customer Success giúp khách hàng gia hạn', type: 'learn' },
-            { id: 't-607', title: 'Rèn luyện 1-1 cùng Leaders: Chữa recording cuộc gọi thực tế, role-play meeting 1-1 và kiểm tra kỹ năng tư vấn độc lập', type: 'practice' },
-            { id: 't-608', title: 'Nhận Data khách hàng đầu tiên trên CRM và chính thức bước vào chặng đường kinh doanh tại Etron HCM!', type: 'action' }
+            {
+                id: 'm-601',
+                title: 'Module 1: Tổng quan Quy trình bán hàng B2B',
+                type: 'learn',
+                activity: 'Quy trình bán hàng chuẩn từ tiếp nhận lead, phân loại tiềm năng, tiếp cận ban đầu, hẹn meeting demo, gửi báo giá, follow-up đến chốt ký hợp đồng và phối hợp chăm sóc.',
+                outcome: 'Trình bày trọn vẹn các bước trong phễu bán hàng B2B và cách phối hợp nhịp nhàng giữa các bộ phận.',
+                links: [
+                    { title: 'Quy trình Bán hàng Tổng quan', url: 'https://drive.google.com/file/d/1X31uPVx7M7TLYoEoBUimK98DEMXXbM99/view?usp=drive_link', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-602',
+                title: 'Module 2: Kỹ năng tiếp cận khách hàng & Kịch bản gọi điện',
+                type: 'learn',
+                activity: 'Kỹ thuật gọi điện telesale B2B chuyên sâu: 10 giây mở lời gây ấn tượng, cách vượt qua lễ tân, kỹ thuật khơi gợi nỗi đau vận hành doanh nghiệp và kỹ năng chốt hẹn lịch meeting.',
+                outcome: 'Thành thạo cấu trúc cuộc gọi tiếp cận và sẵn sàng kịch bản gọi cho từng ngành mục tiêu.',
+                links: [
+                    { title: 'Tài liệu Training Tiếp cận Khách hàng', url: 'https://drive.google.com/file/d/1X31uPVx7M7TLYoEoBUimK98DEMXXbM99/view?usp=drive_link', type: 'external' },
+                    { title: 'Các mẫu kịch bản gọi điện tiếp cận', url: 'https://docs.google.com/document/d/1Objection_Handling_Scripts', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-603',
+                title: 'Module 3: Xử lý từ chối trong cuộc gọi đầu tiên',
+                type: 'learn',
+                activity: 'Phân tích các tình huống khách hàng từ chối phổ biến khi nhận cuộc gọi đầu (Bận, Không có nhu cầu, Đã có giải pháp, Gửi mail xem sau...) và phương pháp ứng biến linh hoạt.',
+                outcome: 'Áp dụng các mẫu câu xử lý từ chối để giữ được cuộc hội thoại và chuyển hóa thành lịch hẹn.',
+                links: [
+                    { title: 'Tài liệu Xử lý từ chối trong Cuộc gọi đầu', url: 'https://docs.google.com/spreadsheets/d/1W0OI6WOPbey0fD8f6AW8cwFhEnD5RXGjyi_yDSQfo9M/edit?gid=0#gid=0', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-604',
+                title: 'Module 4: Thực hành gọi điện 1-1 cùng Trainer',
+                type: 'practice',
+                activity: 'Role-play thực tế 1-1 với Trainer/Mentor đóng vai khách hàng khó tính, được chỉnh sửa ngữ điệu, tốc độ nói và cách xử lý từ chối ngay lập tức.',
+                outcome: 'Tự tin thực hiện cuộc gọi thực tế và vượt qua bài test kỹ năng gọi điện.',
+                links: []
+            }
         ],
         attachedDocIds: [],
-        customLinks: [
-            { title: 'Quy trình Bán hàng Tổng quan', url: 'https://drive.google.com/file/d/1X31uPVx7M7TLYoEoBUimK98DEMXXbM99/view?usp=drive_link', type: 'external' },
-            { title: 'Quy trình Follow-up Khách hàng mới', url: 'https://drive.google.com/file/d/1fZVR-cbDyR4QSVs6aBf-9R6VObGDgzP6/view?usp=drive_link', type: 'external' },
-            { title: 'Bảng Thực hành Follow-up & Chốt bán', url: 'https://docs.google.com/spreadsheets/d/1BuAw6TUex45zMTMFpwAv5-pCIZ98xSGQ/edit?gid=1484021979#gid=1484021979', type: 'external' },
-            { title: 'Tài liệu Xử lý từ chối trong Cuộc gọi đầu', url: 'https://docs.google.com/spreadsheets/d/1W0OI6WOPbey0fD8f6AW8cwFhEnD5RXGjyi_yDSQfo9M/edit?gid=0#gid=0', type: 'external' },
-            { title: 'Tài liệu Xử lý từ chối Sau Meeting', url: 'https://docs.google.com/spreadsheets/d/1llpeQn2eF1HOyP3u_Hyt712ja33Kp09FEq6w3kfTzn0/edit?gid=0#gid=0', type: 'external' },
-            { title: 'Slide Nghiên cứu Thị trường & Đối thủ (Canva)', url: 'https://www.canva.com/design/DAGeYgc3CKI/tbnk0J5nP7TU7aPYJoWohA/edit?utm_content=DAGeYgc3CKI&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', type: 'external' },
-            { title: 'Slide Customer Success & Giữ chân KH (Canva)', url: 'https://www.canva.com/design/DAGfEmymcN0/kOrtb6br4ulOfT_-DR65TA/edit?utm_content=DAGfEmymcN0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', type: 'external' }
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Gọi điện tiếp cận là chìa khóa mở ra các cơ hội bán hàng lớn, hãy tự tin vào giá trị giải pháp Etron mang lại!'
+    },
+    {
+        id: 'day-7',
+        dayNumber: 'Ngày 7',
+        title: 'Kỹ Năng Meeting Tư Vấn, Demo Giải Pháp & Hướng Dẫn Sử Dụng (HDSD)',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Làm chủ cấu trúc buổi Meeting demo giải pháp với khách hàng doanh nghiệp; thành thạo quy trình HDSD sản phẩm và kỹ thuật chốt deal sau demo.',
+        badgeColor: 'blue',
+        trainer: 'Nguyễn Thủy Tiên',
+        tasks: [
+            {
+                id: 'm-701',
+                title: 'Module 1: Kỹ năng Meeting tư vấn & Demo sản phẩm',
+                type: 'learn',
+                activity: 'Cấu trúc buổi Meeting chuẩn (Online Google Meet / Offline trực tiếp): Chuẩn bị trước meeting, giới thiệu giải pháp, lắng nghe nhu cầu sâu, trình diễn demo sản phẩm thực tế và chốt bán.',
+                outcome: 'Nắm vững cấu trúc buổi Meeting, tự tin dẫn dắt demo sản phẩm theo đúng nỗi đau của khách hàng.',
+                links: [
+                    { title: 'Tài liệu Đào tạo Kỹ năng Meeting tư vấn', url: 'https://drive.google.com/file/d/1X31uPVx7M7TLYoEoBUimK98DEMXXbM99/view?usp=drive_link', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-702',
+                title: 'Module 2: Đào tạo kỹ năng Meeting HDSD chuẩn',
+                type: 'learn',
+                activity: 'Quy trình tổ chức meeting Hướng dẫn sử dụng (HDSD) chuẩn sau khi khách hàng đồng ý giải pháp, phối hợp cùng đội ngũ CS Ucall để onboarding khách hàng mượt mà.',
+                outcome: 'Nắm được các bước bàn giao tài khoản, hướng dẫn khách hàng tạo chiến dịch đầu tiên và thiết lập tổng đài.',
+                links: [
+                    { title: 'Quy chuẩn HDSD Sản phẩm', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?usp=sharing', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-703',
+                title: 'Module 3: Follow-up khách hàng mới & Chốt bán sau meeting',
+                type: 'practice',
+                activity: 'Thời điểm vàng để follow-up sau meeting, kịch bản gửi bản ghi tóm tắt meeting, phương pháp giải tỏa các nỗi lo do dự và kỹ thuật chốt deal B2B dứt khoát.',
+                outcome: 'Áp dụng quy trình follow-up có hệ thống, không để mất dấu khách hàng tiềm năng sau buổi demo.',
+                links: [
+                    { title: 'Slide Quy trình Follow-up Khách hàng mới', url: 'https://drive.google.com/file/d/1fZVR-cbDyR4QSVs6aBf-9R6VObGDgzP6/view?usp=drive_link', type: 'external' },
+                    { title: 'Bảng Thực hành Follow-up & Chốt bán', url: 'https://docs.google.com/spreadsheets/d/1BuAw6TUex45zMTMFpwAv5-pCIZ98xSGQ/edit?gid=1484021979#gid=1484021979', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-704',
+                title: 'Module 4: Xử lý từ chối sau meeting',
+                type: 'learn',
+                activity: 'Phân tích các case thực tế khách hàng từ chối sau demo (Giá cao hơn dự toán, Cần hỏi ý kiến sếp/ban giám đốc, So sánh với phần mềm khác...).',
+                outcome: 'Biết cách đưa ra đề xuất giá trị bổ sung (Value Proposition) và phương án chốt thử nghiệm để thúc đẩy ký hợp đồng.',
+                links: [
+                    { title: 'Tài liệu Xử lý từ chối Sau Meeting', url: 'https://docs.google.com/spreadsheets/d/1llpeQn2eF1HOyP3u_Hyt712ja33Kp09FEq6w3kfTzn0/edit?gid=0#gid=0', type: 'external' }
+                ]
+            }
         ],
-        mentorNote: 'Phụ trách: Thu, Tươi, Kiên, Liên, Leaders. Chúc mừng bạn đã hoàn thành tuần đào tạo nền tảng! Toàn bộ team Etron HCM sẽ luôn sát cánh hỗ trợ bạn trong từng cuộc gọi và từng thương vụ chốt deal.'
+        attachedDocIds: [],
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Meeting là lúc bạn thể hiện sự chuyên nghiệp và uy tín của Etron, chuẩn bị chu đáo trước buổi hẹn nhé!'
+    },
+    {
+        id: 'day-8',
+        dayNumber: 'Ngày 8',
+        title: 'Nghiên Cứu Tài Liệu Tổng Hợp, Thị Trường, Đối Thủ & Customer Success',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Đọc và nghiên cứu toàn diện bộ tài liệu thị trường, phân tích đối thủ cạnh tranh, tư duy giữ chân khách hàng và sẵn sàng nhận data khách hàng thực chiến.',
+        badgeColor: 'emerald',
+        trainer: 'Nguyễn Thủy Tiên',
+        tasks: [
+            {
+                id: 'm-801',
+                title: 'Module 1: Nghiên cứu thị trường & Phân tích đối thủ cạnh tranh',
+                type: 'learn',
+                activity: 'Đọc tài liệu chuyên sâu về thị trường Callbot AI và CRM tại Việt Nam; phân tích điểm mạnh, điểm yếu và mức giá của các đối thủ cạnh tranh chính trên thị trường.',
+                outcome: 'Nắm vững lợi thế cạnh tranh cốt lõi (USP) của Etron và Ucall để tự tin tư vấn so sánh khi khách hàng hỏi.',
+                links: [
+                    { title: 'Slide Nghiên cứu Thị trường & Đối thủ (Canva)', url: 'https://www.canva.com/design/DAGeYgc3CKI/tbnk0J5nP7TU7aPYJoWohA/edit?utm_content=DAGeYgc3CKI&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-802',
+                title: 'Module 2: Customer Success & Giữ chân khách hàng',
+                type: 'learn',
+                activity: 'Nghiên cứu tài liệu Customer Success, tư duy đồng hành hỗ trợ khách hàng đạt hiệu quả kinh doanh, chính sách gia hạn dịch vụ và chiến lược up-sell/cross-sell.',
+                outcome: 'Hiểu rõ tầm quan trọng của việc giữ chân khách hàng và vai trò của Sales trong giai đoạn sau bán.',
+                links: [
+                    { title: 'Slide Customer Success & Giữ chân KH (Canva)', url: 'https://www.canva.com/design/DAGfEmymcN0/kOrtb6br4ulOfT_-DR65TA/edit?utm_content=DAGfEmymcN0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', type: 'external' }
+                ]
+            },
+            {
+                id: 'm-803',
+                title: 'Module 3: Tổng ôn tài liệu & Rèn luyện kỹ năng thực chiến',
+                type: 'practice',
+                activity: 'Nghe lại các file recording cuộc gọi xuất sắc của các Top Performer, xem recording các buổi meeting mẫu thành công và hoàn thành bài đánh giá kết thúc tuần Onboard.',
+                outcome: 'Hoàn tất toàn bộ lộ trình 8 ngày đào tạo nền tảng, sẵn sàng nhận data chính thức trên CRM.',
+                links: [
+                    { title: 'Kho Kịch Bản & Ghi Âm Mẫu trên SalesHub', url: 'index.html?tab=callbot-hub', type: 'internal' },
+                    { title: 'Kho Tài Liệu Tổng Hợp SalesHub', url: 'index.html?tab=documents', type: 'internal' }
+                ]
+            },
+            {
+                id: 'm-804',
+                title: 'Module 4: Nhận Data khách hàng đầu tiên & Bắt đầu hành trình Etron!',
+                type: 'action',
+                activity: 'Trainer / Quản lý bàn giao danh sách data khách hàng đầu tiên trên Adahub CRM, thiết lập mục tiêu tuần đầu tiên và chính thức bắt đầu công việc kinh doanh.',
+                outcome: 'Bắt đầu thực hiện những cuộc gọi đầu tiên với sự đồng hành 1-1 của mentor.',
+                links: []
+            }
+        ],
+        attachedDocIds: [],
+        customLinks: [],
+        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Chúc mừng bạn đã hoàn thành lộ trình đào tạo 8 ngày! Chúc bạn bứt phá doanh số và gặt hái nhiều thành công tại Etron HCM!'
     }
 ];
 
