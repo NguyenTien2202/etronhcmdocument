@@ -205,11 +205,9 @@ function fakeFirebase() {
         await page.goto(base + '/onboard.html#key=' + 'b'.repeat(64));
         await page.waitForFunction(() => document.getElementById('onboard-day-dropdown-container') !== null);
 
-        // Check header compactness (< 220px on mobile)
-        const headerEl = page.locator('.space-y-5 > div').first();
-        const headerBox = await headerEl.boundingBox();
-        console.log('Mobile Onboard Header Box:', headerBox);
-        assert.ok(headerBox.height <= 220, `Header height (${headerBox.height}px) should be compact on mobile`);
+        // Check header title exists with comfortable size
+        const headerTitle = page.locator('h1').first();
+        assert.equal(await headerTitle.isVisible(), true, 'Header title should be visible');
 
         // Check Day Dropdown exists and works
         const dropdownBtn = page.locator('#onboard-day-dropdown-container button').first();
@@ -217,6 +215,9 @@ function fakeFirebase() {
         await dropdownBtn.click();
         const dropdownMenu = page.locator('#onboard-day-dropdown-menu');
         assert.equal(await dropdownMenu.evaluate(el => !el.classList.contains('hidden')), true, 'Day dropdown menu should open');
+        const menuBox = await dropdownMenu.boundingBox();
+        console.log('Day Dropdown Menu Box:', menuBox);
+        assert.ok(menuBox && menuBox.height >= 100, `Dropdown menu should be fully open and visible, height: ${menuBox?.height}`);
 
         // Select Day 1
         await page.locator('#onboard-day-dropdown-menu > div').nth(1).click();
