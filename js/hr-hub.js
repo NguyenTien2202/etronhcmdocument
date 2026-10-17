@@ -831,6 +831,122 @@ class HrHubApp {
                                     </div>
                                 </div>
 
+                                <!-- BÀI TẬP & SẢN PHẨM HỌC VIÊN ĐÃ NỘP -->
+                                <div class="space-y-3 pt-2">
+                                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                        <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                            <i data-lucide="folder-check" class="w-4 h-4 text-indigo-600"></i>
+                                            <span>Bài Tập & Báo Cáo Học Viên Đã Nộp (${Object.keys(cand.taskSubmissions || {}).length} bài)</span>
+                                        </h4>
+                                    </div>
+
+                                    ${(() => {
+                                        const subs = cand.taskSubmissions || {};
+                                        const subEntries = Object.entries(subs);
+                                        if (subEntries.length === 0) {
+                                            return `
+                                                <div class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400 space-y-1">
+                                                    <i data-lucide="inbox" class="w-6 h-6 mx-auto text-slate-300"></i>
+                                                    <p class="font-medium text-slate-500">Chưa có bài tập nào được nộp</p>
+                                                    <p class="text-[11px]">Khi học viên tải file hoặc gắn link bài làm trên Cổng Onboard, kết quả sẽ tự động hiển thị tại đây để bạn kiểm tra.</p>
+                                                </div>
+                                            `;
+                                        }
+
+                                        const allTasks = roadmap.flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
+                                        return `
+                                            <div class="grid grid-cols-1 gap-2.5">
+                                                ${subEntries.map(([taskId, sub]) => {
+                                                    const match = allTasks.find(x => x.task.id === taskId);
+                                                    const taskTitle = match ? match.task.title : taskId;
+                                                    const dayNumber = match ? match.day.dayNumber : 'Lộ trình';
+                                                    const isImg = !!((sub.fileType && sub.fileType.startsWith('image/')) || (sub.fileData && sub.fileData.startsWith('data:image')));
+                                                    const formattedTime = window.hrOnboardingStore.formatDateTime(sub.submittedAt);
+
+                                                    return `
+                                                        <div class="p-3.5 rounded-2xl bg-white border border-indigo-200/80 shadow-2xs space-y-2 hover:border-indigo-400 transition-all">
+                                                            <div class="flex items-start justify-between gap-2">
+                                                                <div class="min-w-0 flex-1">
+                                                                    <div class="flex items-center gap-2">
+                                                                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 text-indigo-700 shrink-0">${this.escapeHtml(dayNumber)}</span>
+                                                                        <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${this.escapeHtml(this.cleanTaskTitle(taskTitle))}</h5>
+                                                                    </div>
+                                                                    <span class="text-[10px] text-slate-400 block mt-0.5 flex items-center gap-1">
+                                                                        <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
+                                                                        <span>Nộp lúc: ${formattedTime}</span>
+                                                                    </span>
+                                                                </div>
+                                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 flex items-center gap-1">
+                                                                    <i data-lucide="check-circle" class="w-3 h-3"></i> Đã nộp
+                                                                </span>
+                                                            </div>
+
+                                                            <!-- Link bài làm -->
+                                                            ${sub.link ? `
+                                                                <div class="p-2 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-center justify-between gap-2 text-xs">
+                                                                    <div class="flex items-center gap-2 min-w-0">
+                                                                        <i data-lucide="link" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
+                                                                        <span class="font-bold text-slate-600 shrink-0">Link:</span>
+                                                                        <a href="${this.escapeHtml(sub.link)}" target="_blank" rel="noopener noreferrer"
+                                                                            class="text-indigo-600 hover:text-indigo-800 font-bold underline truncate">${this.escapeHtml(sub.link)}</a>
+                                                                    </div>
+                                                                    <a href="${this.escapeHtml(sub.link)}" target="_blank" rel="noopener noreferrer"
+                                                                        class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shrink-0 flex items-center gap-1">
+                                                                        <span>Mở xem</span>
+                                                                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                                                                    </a>
+                                                                </div>
+                                                            ` : ''}
+
+                                                            <!-- File / Hình ảnh đính kèm -->
+                                                            ${(sub.fileData || sub.fileName) ? `
+                                                                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+                                                                    <div class="flex items-center gap-2.5 min-w-0">
+                                                                        ${isImg ? `
+                                                                            <img src="${sub.fileData}" alt="${this.escapeHtml(sub.fileName || 'Bài tập')}"
+                                                                                onclick="window.hrHub.previewSubmissionImage('${sub.fileData}')"
+                                                                                class="w-16 h-12 object-cover rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:opacity-90 shrink-0"
+                                                                                title="Bấm để xem ảnh lớn">
+                                                                        ` : `
+                                                                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                                                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                                                                            </div>
+                                                                        `}
+                                                                        <div class="min-w-0">
+                                                                            <span class="font-bold text-slate-800 block truncate">${this.escapeHtml(sub.fileName || 'File bài nộp')}</span>
+                                                                            <span class="text-[10px] text-slate-400 block">${isImg ? 'Ảnh đính kèm • Bấm xem lớn' : 'Tệp đính kèm'}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="flex items-center gap-1.5 shrink-0">
+                                                                        ${isImg ? `
+                                                                            <button type="button" onclick="window.hrHub.previewSubmissionImage('${sub.fileData}')"
+                                                                                class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1">
+                                                                                <i data-lucide="eye" class="w-3.5 h-3.5 text-indigo-600"></i> Xem
+                                                                            </button>
+                                                                        ` : ''}
+                                                                        <a href="${sub.fileData}" download="${this.escapeHtml(sub.fileName || 'bai-tap')}"
+                                                                            class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1">
+                                                                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải về
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
+                                                            ` : ''}
+
+                                                            <!-- Note / Ghi chú -->
+                                                            ${sub.note ? `
+                                                                <div class="p-2.5 rounded-xl bg-amber-50/40 border border-amber-200/70 text-xs text-slate-800 leading-relaxed">
+                                                                    <span class="font-extrabold text-amber-900 block text-[11px] mb-0.5">Ghi chú của học viên:</span>
+                                                                    <p class="whitespace-pre-wrap">${this.escapeHtml(sub.note)}</p>
+                                                                </div>
+                                                            ` : ''}
+                                                        </div>
+                                                    `;
+                                                }).join('')}
+                                            </div>
+                                        `;
+                                    })()}
+                                </div>
+
                                 <!-- 4 Giai đoạn Checklist HR -->
                                 <div class="space-y-4 pt-2">
                                     <div class="flex items-center justify-between border-b border-slate-200 pb-2">
@@ -1382,6 +1498,12 @@ class HrHubApp {
                                                         </span>
                                                     ` : ''}
                                                     ${window.onboardingViewer ? window.onboardingViewer.getTaskTypeBadge(task.type) : ''}
+                                                    ${(task.requiresSubmission || task.type === 'practice') ? `
+                                                        <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                                            <i data-lucide="upload-cloud" class="w-3 h-3 text-amber-600"></i>
+                                                            <span>Có nộp bài</span>
+                                                        </span>
+                                                    ` : ''}
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.openEditTaskModal('${day.id}', '${task.id}')"
                                                         class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-600 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs"
                                                         title="Chỉnh sửa nội dung & kết quả cần đạt của mục này">
@@ -1743,6 +1865,8 @@ class HrHubApp {
         document.getElementById('hr-task-type').value = task.type || 'learn';
         document.getElementById('hr-task-activity').value = task.activity || '';
         document.getElementById('hr-task-outcome').value = task.outcome || '';
+        const reqSubEl = document.getElementById('hr-task-requires-submission');
+        if (reqSubEl) reqSubEl.checked = !!(task.requiresSubmission ?? (task.type === 'practice'));
 
         const deleteBtn = document.getElementById('hr-task-delete-btn');
         if (deleteBtn) deleteBtn.classList.remove('hidden');
@@ -1768,6 +1892,8 @@ class HrHubApp {
         document.getElementById('hr-task-type').value = 'learn';
         document.getElementById('hr-task-activity').value = '';
         document.getElementById('hr-task-outcome').value = '';
+        const reqSubEl = document.getElementById('hr-task-requires-submission');
+        if (reqSubEl) reqSubEl.checked = false;
 
         const deleteBtn = document.getElementById('hr-task-delete-btn');
         if (deleteBtn) deleteBtn.classList.add('hidden');
@@ -1789,6 +1915,7 @@ class HrHubApp {
         const type = document.getElementById('hr-task-type').value;
         const activity = document.getElementById('hr-task-activity').value.trim();
         const outcome = document.getElementById('hr-task-outcome').value.trim();
+        const requiresSubmission = !!document.getElementById('hr-task-requires-submission')?.checked;
 
         if (!title) {
             alert('Vui lòng nhập Tiêu đề bài học / bài tập!');
@@ -1808,6 +1935,7 @@ class HrHubApp {
                 task.type = type;
                 task.activity = activity;
                 task.outcome = outcome;
+                task.requiresSubmission = requiresSubmission;
                 this.expandedModules.add(task.id);
             }
         } else {
@@ -1818,6 +1946,7 @@ class HrHubApp {
                 type,
                 activity,
                 outcome,
+                requiresSubmission,
                 links: []
             };
             day.tasks.push(newTask);
@@ -1833,6 +1962,17 @@ class HrHubApp {
         } catch (err) {
             this.showToast('Chưa lưu được nội dung. Vui lòng thử lại!', 'error');
         }
+    }
+
+    previewSubmissionImage(imageUrl) {
+        const modal = document.getElementById('submission-image-modal');
+        const img = document.getElementById('submission-image-target');
+        const dl = document.getElementById('submission-image-download');
+        if (!modal || !img) return;
+        img.src = imageUrl;
+        if (dl) dl.href = imageUrl;
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
     }
 
     handleDeleteCurrentTask() {

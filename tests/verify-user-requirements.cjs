@@ -4,6 +4,8 @@ const path = require('node:path');
 const http = require('node:http');
 const { chromium } = require('playwright');
 
+const token = 'b'.repeat(64);
+
 function fakeFirebase() {
     const uid = 'TmtCY7Bgb2OSPRZXhsK1qRnoI8g1';
     const token = 'b'.repeat(64);
@@ -313,6 +315,64 @@ function fakeFirebase() {
         assert.equal(addedTask.type, 'practice');
         assert.equal(addedTask.activity, 'Thực hành gọi thử 5 cuộc với Callbot AI');
         assert.equal(addedTask.outcome, 'Đạt điểm chất lượng cuộc gọi trên 85%');
+
+        console.log('--- 5. Testing Candidate Task Submission (Link, Note) & HR Review ---');
+        await page.goto(base + '/onboard.html?token=' + token);
+        await page.waitForFunction(() => !!window.onboardingViewer && !!window.hrOnboardingStore);
+
+        // Switch to Day 2 and expand module t2
+        await page.evaluate(() => {
+            window.onboardingViewer.setDayFilter('day-2');
+            window.onboardingViewer.toggleModule('t2');
+        });
+
+        // Fill submission link and note
+        await page.locator('#sub-link-t2').fill('https://docs.google.com/document/d/example123');
+        await page.locator('#sub-note-t2').fill('Đã hoàn thành cấu hình pipeline và nạp 50 leads mẫu vào CRM');
+
+        // Click submit button
+        await page.locator('#mod-body-t2 button:has-text("Nộp bài & Hoàn thành")').click();
+
+        // Verify task progress is checked and submission card is rendered
+        await page.waitForFunction(() => {
+            const submissions = window.hrOnboardingStore.getTaskSubmissions();
+            return !!submissions['t2'] && submissions['t2'].link === 'https://docs.google.com/document/d/example123';
+        });
+
+        // Verify card displays the link and note
+        const subCardText = await page.locator('#mod-body-t2').innerText();
+        assert.ok(subCardText.includes('Đã nộp'), 'Submission card should show submitted status');
+        assert.ok(subCardText.includes('https://docs.google.com/document/d/example123'), 'Submission card should show link');
+        assert.ok(subCardText.includes('Đã hoàn thành cấu hình pipeline'), 'Submission card should show note');
+
+        // Now go back to HR Hub and check that HR can see this candidate's submission
+        await page.goto(base + '/hr.html');
+        await page.locator('[name=email]').fill('hr@example.invalid');
+        await page.locator('[name=password]').fill('test-pass');
+        await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+        await page.waitForFunction(() => window.hrOnboardingStore.getCandidates().length === 2);
+        await page.evaluate(() => window.hrHub.switchTab('candidates'));
+
+        // Candidate c1 is linked with this personal link, let's inject submission into candidate c1's progress for testing HR view
+        await page.evaluate(() => {
+            const c = window.hrOnboardingStore.getCandidateById('c1');
+            if (c) {
+                if (!c.taskSubmissions) c.taskSubmissions = {};
+                c.taskSubmissions['t2'] = {
+                    link: 'https://docs.google.com/document/d/example123',
+                    note: 'Đã hoàn thành cấu hình pipeline và nạp 50 leads mẫu vào CRM',
+                    submittedAt: Date.now()
+                };
+                window.hrHub.renderCandidatesTab();
+            }
+        });
+
+        // Click to expand candidate c1
+        await page.evaluate(() => window.hrHub.toggleCandidateAccordion('c1'));
+        const candidate1Content = await page.locator('#hr-cand-body-c1').innerText();
+        assert.ok(candidate1Content.includes('Bài Tập & Báo Cáo Học Viên Đã Nộp'), 'HR should see submitted assignments section');
+        assert.ok(candidate1Content.includes('https://docs.google.com/document/d/example123'), 'HR should see candidate submission link');
+        assert.ok(candidate1Content.includes('Đã hoàn thành cấu hình pipeline'), 'HR should see candidate submission note');
 
         assert.deepEqual(errors, [], 'There should be no console or page errors');
         console.log('ALL TESTS PASSED! User requirements fully satisfied.');

@@ -707,6 +707,7 @@ class HrOnboardingStore {
         this.roadmap = JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
         this.publicCandidate = null;
         this.personalProgress = {};
+        this.personalSubmissions = {};
         this.ready = new Set();
         this._progressListeners = new Map();
     }
@@ -768,6 +769,90 @@ class HrOnboardingStore {
         }
         this.notifyChange('progress');
     }
+
+    getTaskSubmissions(candidateId = null) {
+        if (this.isHr() && candidateId) return this.getCandidateById(candidateId)?.taskSubmissions || {};
+        return this.personalSubmissions || {};
+    }
+
+    async saveTaskSubmission(taskId, submissionData, candidateId = null) {
+        const payload = {
+            ...submissionData,
+            submittedAt: submissionData.submittedAt || Date.now()
+        };
+
+        if (this.isHr() && candidateId) {
+            const candidate = this.getCandidateById(candidateId);
+            if (candidate) {
+                candidate.taskSubmissions ||= {};
+                candidate.taskSubmissions[taskId] = payload;
+                candidate.taskProgress ||= {};
+                candidate.taskProgress[taskId] = true;
+                this.saveCandidates(this.getCandidates());
+            }
+            return;
+        }
+
+        if (!this.token) {
+            this.personalSubmissions ||= {};
+            this.personalSubmissions[taskId] = payload;
+            try { localStorage.setItem('etron_public_task_submissions', JSON.stringify(this.personalSubmissions)); } catch (_) {}
+            if (!this.personalProgress[taskId]) {
+                await this.toggleTaskProgress(taskId);
+            }
+        } else {
+            if (!this.personalProgressReady || !this.publicCandidate) throw new Error('Chưa tải được tiến độ.');
+            this.personalSubmissions ||= {};
+            this.personalSubmissions[taskId] = payload;
+            await window.firebaseDb.collection('onboarding_progress').doc(this.token).update(
+                new firebase.firestore.FieldPath('taskSubmissions', taskId), payload,
+                new firebase.firestore.FieldPath('completedTasks', taskId), true
+            );
+            this.personalProgress[taskId] = true;
+        }
+        this.notifyChange('submissions');
+        this.notifyChange('progress');
+    }
+
+    async deleteTaskSubmission(taskId, candidateId = null) {
+        if (this.isHr() && candidateId) {
+            const candidate = this.getCandidateById(candidateId);
+            if (candidate?.taskSubmissions) {
+                delete candidate.taskSubmissions[taskId];
+                this.saveCandidates(this.getCandidates());
+            }
+            return;
+        }
+
+        if (!this.token) {
+            if (this.personalSubmissions) {
+                delete this.personalSubmissions[taskId];
+                try { localStorage.setItem('etron_public_task_submissions', JSON.stringify(this.personalSubmissions)); } catch (_) {}
+            }
+        } else {
+            if (!this.personalProgressReady || !this.publicCandidate) throw new Error('Chưa tải được tiến độ.');
+            if (this.personalSubmissions) delete this.personalSubmissions[taskId];
+            const delVal = window.firebase?.firestore?.FieldValue?.delete ? window.firebase.firestore.FieldValue.delete() : null;
+            if (delVal) {
+                await window.firebaseDb.collection('onboarding_progress').doc(this.token).update(new firebase.firestore.FieldPath('taskSubmissions', taskId), delVal);
+            } else {
+                await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({ taskSubmissions: this.personalSubmissions }, { merge: true });
+            }
+        }
+        this.notifyChange('submissions');
+    }
+
+    formatDateTime(timestamp) {
+        if (!timestamp) return '---';
+        const date = new Date(timestamp);
+        if (isNaN(date.getTime())) return String(timestamp);
+        const hours = String(date.getHours()).padStart(2, '0');
+        const mins = String(date.getMinutes()).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${hours}:${mins}, ${day}/${month}/${year}`;
+    }
     setupCloudSync() {
         if (this._cloudInitialized || !window.firebaseDb) return;
         this._cloudInitialized = true;
@@ -780,6 +865,7 @@ class HrOnboardingStore {
         });
         if (!this.isHr()) {
             try { this.personalProgress = JSON.parse(localStorage.getItem('etron_public_learning_progress')) || {}; } catch (_) {}
+            try { this.personalSubmissions = JSON.parse(localStorage.getItem('etron_public_task_submissions')) || {}; } catch (_) {}
             return;
         }
         for (const [key, name] of [['candidates', 'candidates_data'], ['templates', 'templates_data'], ['notes', 'notes_data']]) {
@@ -802,8 +888,12 @@ class HrOnboardingStore {
             if (!token || this._progressListeners.has(token)) continue;
             const unsubscribe = window.firebaseDb.collection('onboarding_progress').doc(token).onSnapshot(doc => {
                 const current = this.getCandidates().find(c => c.onboardToken === token);
-                if (current && doc.exists) current.taskProgress = doc.data().completedTasks || {};
+                if (current && doc.exists) {
+                    current.taskProgress = doc.data().completedTasks || {};
+                    current.taskSubmissions = doc.data().taskSubmissions || {};
+                }
                 this.notifyChange('progress');
+                this.notifyChange('submissions');
             }, () => this.notifyChange('sync_error'));
             this._progressListeners.set(token, unsubscribe);
         }
@@ -816,6 +906,7 @@ class HrOnboardingStore {
         this._progressListeners.forEach(unsubscribe => unsubscribe());
         this._progressListeners.clear();
         this.privateData = { candidates: [], templates: DEFAULT_HR_TEMPLATES, notes: [] };
+        this.personalSubmissions = {};
         this.notifyChange('logout');
     }
     async publishCandidate(candidateId) {
@@ -832,7 +923,12 @@ class HrOnboardingStore {
         await ref.set(publicData);
         const progressRef = window.firebaseDb.collection('onboarding_progress').doc(token);
         const existing = await progressRef.get();
-        if (!existing.exists) await progressRef.set({ completedTasks: candidate.taskProgress || {} });
+        if (!existing.exists) {
+            await progressRef.set({
+                completedTasks: candidate.taskProgress || {},
+                taskSubmissions: candidate.taskSubmissions || {}
+            });
+        }
         if (!candidate.onboardToken) {
             candidate.onboardToken = token;
             await window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: this.getCandidates(), updatedAt: Date.now() });
@@ -860,8 +956,10 @@ class HrOnboardingStore {
         }, () => { this.personalUnavailable = true; this.publicCandidate = null; this.notifyChange('personal'); }));
         this._unsubscribers.push(window.firebaseDb.collection('onboarding_progress').doc(token).onSnapshot(doc => {
             this.personalProgress = doc.exists ? doc.data().completedTasks || {} : {};
+            this.personalSubmissions = doc.exists ? doc.data().taskSubmissions || {} : {};
             this.personalProgressReady = !doc.metadata?.fromCache;
             this.notifyChange('progress');
+            this.notifyChange('submissions');
         }, () => this.notifyChange('sync_error')));
     }
     getLearningSummary(candidate, now = new Date()) {
