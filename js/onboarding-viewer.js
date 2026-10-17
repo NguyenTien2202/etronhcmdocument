@@ -522,7 +522,7 @@ class OnboardingViewer {
                                         <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-2.5 text-xs text-amber-950">
                                             <i data-lucide="sparkles" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
                                             <div class="leading-relaxed">
-                                                <strong class="font-bold">Lưu ý hỗ trợ cho bạn:</strong> ${this.escapeHtml(this.cleanMentorNote(day.mentorNote))}
+                                                ${this.escapeHtml(this.cleanMentorNote(day.mentorNote))}
                                             </div>
                                         </div>
                                     ` : ''}
@@ -544,7 +544,10 @@ class OnboardingViewer {
 
     cleanMentorNote(note) {
         if (!note) return '';
-        return String(note).replace(/^Phụ trách:\s*[^.]*\.\s*/i, '').trim();
+        return String(note)
+            .replace(/^Phụ trách:\s*[^.]*\.\s*/i, '')
+            .replace(/^(Lưu ý hỗ trợ cho bạn|Lời nhắn cho nhân sự mới|Lưu ý)\s*:\s*/i, '')
+            .trim();
     }
 
     getFormattedDayDate(day, index, candidate) {

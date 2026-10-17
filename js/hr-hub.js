@@ -1174,8 +1174,9 @@ class HrHubApp {
                         ` : ''}
 
                         ${day.mentorNote ? `
-                            <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950">
-                                <strong>Lời nhắn cho nhân sự mới:</strong> ${this.escapeHtml(this.cleanMentorNote(day.mentorNote))}
+                            <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950 flex items-start gap-2">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5"></i>
+                                <span class="leading-relaxed">${this.escapeHtml(this.cleanMentorNote(day.mentorNote))}</span>
                             </div>
                         ` : ''}
                     </div>
@@ -2002,7 +2003,10 @@ class HrHubApp {
 
     cleanMentorNote(note) {
         if (!note) return '';
-        return String(note).replace(/^Phụ trách:\s*[^.]*\.\s*/i, '').trim();
+        return String(note)
+            .replace(/^Phụ trách:\s*[^.]*\.\s*/i, '')
+            .replace(/^(Lưu ý hỗ trợ cho bạn|Lời nhắn cho nhân sự mới|Lưu ý)\s*:\s*/i, '')
+            .trim();
     }
 
     autoSyncIfOutdated() {
