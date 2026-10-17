@@ -1779,14 +1779,24 @@ class HrHubApp {
             target.badgeColor = badgeColor;
             target.mentorNote = mentorNote;
             target.tasks = rawLines.map((line, idx) => {
-                const existing = oldTasks.find(t => t && t.title && t.title.trim().toLowerCase() === line.trim().toLowerCase()) || oldTasks[idx];
+                const normLine = line.trim().toLowerCase();
+                const cleanLine = normLine.replace(/^module\s*\d+\s*:\s*/i, '');
+                const existing = oldTasks.find(t => {
+                    if (!t || !t.title) return false;
+                    const normTitle = t.title.trim().toLowerCase();
+                    const cleanTitle = normTitle.replace(/^module\s*\d+\s*:\s*/i, '');
+                    return normTitle === normLine || cleanTitle === cleanLine;
+                }) || oldTasks[idx];
+
                 return {
-                    id: existing ? existing.id : `t-${Date.now()}-${idx}`,
+                    id: existing?.id || `t-${Date.now()}-${idx}`,
                     title: line,
-                    type: existing ? existing.type : (line.toLowerCase().includes('thực hành') ? 'practice' : 'learn'),
-                    activity: existing ? existing.activity : '',
-                    outcome: existing ? existing.outcome : '',
-                    links: existing ? existing.links : []
+                    type: existing?.type || (line.toLowerCase().includes('thực hành') ? 'practice' : 'learn'),
+                    activity: existing?.activity || '',
+                    outcome: existing?.outcome || '',
+                    requiresSubmission: existing ? (existing.requiresSubmission ?? (existing.type === 'practice')) : line.toLowerCase().includes('thực hành'),
+                    submissionGuide: existing?.submissionGuide || '',
+                    links: Array.isArray(existing?.links) ? existing.links : []
                 };
             });
         } else {
@@ -3003,35 +3013,30 @@ class HrHubApp {
         const store = window.hrOnboardingStore;
         if (!store) return;
 
-        // Auto-upgrade roadmap to 8 days & clean titles if Firestore still holds old/module data
+        // Chỉ seed dữ liệu mẫu ban đầu nếu trên Cloud hoàn toàn trống rỗng (length === 0)
+        // Tuyệt đối KHÔNG tự động ghi đè roadmap hoặc mẫu tin nếu người dùng đã có dữ liệu tùy chỉnh.
         if (store.ready.has('roadmap')) {
             const roadmap = store.getRoadmap();
-            const needsRoadmapUpdate = !Array.isArray(roadmap) || roadmap.length < 8 || roadmap.some(d =>
-                (d.tasks || []).some(t => /^Module\s*\d+/i.test(t.title)) ||
-                (d.mentorNote && /^Phụ trách:/i.test(d.mentorNote))
-            );
-            if (needsRoadmapUpdate && !this._roadmapAutoSynced) {
+            if ((!Array.isArray(roadmap) || roadmap.length === 0) && !this._roadmapAutoSynced) {
                 this._roadmapAutoSynced = true;
                 try {
                     const defaultRoadmap = JSON.parse(JSON.stringify(window.DEFAULT_ONBOARDING_ROADMAP));
                     store.saveRoadmap(defaultRoadmap);
                 } catch (e) {
-                    console.warn('[HrHub] Lỗi tự động đồng bộ roadmap:', e);
+                    console.warn('[HrHub] Lỗi khởi tạo roadmap mặc định:', e);
                 }
             }
         }
 
-        // Auto-upgrade templates to 8 official templates if Firestore holds older set
         if (store.ready.has('templates')) {
             const templates = store.getTemplates();
-            const needsTplUpdate = !Array.isArray(templates) || templates.length < 8 || !templates.some(t => t.id === 'tpl-offer-letter-pass');
-            if (needsTplUpdate && !this._tplAutoSynced) {
+            if ((!Array.isArray(templates) || templates.length === 0) && !this._tplAutoSynced) {
                 this._tplAutoSynced = true;
                 try {
                     const defaultTemplates = JSON.parse(JSON.stringify(window.DEFAULT_HR_TEMPLATES));
                     store.saveTemplates(defaultTemplates);
                 } catch (e) {
-                    console.warn('[HrHub] Lỗi tự động đồng bộ templates:', e);
+                    console.warn('[HrHub] Lỗi khởi tạo templates mặc định:', e);
                 }
             }
         }

@@ -705,6 +705,37 @@ class HrOnboardingStore {
         this._cloudInitialized = false;
         this.privateData = { candidates: [], templates: DEFAULT_HR_TEMPLATES, notes: [] };
         this.roadmap = JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
+
+        // Nạp dữ liệu cache cục bộ an toàn nếu có (chống mất mát khi rớt mạng hoặc chưa đồng bộ xong)
+        try {
+            const cachedRoadmap = localStorage.getItem('etron_hr_cached_roadmap');
+            if (cachedRoadmap) {
+                const parsed = JSON.parse(cachedRoadmap);
+                if (Array.isArray(parsed) && parsed.length > 0) this.roadmap = parsed;
+            }
+        } catch (_) {}
+        try {
+            const cachedCandidates = localStorage.getItem('etron_hr_cached_candidates');
+            if (cachedCandidates) {
+                const parsed = JSON.parse(cachedCandidates);
+                if (Array.isArray(parsed)) this.privateData.candidates = parsed;
+            }
+        } catch (_) {}
+        try {
+            const cachedTemplates = localStorage.getItem('etron_hr_cached_templates');
+            if (cachedTemplates) {
+                const parsed = JSON.parse(cachedTemplates);
+                if (Array.isArray(parsed) && parsed.length > 0) this.privateData.templates = parsed;
+            }
+        } catch (_) {}
+        try {
+            const cachedNotes = localStorage.getItem('etron_hr_cached_notes');
+            if (cachedNotes) {
+                const parsed = JSON.parse(cachedNotes);
+                if (Array.isArray(parsed)) this.privateData.notes = parsed;
+            }
+        } catch (_) {}
+
         this.publicCandidate = null;
         this.personalProgress = {};
         this.personalSubmissions = {};
@@ -721,7 +752,16 @@ class HrOnboardingStore {
     saveRoadmap(list) {
         this.requireHr('roadmap');
         this.roadmap = list;
-        window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({ days: list, updatedAt: Date.now() }).catch(() => {});
+        try {
+            localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(list));
+        } catch (_) {}
+        window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({ days: list, updatedAt: Date.now() })
+            .catch(err => {
+                console.error('[HrOnboardingStore] Lỗi lưu roadmap lên Firebase:', err);
+                if (window.hrHub?.showToast) {
+                    window.hrHub.showToast('Không thể lưu lên Cloud (kiểm tra mạng). Đã sao lưu cục bộ an toàn!', 'warning');
+                }
+            });
         this.notifyChange('roadmap');
     }
     getCandidates() { return this.isHr() ? this.privateData.candidates : []; }
@@ -731,8 +771,17 @@ class HrOnboardingStore {
     saveCandidates(list) {
         this.requireHr('candidates');
         this.privateData.candidates = list;
+        try {
+            localStorage.setItem('etron_hr_cached_candidates', JSON.stringify(list));
+        } catch (_) {}
         this.watchProgress(list);
-        window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: list, updatedAt: Date.now() }).catch(() => {});
+        window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: list, updatedAt: Date.now() })
+            .catch(err => {
+                console.error('[HrOnboardingStore] Lỗi lưu danh sách ứng viên lên Cloud:', err);
+                if (window.hrHub?.showToast) {
+                    window.hrHub.showToast('Không thể lưu ứng viên lên Cloud (kiểm tra mạng). Đã sao lưu cục bộ!', 'warning');
+                }
+            });
         this.notifyChange('candidates');
     }
     getTemplates() { return this.isHr() ? this.privateData.templates : []; }
@@ -742,7 +791,16 @@ class HrOnboardingStore {
     savePrivate(key, doc, list) {
         this.requireHr(key);
         this.privateData[key] = list;
-        window.firebaseDb.collection('hr_config').doc(doc).set({ items: list, updatedAt: Date.now() }).catch(() => {});
+        try {
+            localStorage.setItem(`etron_hr_cached_${key}`, JSON.stringify(list));
+        } catch (_) {}
+        window.firebaseDb.collection('hr_config').doc(doc).set({ items: list, updatedAt: Date.now() })
+            .catch(err => {
+                console.error(`[HrOnboardingStore] Lỗi lưu ${key} lên Cloud:`, err);
+                if (window.hrHub?.showToast) {
+                    window.hrHub.showToast(`Không thể lưu ${key} lên Cloud (kiểm tra mạng). Đã sao lưu cục bộ!`, 'warning');
+                }
+            });
         this.notifyChange(key);
     }
     getTaskProgress(candidateId = null) {
@@ -859,7 +917,12 @@ class HrOnboardingStore {
         const db = window.firebaseDb;
         const listen = (ref, cb) => this._unsubscribers.push(ref.onSnapshot(cb, () => this.notifyChange('sync_error')));
         listen(db.collection('hr_config').doc('onboarding_roadmap'), doc => {
-            if (doc.exists && Array.isArray(doc.data().days)) this.roadmap = doc.data().days;
+            if (doc.exists && Array.isArray(doc.data().days)) {
+                this.roadmap = doc.data().days;
+                try {
+                    localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
+                } catch (_) {}
+            }
             if (!doc.metadata?.fromCache) this.ready.add('roadmap');
             this.notifyChange('roadmap');
         });
@@ -870,7 +933,12 @@ class HrOnboardingStore {
         }
         for (const [key, name] of [['candidates', 'candidates_data'], ['templates', 'templates_data'], ['notes', 'notes_data']]) {
             listen(db.collection('hr_config').doc(name), doc => {
-                if (doc.exists && Array.isArray(doc.data().items)) this.privateData[key] = doc.data().items;
+                if (doc.exists && Array.isArray(doc.data().items)) {
+                    this.privateData[key] = doc.data().items;
+                    try {
+                        localStorage.setItem(`etron_hr_cached_${key}`, JSON.stringify(doc.data().items));
+                    } catch (_) {}
+                }
                 // Never seed/overwrite cloud data automatically on an empty snapshot.
                 if (!doc.metadata?.fromCache) this.ready.add(key);
                 if (key === 'candidates') this.watchProgress(this.privateData.candidates);
