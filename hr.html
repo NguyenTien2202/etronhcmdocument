@@ -726,6 +726,82 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- MODAL 3C: THÊM / CHỈNH SỬA NỘI DUNG HỌC TẬP -->
+    <!-- ========================================== -->
+    <div id="hr-task-detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
+                <div>
+                    <h3 id="hr-task-modal-title" class="text-sm font-bold">Chỉnh Sửa Nội Dung Học Tập</h3>
+                    <p id="hr-task-modal-subtitle" class="text-[11px] text-slate-300 mt-0.5">Cập nhật tiêu đề, hoạt động & kết quả cần đạt</p>
+                </div>
+                <button type="button" onclick="window.hrHub.closeTaskDetailModal()" class="p-1 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="window.hrHub.handleSaveTaskDetail(event)" class="p-5 overflow-y-auto space-y-4 text-xs flex-1">
+                <input type="hidden" id="hr-task-day-id">
+                <input type="hidden" id="hr-task-id">
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="sm:col-span-2">
+                        <label class="block font-bold text-slate-700 mb-1">Tiêu đề bài học / bài tập <span class="text-rose-500">*</span></label>
+                        <input type="text" id="hr-task-title" required placeholder="VD: Bài tập thực hành Ngày 1"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Phân loại</label>
+                        <select id="hr-task-type" class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                            <option value="learn">Kiến thức</option>
+                            <option value="practice">Thực hành</option>
+                            <option value="action">Hoạt động</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
+                            <span>Hoạt động & Nội dung kèm theo</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-normal">Mô tả bài học, quy trình, slide, hướng dẫn</span>
+                    </label>
+                    <textarea id="hr-task-activity" rows="4" placeholder="Nhập chi tiết các hoạt động, nội dung bài học, hướng dẫn thao tác..."
+                        class="w-full p-3 border border-slate-200 rounded-xl leading-relaxed text-slate-800 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Kết quả cần đạt (Outcome)</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-normal">Tiêu chí hoàn thành hoặc bài nộp cuối buổi</span>
+                    </label>
+                    <textarea id="hr-task-outcome" rows="3" placeholder="Nhập mục tiêu đầu ra hoặc kết quả cần nộp để được đánh giá hoàn thành..."
+                        class="w-full p-3 border border-slate-200 rounded-xl leading-relaxed text-slate-800 focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                    <button type="button" id="hr-task-delete-btn" onclick="window.hrHub.handleDeleteCurrentTask()"
+                        class="px-3.5 py-2 rounded-xl text-rose-600 hover:bg-rose-50 border border-rose-200 text-xs font-bold flex items-center gap-1.5 transition-colors">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        <span>Xóa mục này</span>
+                    </button>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="window.hrHub.closeTaskDetailModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold transition-colors">Hủy</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-xs flex items-center gap-1.5">
+                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                            <span>Lưu Nội Dung</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- MODAL 4: THÊM / SỬA MẪU EMAIL & TIN NHẮN   -->
     <!-- ========================================== -->
     <div id="hr-template-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
@@ -848,14 +924,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261018_v85"></script>
+    <script src="js/sync-status.js?v=20261018_v86"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261018_v85"></script>
+    <script src="js/firebase-config.js?v=20261018_v86"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261018_v85"></script>
-    <script src="js/document-hub.js?v=20261018_v85"></script>
-    <script src="js/hr-onboarding-data.js?v=20261018_v85"></script>
+    <script src="js/store.js?v=20261018_v86"></script>
+    <script src="js/document-hub.js?v=20261018_v86"></script>
+    <script src="js/hr-onboarding-data.js?v=20261018_v86"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -865,7 +941,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261018_v85"></script>
-    <script src="js/hr-hub.js?v=20261018_v85"></script>
+    <script src="js/hr-auth.js?v=20261018_v86"></script>
+    <script src="js/hr-hub.js?v=20261018_v86"></script>
 </body>
 </html>

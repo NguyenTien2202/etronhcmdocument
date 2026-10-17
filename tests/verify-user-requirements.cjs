@@ -259,6 +259,61 @@ function fakeFirebase() {
         const onboardPageText = await page.innerText('body');
         assert.ok(!onboardPageText.includes('17:30') && !onboardPageText.includes('18:00'), 'Duration chip should be removed from Onboard viewer');
 
+        console.log('--- 4. Testing HrHub Task Detail Modal (Edit Module, Activity, Outcome & Add Task) ---');
+        await page.goto(base + '/hr.html');
+        await page.locator('[name=email]').fill('hr@example.invalid');
+        await page.locator('[name=password]').fill('test-pass');
+        await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+        await page.waitForFunction(() => window.hrOnboardingStore.getCandidates().length === 2);
+        await page.evaluate(() => window.hrHub.switchTab('roadmap'));
+
+        // Open edit task modal for first task of day-1
+        const initialRoadmap = await page.evaluate(() => window.hrOnboardingStore.getRoadmap());
+        const day1 = initialRoadmap.find(d => d.id === 'day-1');
+        const targetTaskId = day1.tasks[0].id;
+        const initialTitle = day1.tasks[0].title;
+
+        await page.evaluate(({ dId, tId }) => window.hrHub.openEditTaskModal(dId, tId), { dId: day1.id, tId: targetTaskId });
+        const taskModal = page.locator('#hr-task-detail-modal');
+        assert.equal(await taskModal.evaluate(el => !el.classList.contains('hidden')), true, 'Task detail modal should be open');
+
+        // Verify prefilled values
+        assert.equal(await page.locator('#hr-task-title').inputValue(), initialTitle);
+
+        // Edit activity and outcome
+        await page.locator('#hr-task-activity').fill('Nghiên cứu văn hóa doanh nghiệp và giá trị cốt lõi');
+        await page.locator('#hr-task-outcome').fill('Hoàn thành bài kiểm tra 10 câu hỏi trắc nghiệm');
+        await page.locator('#hr-task-detail-modal button[type="submit"]').click();
+
+        // Modal should close
+        assert.equal(await taskModal.evaluate(el => el.classList.contains('hidden')), true, 'Task detail modal should be hidden after save');
+
+        // Verify stored data updated
+        const updatedRoadmap = await page.evaluate(() => window.hrOnboardingStore.getRoadmap());
+        const day1Tasks = updatedRoadmap.find(d => d.id === 'day-1').tasks;
+        const updatedTask = day1Tasks.find(t => t.id === targetTaskId);
+        assert.equal(updatedTask.activity, 'Nghiên cứu văn hóa doanh nghiệp và giá trị cốt lõi');
+        assert.equal(updatedTask.outcome, 'Hoàn thành bài kiểm tra 10 câu hỏi trắc nghiệm');
+
+        // Test add new task module to day-1
+        const initialTasksCount = day1Tasks.length;
+        await page.evaluate(() => window.hrHub.openAddTaskModal('day-1'));
+        assert.equal(await taskModal.evaluate(el => !el.classList.contains('hidden')), true, 'Task detail modal should open for new task');
+        await page.locator('#hr-task-title').fill('Kiểm tra thực hành Ngày 1');
+        await page.locator('#hr-task-type').selectOption('practice');
+        await page.locator('#hr-task-activity').fill('Thực hành gọi thử 5 cuộc với Callbot AI');
+        await page.locator('#hr-task-outcome').fill('Đạt điểm chất lượng cuộc gọi trên 85%');
+        await page.locator('#hr-task-detail-modal button[type="submit"]').click();
+
+        const afterAddRoadmap = await page.evaluate(() => window.hrOnboardingStore.getRoadmap());
+        const afterAddDay1Tasks = afterAddRoadmap.find(d => d.id === 'day-1').tasks;
+        assert.equal(afterAddDay1Tasks.length, initialTasksCount + 1, 'Day 1 should have one more task');
+        const addedTask = afterAddDay1Tasks[afterAddDay1Tasks.length - 1];
+        assert.equal(addedTask.title, 'Kiểm tra thực hành Ngày 1');
+        assert.equal(addedTask.type, 'practice');
+        assert.equal(addedTask.activity, 'Thực hành gọi thử 5 cuộc với Callbot AI');
+        assert.equal(addedTask.outcome, 'Đạt điểm chất lượng cuộc gọi trên 85%');
+
         assert.deepEqual(errors, [], 'There should be no console or page errors');
         console.log('ALL TESTS PASSED! User requirements fully satisfied.');
     } finally {

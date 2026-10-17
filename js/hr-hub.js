@@ -1382,6 +1382,11 @@ class HrHubApp {
                                                         </span>
                                                     ` : ''}
                                                     ${window.onboardingViewer ? window.onboardingViewer.getTaskTypeBadge(task.type) : ''}
+                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.openEditTaskModal('${day.id}', '${task.id}')"
+                                                        class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-600 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs"
+                                                        title="Chỉnh sửa nội dung & kết quả cần đạt của mục này">
+                                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                                    </button>
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.openAttachDocModal('${day.id}', '${task.id}')"
                                                         class="w-7 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-colors shadow-2xs"
                                                         title="Gắn tài liệu từ Kho SalesHub vào mục này">
@@ -1392,6 +1397,11 @@ class HrHubApp {
                                                         title="Thêm link ngoài (Drive, Docs, Sheets, Canva) vào mục này">
                                                         <i data-lucide="link" class="w-3.5 h-3.5"></i>
                                                     </button>
+                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.deleteTaskFromDay('${day.id}', '${task.id}')"
+                                                        class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
+                                                        title="Xóa mục học tập này">
+                                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                                    </button>
                                                     <button type="button" aria-label="Xổ xuống" id="hr-mod-icon-${task.id}"
                                                         class="p-1 rounded-lg text-slate-400 hover:text-indigo-600 transition-transform ${isExpanded ? 'rotate-180 text-indigo-600' : ''}">
                                                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
@@ -1401,25 +1411,54 @@ class HrHubApp {
 
                                             <!-- Module Expanded Content -->
                                             <div id="hr-mod-body-${task.id}" class="${isExpanded ? '' : 'hidden'} border-t border-slate-100 bg-slate-50/70 p-3.5 sm:p-4 space-y-3">
-                                                ${task.activity ? `
-                                                    <div class="space-y-1">
-                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                <!-- Quick edit button bar -->
+                                                <div class="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                                                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                                        <i data-lucide="info" class="w-3.5 h-3.5 text-indigo-500"></i>
+                                                        <span>Chi tiết nội dung & yêu cầu</span>
+                                                    </span>
+                                                    <button type="button" onclick="window.hrHub.openEditTaskModal('${day.id}', '${task.id}')"
+                                                        class="px-2.5 py-1 rounded-lg bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all active:scale-95">
+                                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                                        <span>Chỉnh sửa nội dung</span>
+                                                    </button>
+                                                </div>
+
+                                                <!-- Hoạt động & Nội dung kèm theo (Clickable to edit) -->
+                                                <div class="space-y-1 group/act cursor-pointer rounded-xl p-2 -mx-2 hover:bg-white/80 transition-colors border border-transparent hover:border-slate-200/80"
+                                                    onclick="window.hrHub.openEditTaskModal('${day.id}', '${task.id}')" title="Bấm để chỉnh sửa nội dung hoạt động">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 group-hover/act:text-indigo-600 transition-colors">
                                                             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
                                                             <span>Hoạt động & Nội dung kèm theo:</span>
                                                         </span>
-                                                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5">${this.escapeHtml(task.activity)}</p>
+                                                        <span class="text-[10px] text-indigo-600 font-bold opacity-0 group-hover/act:opacity-100 transition-opacity flex items-center gap-1">
+                                                            <i data-lucide="edit-3" class="w-3 h-3"></i>
+                                                            <span>Sửa</span>
+                                                        </span>
                                                     </div>
-                                                ` : ''}
+                                                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5 group-hover/act:text-slate-900 transition-colors">
+                                                        ${task.activity ? this.escapeHtml(task.activity) : '<span class="italic text-slate-400">Chưa có mô tả hoạt động. Bấm để thêm nội dung...</span>'}
+                                                    </p>
+                                                </div>
 
-                                                ${task.outcome ? `
-                                                    <div class="space-y-1">
-                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                                                <!-- Kết quả cần đạt (Clickable to edit) -->
+                                                <div class="space-y-1 group/out cursor-pointer rounded-xl p-2 -mx-2 hover:bg-white/80 transition-colors border border-transparent hover:border-slate-200/80"
+                                                    onclick="window.hrHub.openEditTaskModal('${day.id}', '${task.id}')" title="Bấm để chỉnh sửa kết quả cần đạt">
+                                                    <div class="flex items-center justify-between">
+                                                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5 group-hover/out:text-indigo-600 transition-colors">
                                                             <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i>
                                                             <span>Kết quả cần đạt:</span>
                                                         </span>
-                                                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5">${this.escapeHtml(task.outcome)}</p>
+                                                        <span class="text-[10px] text-indigo-600 font-bold opacity-0 group-hover/out:opacity-100 transition-opacity flex items-center gap-1">
+                                                            <i data-lucide="edit-3" class="w-3 h-3"></i>
+                                                            <span>Sửa</span>
+                                                        </span>
                                                     </div>
-                                                ` : ''}
+                                                    <p class="text-xs sm:text-sm text-slate-700 leading-relaxed pl-5 group-hover/out:text-slate-900 transition-colors">
+                                                        ${task.outcome ? this.escapeHtml(task.outcome) : '<span class="italic text-slate-400">Chưa có kết quả cần đạt. Bấm để thêm mục tiêu...</span>'}
+                                                    </p>
+                                                </div>
 
                                                 <!-- Links đính kèm của mục -->
                                                 <div class="space-y-1.5 pt-1">
@@ -1469,6 +1508,13 @@ class HrHubApp {
                                         </div>
                                     `;
                                 }).join('')}
+
+                                <!-- Nút thêm nội dung đào tạo mới vào ngày -->
+                                <button type="button" onclick="window.hrHub.openAddTaskModal('${day.id}')"
+                                    class="w-full py-2.5 px-3 border border-dashed border-indigo-200 hover:border-indigo-400 bg-white/70 hover:bg-indigo-50/60 rounded-xl text-xs font-bold text-indigo-700 flex items-center justify-center gap-1.5 transition-all active:scale-[0.99] shadow-2xs">
+                                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                    <span>+ Thêm nội dung đào tạo mới vào ${this.escapeHtml(day.dayNumber)}</span>
+                                </button>
                             </div>
                         </div>
 
@@ -1611,7 +1657,7 @@ class HrHubApp {
             target.badgeColor = badgeColor;
             target.mentorNote = mentorNote;
             target.tasks = rawLines.map((line, idx) => {
-                const existing = oldTasks[idx];
+                const existing = oldTasks.find(t => t && t.title && t.title.trim().toLowerCase() === line.trim().toLowerCase()) || oldTasks[idx];
                 return {
                     id: existing ? existing.id : `t-${Date.now()}-${idx}`,
                     title: line,
@@ -1672,6 +1718,150 @@ class HrHubApp {
             this.showToast('Đã khôi phục và đồng bộ Lộ trình 8 ngày chuẩn của Etron lên Cloud!', 'success');
         } catch (e) {
             this.showToast('Chưa lưu được lộ trình. Vui lòng kiểm tra kết nối mạng!', 'error');
+        }
+    }
+
+    // ==========================================
+    // CHỈNH SỬA / THÊM MỚI NỘI DUNG ĐÀO TẠO (TASK DETAIL MODAL)
+    // ==========================================
+    openEditTaskModal(dayId, taskId) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day) return;
+        const task = (day.tasks || []).find(t => t.id === taskId);
+        if (!task) return;
+
+        const modal = document.getElementById('hr-task-detail-modal');
+        if (!modal) return;
+
+        document.getElementById('hr-task-day-id').value = dayId;
+        document.getElementById('hr-task-id').value = taskId;
+        document.getElementById('hr-task-modal-title').textContent = 'Chỉnh Sửa Nội Dung Học Tập';
+        document.getElementById('hr-task-modal-subtitle').textContent = `${day.dayNumber}: ${this.cleanTaskTitle(task.title)}`;
+
+        document.getElementById('hr-task-title').value = task.title || '';
+        document.getElementById('hr-task-type').value = task.type || 'learn';
+        document.getElementById('hr-task-activity').value = task.activity || '';
+        document.getElementById('hr-task-outcome').value = task.outcome || '';
+
+        const deleteBtn = document.getElementById('hr-task-delete-btn');
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    openAddTaskModal(dayId) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day) return;
+
+        const modal = document.getElementById('hr-task-detail-modal');
+        if (!modal) return;
+
+        document.getElementById('hr-task-day-id').value = dayId;
+        document.getElementById('hr-task-id').value = '';
+        document.getElementById('hr-task-modal-title').textContent = 'Thêm Nội Dung Đào Tạo Mới';
+        document.getElementById('hr-task-modal-subtitle').textContent = `Thêm bài học / bài tập vào ${day.dayNumber}: ${this.cleanTaskTitle(day.title)}`;
+
+        document.getElementById('hr-task-title').value = '';
+        document.getElementById('hr-task-type').value = 'learn';
+        document.getElementById('hr-task-activity').value = '';
+        document.getElementById('hr-task-outcome').value = '';
+
+        const deleteBtn = document.getElementById('hr-task-delete-btn');
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    closeTaskDetailModal() {
+        const modal = document.getElementById('hr-task-detail-modal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    async handleSaveTaskDetail(e) {
+        if (e) e.preventDefault();
+        const dayId = document.getElementById('hr-task-day-id').value;
+        const taskId = document.getElementById('hr-task-id').value;
+        const title = document.getElementById('hr-task-title').value.trim();
+        const type = document.getElementById('hr-task-type').value;
+        const activity = document.getElementById('hr-task-activity').value.trim();
+        const outcome = document.getElementById('hr-task-outcome').value.trim();
+
+        if (!title) {
+            alert('Vui lòng nhập Tiêu đề bài học / bài tập!');
+            return;
+        }
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day) return;
+
+        if (!Array.isArray(day.tasks)) day.tasks = [];
+
+        if (taskId) {
+            const task = day.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.title = title;
+                task.type = type;
+                task.activity = activity;
+                task.outcome = outcome;
+                this.expandedModules.add(task.id);
+            }
+        } else {
+            const newTaskId = 't-' + Date.now();
+            const newTask = {
+                id: newTaskId,
+                title,
+                type,
+                activity,
+                outcome,
+                links: []
+            };
+            day.tasks.push(newTask);
+            this.expandedModules.add(newTaskId);
+            this.collapsedRoadmapDays.delete(day.id);
+        }
+
+        try {
+            await window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.closeTaskDetailModal();
+            this.renderRoadmapTab();
+            this.showToast(`Đã lưu nội dung "${title}" thành công!`, 'success');
+        } catch (err) {
+            this.showToast('Chưa lưu được nội dung. Vui lòng thử lại!', 'error');
+        }
+    }
+
+    handleDeleteCurrentTask() {
+        const dayId = document.getElementById('hr-task-day-id').value;
+        const taskId = document.getElementById('hr-task-id').value;
+        if (!dayId || !taskId) return;
+        this.deleteTaskFromDay(dayId, taskId, false);
+    }
+
+    async deleteTaskFromDay(dayId, taskId, skipModalClose = true) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day || !Array.isArray(day.tasks)) return;
+
+        const task = day.tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        if (!confirm(`Bạn có chắc muốn xóa "${task.title}" khỏi ${day.dayNumber}?`)) return;
+
+        day.tasks = day.tasks.filter(t => t.id !== taskId);
+        this.expandedModules.delete(taskId);
+
+        try {
+            await window.hrOnboardingStore.saveRoadmap(roadmap);
+            if (!skipModalClose) this.closeTaskDetailModal();
+            this.renderRoadmapTab();
+            this.showToast(`Đã xóa "${task.title}".`, 'info');
+        } catch (err) {
+            this.showToast('Chưa xóa được. Vui lòng thử lại!', 'error');
         }
     }
 
