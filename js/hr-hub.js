@@ -940,32 +940,37 @@ class HrHubApp {
                                                             <!-- File / Hình ảnh đính kèm -->
                                                             ${(sub.fileData || sub.fileName) ? `
                                                                 <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
-                                                                    <div class="flex items-center gap-2.5 min-w-0">
+                                                                    <div class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer hover:opacity-90"
+                                                                        onclick="window.hrHub.previewCandidateSubmission('${this.escapeJs(cand.id)}', '${this.escapeJs(taskId)}')"
+                                                                        title="Bấm để xem trước bài làm trực tiếp">
                                                                         ${isImg ? `
                                                                             <img src="${sub.fileData}" alt="${this.escapeHtml(sub.fileName || 'Bài tập')}"
-                                                                                onclick="window.hrHub.previewSubmissionImage('${sub.fileData}')"
-                                                                                class="w-16 h-12 object-cover rounded-lg border border-slate-200 shadow-2xs cursor-pointer hover:opacity-90 shrink-0"
-                                                                                title="Bấm để xem ảnh lớn">
+                                                                                class="w-14 h-11 sm:w-16 sm:h-12 object-cover rounded-lg border border-slate-200 shadow-2xs shrink-0">
                                                                         ` : `
-                                                                            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                                                                                <i data-lucide="file-text" class="w-5 h-5"></i>
+                                                                            <div class="w-10 h-10 rounded-lg ${sub.fileName?.toLowerCase().endsWith('.pdf') ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center shrink-0 shadow-2xs">
+                                                                                <i data-lucide="${sub.fileName?.toLowerCase().endsWith('.pdf') ? 'file-text' : 'file'}" class="w-5 h-5"></i>
                                                                             </div>
                                                                         `}
                                                                         <div class="min-w-0">
-                                                                            <span class="font-bold text-slate-800 block truncate">${this.escapeHtml(sub.fileName || 'File bài nộp')}</span>
-                                                                            <span class="text-[10px] text-slate-400 block">${isImg ? 'Ảnh đính kèm • Bấm xem lớn' : 'Tệp đính kèm'}</span>
+                                                                            <span class="font-bold text-slate-800 block truncate hover:text-indigo-600 transition-colors">${this.escapeHtml(sub.fileName || 'File bài nộp')}</span>
+                                                                            <span class="text-[10px] text-slate-400 block flex items-center gap-1">
+                                                                                <i data-lucide="eye" class="w-3 h-3 text-indigo-500"></i>
+                                                                                <span>${isImg ? 'Ảnh đính kèm • Bấm xem lớn' : (sub.fileName?.toLowerCase().endsWith('.pdf') ? 'Tệp PDF • Bấm xem trước' : 'Tệp đính kèm • Bấm xem trước')}</span>
+                                                                            </span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="flex items-center gap-1.5 shrink-0">
-                                                                        ${isImg ? `
-                                                                            <button type="button" onclick="window.hrHub.previewSubmissionImage('${sub.fileData}')"
-                                                                                class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold flex items-center gap-1">
-                                                                                <i data-lucide="eye" class="w-3.5 h-3.5 text-indigo-600"></i> Xem
-                                                                            </button>
-                                                                        ` : ''}
+                                                                        <button type="button" onclick="window.hrHub.previewCandidateSubmission('${this.escapeJs(cand.id)}', '${this.escapeJs(taskId)}')"
+                                                                            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                                                                            title="Xem trước bài làm trực tiếp">
+                                                                            <i data-lucide="eye" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                                                            <span>Xem</span>
+                                                                        </button>
                                                                         <a href="${sub.fileData}" download="${this.escapeHtml(sub.fileName || 'bai-tap')}"
-                                                                            class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1">
-                                                                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải về
+                                                                            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
+                                                                            title="Tải tệp về máy tính">
+                                                                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                                                            <span>Tải về</span>
                                                                         </a>
                                                                     </div>
                                                                 </div>
@@ -2030,6 +2035,27 @@ class HrHubApp {
         if (dl) dl.href = imageUrl;
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
+    }
+
+    previewCandidateSubmission(candidateId, taskId) {
+        const candidate = window.hrOnboardingStore.getCandidateById(candidateId);
+        const sub = candidate?.taskSubmissions?.[taskId];
+        if (!sub) return;
+
+        const roadmap = candidate?.customRoadmap?.length ? candidate.customRoadmap : window.hrOnboardingStore.getRoadmap();
+        const allTasks = roadmap.flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
+        const match = allTasks.find(x => x.task.id === taskId);
+        const taskTitle = match ? match.task.title : taskId;
+        const dayNumber = match ? match.day.dayNumber : '';
+
+        if (window.documentHub && typeof window.documentHub.previewFilePayload === 'function') {
+            window.documentHub.previewFilePayload({
+                ...sub,
+                title: `${dayNumber ? dayNumber + ': ' : ''}${taskTitle}`
+            });
+        } else if (sub.fileData) {
+            this.previewSubmissionImage(sub.fileData);
+        }
     }
 
     handleDeleteCurrentTask() {

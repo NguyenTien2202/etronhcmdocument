@@ -196,6 +196,28 @@ class OnboardingViewer {
         if (window.lucide) lucide.createIcons();
     }
 
+    previewSubmissionFile(taskId) {
+        const submissions = (window.hrOnboardingStore && typeof window.hrOnboardingStore.getTaskSubmissions === 'function')
+            ? window.hrOnboardingStore.getTaskSubmissions(this.candidateId)
+            : {};
+        const sub = submissions[taskId];
+        if (!sub) return;
+
+        const roadmap = this.getRoadmap();
+        const allTasks = roadmap.flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
+        const match = allTasks.find(x => x.task.id === taskId);
+        const taskTitle = match ? match.task.title : taskId;
+
+        if (window.documentHub && typeof window.documentHub.previewFilePayload === 'function') {
+            window.documentHub.previewFilePayload({
+                ...sub,
+                title: taskTitle
+            });
+        } else if (sub.fileData) {
+            this.previewSubmissionImage(sub.fileData);
+        }
+    }
+
     toggleDayDropdown(e, forceState = null) {
         if (e) {
             e.stopPropagation();
@@ -949,23 +971,34 @@ class OnboardingViewer {
                                                                             ` : ''}
 
                                                                             ${submission.fileData ? `
-                                                                                <div class="p-2 rounded-xl bg-white border border-slate-200/80 space-y-1.5">
+                                                                                <div class="p-2.5 rounded-xl bg-white border border-slate-200/80 space-y-1.5 shadow-2xs">
                                                                                     <div class="flex items-center justify-between gap-2 text-xs">
-                                                                                        <div class="flex items-center gap-2 min-w-0">
-                                                                                            <i data-lucide="${submission.fileType?.startsWith('image/') ? 'image' : 'file-text'}" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
-                                                                                            <span class="font-bold text-slate-800 truncate">${this.escapeHtml(submission.fileName || 'Tệp đính kèm')}</span>
+                                                                                        <div class="flex items-center gap-2 min-w-0 cursor-pointer hover:opacity-90 flex-1"
+                                                                                            onclick="window.onboardingViewer.previewSubmissionFile('${task.id}')"
+                                                                                            title="Bấm để xem trước tệp bài nộp">
+                                                                                            <i data-lucide="${submission.fileType?.startsWith('image/') ? 'image' : (submission.fileName?.toLowerCase().endsWith('.pdf') ? 'file-text' : 'file')}" class="w-4 h-4 ${submission.fileName?.toLowerCase().endsWith('.pdf') ? 'text-rose-600' : 'text-indigo-600'} shrink-0"></i>
+                                                                                            <span class="font-bold text-slate-800 truncate hover:text-indigo-600 transition-colors">${this.escapeHtml(submission.fileName || 'Tệp đính kèm')}</span>
                                                                                         </div>
-                                                                                        <a href="${submission.fileData}" download="${this.escapeHtml(submission.fileName || 'bai-nop')}"
-                                                                                            class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold transition-colors shrink-0">
-                                                                                            <i data-lucide="download" class="w-3 h-3"></i>
-                                                                                            <span>Tải về</span>
-                                                                                        </a>
+                                                                                        <div class="flex items-center gap-1.5 shrink-0">
+                                                                                            <button type="button" onclick="window.onboardingViewer.previewSubmissionFile('${task.id}')"
+                                                                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold transition-colors shadow-2xs"
+                                                                                                title="Xem trước bài làm trực tiếp">
+                                                                                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                                                                                <span>Xem</span>
+                                                                                            </button>
+                                                                                            <a href="${submission.fileData}" download="${this.escapeHtml(submission.fileName || 'bai-nop')}"
+                                                                                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-colors shadow-2xs"
+                                                                                                title="Tải tệp về máy tính">
+                                                                                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                                                                                <span>Tải về</span>
+                                                                                            </a>
+                                                                                        </div>
                                                                                     </div>
                                                                                     ${submission.fileType?.startsWith('image/') ? `
                                                                                         <div class="pt-1">
                                                                                             <img src="${submission.fileData}" alt="Bài làm"
-                                                                                                onclick="window.onboardingViewer.previewSubmissionImage('${this.escapeJs(submission.fileData)}')"
-                                                                                                class="max-h-48 rounded-xl object-contain border border-slate-200 cursor-pointer hover:opacity-95 transition-opacity"
+                                                                                                onclick="window.onboardingViewer.previewSubmissionFile('${task.id}')"
+                                                                                                class="max-h-48 rounded-xl object-contain border border-slate-200 cursor-pointer hover:opacity-95 transition-opacity shadow-2xs"
                                                                                                 title="Bấm để phóng to">
                                                                                             <p class="text-[10px] text-slate-400 pt-0.5">Bấm vào ảnh để xem kích thước lớn</p>
                                                                                         </div>

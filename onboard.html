@@ -61,7 +61,8 @@
     </main>
 
     <!-- Media, PDF & Note Preview Modal (Giống hệt SalesHub để mở xem trực tiếp tài liệu PDF/Note trên cả máy tính và điện thoại) -->
-    <div id="media-preview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-md">
+    <div id="media-preview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-md"
+        onclick="if(event.target === this) window.documentHub.closeMediaPreview()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-3 sm:p-4 px-4 sm:px-6 bg-slate-900 text-white flex items-center justify-between">
                 <div class="flex items-center gap-2.5 truncate">
@@ -120,10 +121,10 @@
     <script src="js/firebase-config.js?v=20261018_v87"></script>
 
     <!-- Core Scripts for Document Preview & Onboarding Roadmap -->
-    <script src="js/store.js?v=20261018_v87"></script>
-    <script src="js/document-hub.js?v=20261018_v87"></script>
-    <script src="js/hr-onboarding-data.js?v=20261018_v88"></script>
-    <script src="js/onboarding-viewer.js?v=20261018_v88"></script>
+    <script src="js/store.js?v=20261018_v89"></script>
+    <script src="js/document-hub.js?v=20261018_v89"></script>
+    <script src="js/hr-onboarding-data.js?v=20261018_v89"></script>
+    <script src="js/onboarding-viewer.js?v=20261018_v89"></script>
     <script>
         // Minimal salesApp shim for notifications & mobile modal scroll lock on standalone onboard.html
         window.salesApp = {
