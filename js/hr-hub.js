@@ -15,12 +15,12 @@ class HrHubApp {
         this.templateSearch = '';
         this.quickVars = {
             ten_ung_vien: 'Bạn',
-            vi_tri: 'Chuyên viên Kinh doanh (Sales Executive)',
-            ngay_onboard: 'Thứ Hai tuần này',
+            vi_tri: 'Nhân viên Kinh doanh',
+            ngay_onboard: 'Thứ Hai',
             gio_onboard: '08:30 sáng',
-            dia_diem: 'Văn phòng Etron HCM',
-            nguoi_lien_he: 'Bộ phận Nhân sự Etron HCM',
-            sdt_lien_he: '09xx.xxx.xxx',
+            dia_diem: '718/2/18 Quốc lộ 13, Phường Hiệp Bình, TP. Thủ Đức, HCM',
+            nguoi_lien_he: 'Nguyễn Thủy Tiên (Ms. Tiên)',
+            sdt_lien_he: '0968.064.432',
             link_onboard: this.getPublicOnboardUrl()
         };
 
@@ -187,8 +187,8 @@ class HrHubApp {
     syncQuickVarsFromCandidate(cand) {
         if (!cand) return;
         this.quickVars.ten_ung_vien = cand.fullName || 'Bạn';
-        this.quickVars.vi_tri = cand.role || 'Chuyên viên Kinh doanh (Sales Executive)';
-        this.quickVars.ngay_onboard = window.hrOnboardingStore.formatDateDisplay(cand.startDate) || 'Thứ Hai tuần này';
+        this.quickVars.vi_tri = cand.role || 'Nhân viên Kinh doanh';
+        this.quickVars.ngay_onboard = window.hrOnboardingStore.formatDateDisplay(cand.startDate) || 'Thứ Hai';
         if (cand.mentor) {
             this.quickVars.nguoi_lien_he = cand.mentor;
         }
@@ -916,6 +916,12 @@ class HrHubApp {
                                 <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-white text-slate-600 border border-slate-200">
                                     ${this.escapeHtml(day.duration || '08:30 – 17:30')}
                                 </span>
+                                ${day.trainer ? `
+                                    <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
+                                        <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>
+                                        <span>Phụ trách: ${this.escapeHtml(day.trainer)}</span>
+                                    </span>
+                                ` : ''}
                                 <span class="text-[11px] font-semibold text-slate-500">
                                     • ${tasks.length} mục bài học • ${attachedDocs.length} tài liệu đính kèm
                                 </span>
@@ -972,7 +978,7 @@ class HrHubApp {
 
                             ${attachedDocs.length === 0 ? `
                                 <div class="p-3 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 flex items-center justify-between">
-                                    <span>Chưa gắn file tài liệu cụ thể nào cho ${this.escapeHtml(day.dayNumber)}.</span>
+                                    <span>Chưa gắn file tài liệu cụ thể nào từ kho cho ${this.escapeHtml(day.dayNumber)}.</span>
                                     <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}')" class="text-indigo-600 font-bold hover:underline">Gắn tài liệu ngay</button>
                                 </div>
                             ` : `
@@ -1002,6 +1008,22 @@ class HrHubApp {
                             `}
                         </div>
 
+                        <!-- Custom Links & Slide Đào Tạo -->
+                        ${(day.customLinks && day.customLinks.length > 0) ? `
+                            <div class="space-y-1.5 pt-1">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Liên kết tài liệu & Slide đào tạo (${day.customLinks.length}):</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    ${day.customLinks.map(link => `
+                                        <a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer"
+                                            class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-indigo-50/50 border border-slate-200/80 hover:border-indigo-300 transition-all text-xs font-semibold text-slate-700 hover:text-indigo-700 group">
+                                            <span class="truncate">${this.escapeHtml(link.title)}</span>
+                                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 shrink-0 ml-1 text-slate-400 group-hover:text-indigo-600"></i>
+                                        </a>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
                         ${day.mentorNote ? `
                             <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950">
                                 <strong>Lời nhắn cho nhân sự mới:</strong> ${this.escapeHtml(day.mentorNote)}
@@ -1025,6 +1047,8 @@ class HrHubApp {
         document.getElementById('hr-day-number').value = day ? (day.dayNumber || '') : `Ngày ${roadmap.length + 1}`;
         document.getElementById('hr-day-duration').value = day ? (day.duration || '08:30 – 17:30') : '08:30 – 17:30';
         document.getElementById('hr-day-title').value = day ? (day.title || '') : '';
+        const trainerEl = document.getElementById('hr-day-trainer');
+        if (trainerEl) trainerEl.value = day ? (day.trainer || '') : '';
         document.getElementById('hr-day-goal').value = day ? (day.goal || '') : '';
         document.getElementById('hr-day-color').value = day ? (day.badgeColor || 'indigo') : 'indigo';
         document.getElementById('hr-day-note').value = day ? (day.mentorNote || '') : '';
@@ -1053,6 +1077,8 @@ class HrHubApp {
         }
 
         const duration = document.getElementById('hr-day-duration').value.trim();
+        const trainerEl = document.getElementById('hr-day-trainer');
+        const trainer = trainerEl ? trainerEl.value.trim() : '';
         const goal = document.getElementById('hr-day-goal').value.trim();
         const badgeColor = document.getElementById('hr-day-color').value;
         const mentorNote = document.getElementById('hr-day-note').value.trim();
@@ -1069,6 +1095,7 @@ class HrHubApp {
             target.dayNumber = dayNumber;
             target.title = title;
             target.duration = duration;
+            target.trainer = trainer;
             target.goal = goal;
             target.badgeColor = badgeColor;
             target.mentorNote = mentorNote;
@@ -1086,6 +1113,7 @@ class HrHubApp {
                 dayNumber,
                 title,
                 duration,
+                trainer,
                 goal,
                 badgeColor,
                 mentorNote,
@@ -1114,6 +1142,17 @@ class HrHubApp {
         const next = roadmap.filter(d => d.id !== dayId);
         window.hrOnboardingStore.saveRoadmap(next);
         this.showToast('Đã xóa ngày khỏi lộ trình.', 'info');
+    }
+
+    async resetRoadmapToDefault() {
+        if (!confirm('Bạn có chắc muốn khôi phục Lộ trình Onboard về 6 ngày đào tạo chuẩn của Etron (Hội nhập, Callbot AI, Adahub CRM, Tổng đài VoIP, Bảng giá & Lập báo giá, Quy trình bán hàng & Thực chiến)?')) return;
+        try {
+            await window.hrOnboardingStore.saveRoadmap(DEFAULT_ONBOARDING_ROADMAP);
+            this.renderRoadmapTab();
+            this.showToast('Đã khôi phục và đồng bộ Lộ trình 6 ngày chuẩn của Etron lên Cloud!', 'success');
+        } catch (e) {
+            this.showToast('Chưa lưu được lộ trình. Vui lòng kiểm tra kết nối mạng!', 'error');
+        }
     }
 
     openAttachDocModal(dayId) {
@@ -1401,6 +1440,7 @@ class HrHubApp {
             welcome: 'Chào mừng ngày đầu',
             offer: 'Mời nhận việc (Offer)',
             interview: 'Mời phỏng vấn',
+            reject: 'Từ chối / Cảm ơn',
             internal: 'Đánh giá & Nội bộ'
         };
 
@@ -1438,6 +1478,17 @@ class HrHubApp {
 
         window.hrOnboardingStore.saveTemplates(list.filter(t => t.id !== tplId));
         this.showToast('Đã xóa mẫu tin nhắn/email.', 'info');
+    }
+
+    async resetTemplatesToDefault() {
+        if (!confirm('Bạn có chắc muốn khôi phục toàn bộ Mẫu Email/Tin nhắn về bộ mẫu chuẩn chính thức của Etron (Offer Letter ĐẬU, Thư cảm ơn RỚT, Thư mời phỏng vấn, Từ chối CV, Tin nhắn Zalo...)?')) return;
+        try {
+            await window.hrOnboardingStore.saveTemplates(DEFAULT_HR_TEMPLATES);
+            this.renderTemplatesTab();
+            this.showToast('Đã khôi phục và đồng bộ toàn bộ Mẫu Email/Tin nhắn chuẩn của Etron lên Cloud!', 'success');
+        } catch (e) {
+            this.showToast('Chưa lưu được mẫu. Vui lòng kiểm tra kết nối mạng!', 'error');
+        }
     }
 
     // ==========================================

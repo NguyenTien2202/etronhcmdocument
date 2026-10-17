@@ -8,111 +8,151 @@
 const DEFAULT_ONBOARDING_ROADMAP = [
     {
         id: 'day-1',
-        dayNumber: 'Ngày 1',
-        title: 'Hội nhập Văn hóa Etron HCM & Tổng quan Hệ sinh thái Sản phẩm',
-        duration: '08:30 – 17:30',
-        goal: 'Hoàn tất thủ tục nhận việc, làm quen đội ngũ và nắm được bức tranh tổng thể các giải pháp công nghệ của Etron.',
+        dayNumber: 'Ngày 1 (n)',
+        title: 'Hội Nhập Công Ty, Văn Hóa Etron, Quy Định & Thiết Lập Công Cụ',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Hiểu về công ty, tầm nhìn sứ mệnh, cơ cấu tổ chức các phòng ban, hệ sinh thái sản phẩm, nắm vững chính sách sale và chuẩn bị đầy đủ công cụ làm việc.',
         badgeColor: 'indigo',
+        trainer: 'Mai - HR (Nguyễn Nhật Mai)',
         tasks: [
-            { id: 't-101', title: 'Nhận bàn làm việc, hoàn tất hồ sơ nhân sự & làm quen các thành viên trong team Etron HCM', type: 'action' },
-            { id: 't-102', title: 'Tìm hiểu Văn hóa doanh nghiệp, Nội quy làm việc, Thời gian biểu & Quy tắc phối hợp nội bộ', type: 'learn' },
-            { id: 't-103', title: 'Tổng quan hệ sinh thái sản phẩm chủ lực: Phần mềm Adahub CRM, Tổng đài ảo & Trợ lý Callbot AI Ucall', type: 'learn' },
-            { id: 't-104', title: 'Nhận tài khoản các công cụ làm việc và hướng dẫn sử dụng Kho Tài Liệu Etron SalesHub', type: 'practice' }
+            { id: 't-101', title: 'Giới thiệu công ty: Tầm nhìn, sứ mệnh, cơ cấu tổ chức, các phòng ban chính và cách phối hợp làm việc', type: 'learn' },
+            { id: 't-102', title: 'Văn hóa & Quy định: Nội quy làm việc, chính sách sales, quy trình chấm công, xin nghỉ phép, báo cáo công việc', type: 'learn' },
+            { id: 't-103', title: 'Tổng quan hệ sinh thái sản phẩm: Sản phẩm chủ lực (Callbot AI Ucall, Adahub CRM, Tổng đài VoIP), đối tượng khách hàng mục tiêu', type: 'learn' },
+            { id: 't-104', title: 'Thiết lập công cụ làm việc: Tạo và đăng nhập tài khoản (Admin, UCALL, nhóm chat nội bộ Zalo, Kho tài liệu SalesHub)', type: 'action' },
+            { id: 't-105', title: 'Chính sách SALE & Hoa hồng: Nắm rõ các định nghĩa, thuật ngữ sale, KPI cá nhân/team và cơ chế hoa hồng, level thăng tiến', type: 'learn' },
+            { id: 't-106', title: 'Bài tập Ngày 1: Tóm tắt lại các lợi ích, giải pháp của công ty và giải pháp đó hỗ trợ khách hàng như thế nào', type: 'practice' }
         ],
         attachedDocIds: [],
         customLinks: [
+            { title: 'Slide Giới thiệu công ty & Văn hóa', url: 'https://drive.google.com/file/d/1oI19ZE7BUm55qoma_d65fw7N44MwULsc/view?usp=sharing', type: 'external' },
+            { title: 'Thư mục tài liệu tham khảo chung', url: 'https://drive.google.com/drive/folders/1E2RJWKPbq-7OdXYmgGS-Iic9rIa59G1Q?usp=drive_link', type: 'external' },
+            { title: 'Nội quy & Văn hóa làm việc Etron', url: 'https://docs.google.com/document/d/1TUp4Nam4AKsslvIP6HrlErfN9NosOLP-sI22PdlJLFk/edit?tab=t.0', type: 'external' },
+            { title: 'Slide Tổng quan Hệ sinh thái Etron', url: 'https://drive.google.com/file/d/1_Y0BSuXJzm0xD40Sgz-Xliv2_vySQlsR/view?usp=sharing', type: 'external' },
+            { title: 'Chính sách Sale & Quy chế KPI', url: 'https://docs.google.com/document/d/1Ys5zRhMs16a07fwD-c4ka_DL-VazDRKRaGyJDV0PzWk/edit?tab=t.0', type: 'external' },
+            { title: 'Bảng Mức lương theo Level KPI', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' },
             { title: 'Mở Kho Tài Liệu SalesHub', url: 'index.html?tab=documents', type: 'internal' }
         ],
-        mentorNote: 'Ngày đầu tiên bạn cứ thoải mái làm quen môi trường, đọc kỹ tài liệu tổng quan và ghi chú lại các câu hỏi để trao đổi cuối ngày nhé!'
+        mentorNote: 'Phụ trách: Mai - HR. Ngày đầu tiên bạn thoải mái làm quen môi trường, thiết lập đầy đủ công cụ và ghi chú lại các thắc mắc để được giải đáp nhé!'
     },
     {
         id: 'day-2',
-        dayNumber: 'Ngày 2',
-        title: 'Nắm vững Giải pháp Phần mềm Quản lý & CSKH Đa kênh Adahub CRM',
-        duration: '08:30 – 17:30',
-        goal: 'Hiểu rõ tính năng, lợi điểm bán hàng (USP), phân khúc khách hàng và quy trình triển khai của Adahub CRM & Tổng đài.',
+        dayNumber: 'Ngày 2 (n+1)',
+        title: 'Đào Tạo Chuyên Sâu Sản Phẩm Trợ Lý Ảo Callbot AI Ucall',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Trình bày được tổng quan, nguyên lý hoạt động và quy trình vận hành Callbot; thành thạo xây dựng kịch bản và setup chiến dịch gọi tự động.',
         badgeColor: 'blue',
+        trainer: 'Vy / Mai Tester / Tiên',
         tasks: [
-            { id: 't-201', title: 'Nghiên cứu chi tiết các phân hệ của Adahub CRM (Quản lý Lead, Omni-channel, Ticket, Tổng đài VoIP, Tự động hóa)', type: 'learn' },
-            { id: 't-202', title: 'Phân biệt các gói dịch vụ Adahub CRM (Cơ bản, Nâng cao, Toàn diện) và đối tượng doanh nghiệp phù hợp', type: 'learn' },
-            { id: 't-203', title: 'Nắm rõ Quy trình đăng ký Voice Brandname & hồ sơ pháp lý cần chuẩn bị cho khách hàng', type: 'learn' },
-            { id: 't-204', title: 'Trải nghiệm thực tế giao diện Demo Adahub CRM và tóm tắt 5 lợi ích lớn nhất đối với chủ doanh nghiệp', type: 'practice' }
+            { id: 't-201', title: 'Tổng quan Callbot AI Ucall: Nguyên lý hoạt động, nhận diện giọng nói, xử lý ngôn ngữ tự nhiên và bài toán tiết kiệm chi phí', type: 'learn' },
+            { id: 't-202', title: 'Phân loại bot: CB2 (45N), CB3 (90N), CB4 (120N), cách tính cước theo phút gọi và chọn bot phù hợp từng ngành', type: 'learn' },
+            { id: 't-203', title: 'Xây dựng kịch bản Callbot: Thiết kế luồng hội thoại, tạo intent câu hỏi - câu trả lời, xử lý ngắt lời và kịch bản rẽ nhánh', type: 'learn' },
+            { id: 't-204', title: 'Thực hành Callbot + Chữa kịch bản: Tự xây dựng kịch bản mẫu và được mentor chữa trực tiếp', type: 'practice' },
+            { id: 't-205', title: 'Thiết lập chiến dịch: Thực hành setup chạy chiến dịch gọi thử nghiệm trên app.ucall.vn và kiểm tra báo cáo cuộc gọi', type: 'practice' }
         ],
-        attachedDocIds: ['doc-user-1791976000418'],
-        customLinks: [],
-        mentorNote: 'Hãy chú ý kỹ phần quy trình đăng ký Brandname và các gói người dùng của Adahub vì khách hàng hỏi rất nhiều.'
+        attachedDocIds: [],
+        customLinks: [
+            { title: 'Video Đào tạo Callbot & Kịch bản', url: 'https://drive.google.com/file/d/1GYV3gLQu-3_8KuntZI7B7MWjouHAhsgh/view?usp=sharing', type: 'external' },
+            { title: 'Hệ thống Quản lý Callbot Ucall', url: 'https://app.ucall.vn', type: 'external' },
+            { title: 'Kho Kịch Bản & Ghi Âm Mẫu trên SalesHub', url: 'index.html?tab=callbot-hub', type: 'internal' }
+        ],
+        mentorNote: 'Phụ trách: Vy / Mai Tester / Tiên. Nghe kỹ các file ghi âm mẫu trên SalesHub để cảm nhận cách Callbot AI phản hồi thông minh nhé!'
     },
     {
         id: 'day-3',
-        dayNumber: 'Ngày 3',
-        title: 'Làm chủ Giải pháp Trợ lý ảo Callbot AI Ucall & Kịch bản theo Ngành',
-        duration: '08:30 – 17:30',
-        goal: 'Hiểu cơ chế hoạt động của Callbot AI, nghe các cuộc gọi mẫu thực tế và nắm được kịch bản ứng dụng cho từng ngành.',
+        dayNumber: 'Ngày 3 (n+2)',
+        title: 'Phần Mềm Quản Lý CSKH Adahub CRM, Dịch Vụ ZNS & Dashboard KPI',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Làm chủ hệ thống Adahub CRM, quy trình đăng ký & gửi tin Zalo ZNS và biết cách theo dõi chỉ số hiệu quả trên Dashboard KPI.',
         badgeColor: 'amber',
+        trainer: 'Vy / Mai Tester / Tiên',
         tasks: [
-            { id: 't-301', title: 'Tìm hiểu nguyên lý hoạt động của Callbot AI Ucall và bài toán tiết kiệm chi phí/nhân sự cho doanh nghiệp', type: 'learn' },
-            { id: 't-302', title: 'Phân biệt 3 phiên bản bot: CB2 (45N), CB3 (90N) và CB4 (120N) cùng cách tính cước/phút gọi', type: 'learn' },
-            { id: 't-303', title: 'Nghe tối thiểu 5 file ghi âm cuộc gọi mẫu (Audio) và đọc kịch bản mẫu trong mục "Callbot & Kịch Bản"', type: 'practice' },
-            { id: 't-304', title: 'Xác định chân dung khách hàng mục tiêu (Bất động sản, Tài chính, Giáo dục, Thẩm mỹ/Nha khoa, Thương mại...)', type: 'practice' }
+            { id: 't-301', title: 'Tổng quan hệ thống CRM: Vai trò của Adahub CRM, quản lý lead, chăm sóc khách hàng đa kênh (Omni-channel) và phễu bán hàng', type: 'learn' },
+            { id: 't-302', title: 'Hướng dẫn sử dụng Adahub CRM chi tiết: Thao tác tạo contact, chia deal, cập nhật trạng thái pipeline, gắn tag, đặt lịch nhắc hẹn', type: 'practice' },
+            { id: 't-303', title: 'Giải pháp ZNS (Zalo Notification Service): Giới thiệu về ZNS, các loại mẫu tin chăm sóc khách hàng, chi phí và quy trình duyệt mẫu', type: 'learn' },
+            { id: 't-304', title: 'Quy trình vận hành ZNS: Cách thức gửi tin tự động từ CRM/Callbot sang Zalo khách hàng', type: 'learn' },
+            { id: 't-305', title: 'Hướng dẫn Dashboard & KPI: Cách đọc chỉ số cuộc gọi, tỷ lệ chuyển đổi, doanh số cá nhân và báo cáo tiến độ tuần/tháng', type: 'practice' }
         ],
         attachedDocIds: [],
         customLinks: [
-            { title: 'Khám phá Kho Kịch Bản & Ghi Âm Callbot AI', url: 'index.html?tab=callbot-hub', type: 'internal' }
+            { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' },
+            { title: 'Slide Đào tạo Zalo ZNS', url: 'https://drive.google.com/file/d/10ZoR56MtKPpgy941pW61Sk5hsqZwBRio/view?usp=drive_link', type: 'external' },
+            { title: 'Quy trình Vận hành ZNS', url: 'https://drive.google.com/file/d/1JAiRRcL2EFO1bKt7AM4bOHz3oShTyrFz/view?usp=drive_link', type: 'external' },
+            { title: 'Thư mục Dashboard & KPI Bán hàng', url: 'https://drive.google.com/drive/folders/11dYYmc8GL7MxCoovDEsDgxC4rB_fLnGY?usp=drive_link', type: 'external' }
         ],
-        mentorNote: 'Việc nghe kỹ các file ghi âm mẫu sẽ giúp bạn tự tin mô tả giọng đọc và khả năng phản hồi thông minh của AI khi tư vấn khách.'
+        mentorNote: 'Phụ trách: Vy / Mai Tester / Tiên. CRM là công cụ sống còn của Sales, hãy thực hành nhập thử lead và quản lý deal để quen tay.'
     },
     {
         id: 'day-4',
-        dayNumber: 'Ngày 4',
-        title: 'Bảng giá, Chính sách Bán hàng & Thực hành Lập Báo Giá Chuẩn',
-        duration: '08:30 – 17:30',
-        goal: 'Thuộc lòng cấu trúc chi phí và thành thạo việc tạo báo giá PDF chuyên nghiệp trên Etron SalesHub trong 2 phút.',
+        dayNumber: 'Ngày 4 (n+3)',
+        title: 'Hệ Thống Tổng Đài VoIP, Quay Số Telesale Tự Động & Các Loại Đầu Số',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Trình bày được chức năng tổng đài, phân biệt chính xác các loại đầu số viễn thông và tự thiết lập chiến dịch quay số telesale.',
         badgeColor: 'emerald',
+        trainer: 'Tiên / Leaders / CS Ucall',
         tasks: [
-            { id: 't-401', title: 'Học chi tiết Bảng giá các gói Callbot AI Ucall, Adahub CRM, Phí khởi tạo, Dịch vụ GTGT & Thuế VAT', type: 'learn' },
-            { id: 't-402', title: 'Thực hành sử dụng công cụ "Tạo Báo Giá" trên Etron SalesHub: chọn gói 1-click, chỉnh sửa hạng mục và xuất file PDF', type: 'practice' },
-            { id: 't-403', title: 'Tìm hiểu quy trình ký kết Hợp đồng, nghiệm thu và bàn giao khách hàng cho bộ phận Kỹ thuật / CSKH', type: 'learn' },
-            { id: 't-404', title: 'Bài tập thực hành: Tự lập 02 bản báo giá PDF hoàn chỉnh (01 cho khách Callbot AI, 01 cho khách Adahub CRM)', type: 'practice' }
+            { id: 't-401', title: 'Tổng quan hệ thống Tổng đài VoIP: Lợi ích của tổng đài đám mây, tính năng ghi âm, chuyển tiếp máy nhánh và định tuyến cuộc gọi', type: 'learn' },
+            { id: 't-402', title: 'Quay số Telesale tự động: Nguyên lý auto-dialer, cách tự tạo chiến dịch gọi điện, cài đặt thông số gọi và giải thích các case thực tế', type: 'practice' },
+            { id: 't-403', title: 'Phân biệt các loại Đầu số: Đầu số cố định (024/028), đầu số di động doanh nghiệp, đầu số 1800/1900 và Voice Brandname', type: 'learn' },
+            { id: 't-404', title: 'Tư vấn đúng gói cước đầu số: Xác định trường hợp khách hàng nào nên dùng đầu số nào để tối ưu chi phí và tỷ lệ nghe máy', type: 'learn' },
+            { id: 't-405', title: 'Tham gia buổi Meeting Hướng dẫn sử dụng (HDSD) cùng đội ngũ CS Ucall để học cách hỗ trợ khách hàng thực tế', type: 'practice' }
         ],
         attachedDocIds: [],
         customLinks: [
-            { title: 'Thực hành Tạo Báo Giá ngay', url: 'index.html?tab=quote-builder', type: 'internal' }
+            { title: 'Kho Tài Liệu Tổng Hợp Sản Phẩm & Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
         ],
-        mentorNote: 'Thử tự tạo báo giá trên cả máy tính và điện thoại để khi khách cần gấp có thể xuất PDF gửi ngay qua Zalo.'
+        mentorNote: 'Phụ trách: Tiên & CS Ucall. Hiểu đúng đầu số và cước viễn thông sẽ giúp bạn tư vấn phương án tiết kiệm nhất cho khách hàng.'
     },
     {
         id: 'day-5',
-        dayNumber: 'Ngày 5',
-        title: 'Kỹ năng Tư vấn, Kịch bản Tiếp cận (Telesales) & Xử lý Từ chối',
-        duration: '08:30 – 17:30',
-        goal: 'Xây dựng kịch bản mở lời thu hút, biết cách đặt câu hỏi khai thác nhu cầu (SPIN) và xử lý mượt các tình huống từ chối.',
+        dayNumber: 'Ngày 5 (n+4)',
+        title: 'Chính Sách Bán Hàng, Bảng Giá, Quy Trình Thanh Toán & Lập Báo Giá',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Thuộc lòng bảng giá các gói sản phẩm, quy trình thanh toán, xuất hóa đơn VAT và thành thạo công cụ lập báo giá PDF trên SalesHub trong 2 phút.',
         badgeColor: 'violet',
+        trainer: 'Tiên / Mai - HR',
         tasks: [
-            { id: 't-501', title: 'Học cấu trúc cuộc gọi tiếp cận khách hàng B2B chuẩn: Mở lời 10 giây đầu – Khai thác nỗi đau – Đề xuất giải pháp – Chốt hẹn Demo', type: 'learn' },
-            { id: 't-502', title: 'Tổng hợp 10 lời từ chối phổ biến nhất (Giá cao, Sợ giọng robot, Đang dùng CRM khác, Gửi qua Zalo trước...) và cách hóa giải', type: 'learn' },
-            { id: 't-503', title: 'Thực hành Role-play (Đóng vai tư vấn 1-1) cùng Mentor/Leader để tinh chỉnh giọng điệu và tốc độ nói', type: 'practice' },
-            { id: 't-504', title: 'Chuẩn bị bộ công cụ cá nhân: Tin nhắn kết bạn Zalo mẫu, Bộ tài liệu gửi khách sau cuộc gọi đầu tiên', type: 'action' }
+            { id: 't-501', title: 'Giá sản phẩm & Gói dịch vụ: Nắm rõ bảng giá Callbot, Adahub CRM, phí khởi tạo, chi phí duy trì và các gói kết hợp', type: 'learn' },
+            { id: 't-502', title: 'Quy trình thanh toán: Tư vấn đúng quy trình thanh toán (đặt cọc, nghiệm thu, thanh lý) theo quy định công ty', type: 'learn' },
+            { id: 't-503', title: 'Chính sách xuất hóa đơn: Hướng dẫn khách hàng chuẩn bị đúng thông tin pháp nhân và xuất hóa đơn VAT điện tử', type: 'learn' },
+            { id: 't-504', title: 'Làm bài test Bảng giá & Chính sách bán hàng cùng Trainer để kiểm tra mức độ nắm bắt', type: 'practice' },
+            { id: 't-505', title: 'Thực hành Lập Báo Giá trên Etron SalesHub: Tự tạo 02 bản báo giá PDF hoàn chỉnh (01 bản Callbot AI, 01 bản Adahub CRM)', type: 'practice' }
         ],
         attachedDocIds: [],
-        customLinks: [],
-        mentorNote: 'Đừng cố bán ngay sản phẩm trong 30 giây đầu, hãy tập trung lắng nghe quy trình телеsales/CSKH hiện tại của khách hàng đang gặp khó khăn gì.'
+        customLinks: [
+            { title: 'Mức lương theo Level & Chính sách KPI', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' },
+            { title: 'Công cụ Tạo Báo Giá Online Etron SalesHub', url: 'index.html?tab=quote-builder', type: 'internal' }
+        ],
+        mentorNote: 'Phụ trách: Tiên & Mai HR. Hãy tận dụng công cụ Báo giá trên SalesHub để có thể tạo báo giá gửi khách ngay trên điện thoại hoặc máy tính nhé!'
     },
     {
         id: 'day-6',
-        dayNumber: 'Ngày 6',
-        title: 'Tổng kết Onboard, Đánh giá Năng lực & Bắt đầu Thực chiến',
-        duration: '08:30 – 17:30',
-        goal: 'Hệ thống hóa toàn bộ kiến thức tuần đầu, vượt qua bài test thực hành và sẵn sàng tiếp cận khách hàng thực tế.',
+        dayNumber: 'Ngày 6 (n+5)',
+        title: 'Quy Trình Bán Hàng Thực Chiến, Kỹ Năng Meeting, Xử Lý Từ Chối & Chốt Deal',
+        duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
+        goal: 'Trình bày trọn vẹn quy trình từ lead đến chốt deal; thành thạo kỹ năng gọi điện tiếp cận, meeting demo, follow-up và vượt qua kỳ đánh giá Onboard.',
         badgeColor: 'rose',
+        trainer: 'Thu / Tươi / Kiên / Liên / Leaders',
         tasks: [
-            { id: 't-601', title: 'Ôn tập tổng hợp kiến thức sản phẩm Adahub CRM, Callbot AI Ucall và quy trình báo giá', type: 'learn' },
-            { id: 't-602', title: 'Thực hiện buổi Pitching / Tư vấn giả định trọn vẹn 1 ca khách hàng từ lúc gọi điện đến lúc gửi Báo giá PDF', type: 'practice' },
-            { id: 't-603', title: 'Buổi trò chuyện 1-1 cuối tuần đầu cùng HR & Quản lý: Giải đáp thắc mắc, đóng góp ý kiến và thống nhất mục tiêu tháng đầu', type: 'action' },
-            { id: 't-604', title: 'Nhận phân bổ Data khách hàng đầu tiên trên CRM và bắt đầu hành trình chinh phục doanh số tại Etron HCM!', type: 'action' }
+            { id: 't-601', title: 'Tổng quan Quy trình bán hàng B2B (Thu): Từ tiếp nhận lead, phân loại nhu cầu, hẹn meeting, demo, báo giá, follow-up đến chốt ký hợp đồng', type: 'learn' },
+            { id: 't-602', title: 'Kỹ năng Gọi điện tiếp cận chuyên sâu (Tươi): Cấu trúc 10 giây mở lời, khơi gợi nỗi đau vận hành và kỹ thuật chốt lịch hẹn meeting', type: 'learn' },
+            { id: 't-603', title: 'Kỹ năng Meeting tư vấn & Demo giải pháp (Kiên): Cấu trúc buổi meeting chuẩn, demo sản phẩm thực tế và chốt bán', type: 'practice' },
+            { id: 't-604', title: 'Quy trình Follow-up khách hàng mới & Chốt bán (Thu): Thời điểm follow-up vàng, kịch bản thúc đẩy và xử lý do dự', type: 'practice' },
+            { id: 't-605', title: 'Xử lý từ chối trong cuộc gọi đầu & Sau meeting (Liên): Phân tích tình huống thực tế khi khách chê giá, ngại công nghệ mới, đang dùng đối thủ...', type: 'learn' },
+            { id: 't-606', title: 'Nghiên cứu Thị trường, Đối thủ & Giữ chân khách hàng (Tươi & Kiên): Phân tích đối thủ cạnh tranh và tư duy Customer Success giúp khách hàng gia hạn', type: 'learn' },
+            { id: 't-607', title: 'Rèn luyện 1-1 cùng Leaders: Chữa recording cuộc gọi thực tế, role-play meeting 1-1 và kiểm tra kỹ năng tư vấn độc lập', type: 'practice' },
+            { id: 't-608', title: 'Nhận Data khách hàng đầu tiên trên CRM và chính thức bước vào chặng đường kinh doanh tại Etron HCM!', type: 'action' }
         ],
         attachedDocIds: [],
-        customLinks: [],
-        mentorNote: 'Chúc mừng bạn đã hoàn thành lộ trình Onboard nền tảng! Đội ngũ Etron HCM luôn đồng hành và hỗ trợ bạn trong mọi thương vụ.'
+        customLinks: [
+            { title: 'Quy trình Bán hàng Tổng quan', url: 'https://drive.google.com/file/d/1X31uPVx7M7TLYoEoBUimK98DEMXXbM99/view?usp=drive_link', type: 'external' },
+            { title: 'Quy trình Follow-up Khách hàng mới', url: 'https://drive.google.com/file/d/1fZVR-cbDyR4QSVs6aBf-9R6VObGDgzP6/view?usp=drive_link', type: 'external' },
+            { title: 'Bảng Thực hành Follow-up & Chốt bán', url: 'https://docs.google.com/spreadsheets/d/1BuAw6TUex45zMTMFpwAv5-pCIZ98xSGQ/edit?gid=1484021979#gid=1484021979', type: 'external' },
+            { title: 'Tài liệu Xử lý từ chối trong Cuộc gọi đầu', url: 'https://docs.google.com/spreadsheets/d/1W0OI6WOPbey0fD8f6AW8cwFhEnD5RXGjyi_yDSQfo9M/edit?gid=0#gid=0', type: 'external' },
+            { title: 'Tài liệu Xử lý từ chối Sau Meeting', url: 'https://docs.google.com/spreadsheets/d/1llpeQn2eF1HOyP3u_Hyt712ja33Kp09FEq6w3kfTzn0/edit?gid=0#gid=0', type: 'external' },
+            { title: 'Slide Nghiên cứu Thị trường & Đối thủ (Canva)', url: 'https://www.canva.com/design/DAGeYgc3CKI/tbnk0J5nP7TU7aPYJoWohA/edit?utm_content=DAGeYgc3CKI&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', type: 'external' },
+            { title: 'Slide Customer Success & Giữ chân KH (Canva)', url: 'https://www.canva.com/design/DAGfEmymcN0/kOrtb6br4ulOfT_-DR65TA/edit?utm_content=DAGfEmymcN0&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton', type: 'external' }
+        ],
+        mentorNote: 'Phụ trách: Thu, Tươi, Kiên, Liên, Leaders. Chúc mừng bạn đã hoàn thành tuần đào tạo nền tảng! Toàn bộ team Etron HCM sẽ luôn sát cánh hỗ trợ bạn trong từng cuộc gọi và từng thương vụ chốt deal.'
     }
 ];
 
@@ -146,6 +186,115 @@ function createDefaultChecklistItems() {
 }
 
 const DEFAULT_HR_TEMPLATES = [
+    {
+        id: 'tpl-hr-offer-success',
+        category: 'offer',
+        categoryLabel: 'Mời nhận việc (Offer)',
+        title: '[ETRON] Thư mời nhận việc (Offer Letter) – NV Kinh Doanh (ĐẬU)',
+        subject: '[ETRON] KẾT QUẢ PHỎNG VẤN NHÂN VIÊN KINH DOANH',
+        content: `Thân gửi {{ten_ung_vien}},
+Sau khi đã cân nhắc kỹ lưỡng về sự thể hiện của bạn trong vòng phỏng vấn, công ty rất vui mừng thông báo rằng bạn đã xuất sắc vượt qua vòng phỏng vấn vị trí Nhân viên Kinh doanh tại CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON. Chúng tôi đánh giá cao chất lượng cuộc phỏng vấn vừa rồi và nhìn thấy ở bạn những tố chất phù hợp với vị trí Nhân viên Kinh doanh tại công ty.
+
+Thông tin offer với vị trí Nhân viên Kinh doanh (Toàn thời gian):
+• Thời gian bắt đầu: {{ngay_onboard}} từ 8h30 - 18h (nghỉ trưa từ 12h - 13h30)
+• Địa chỉ: {{dia_diem}}
+
+Giai đoạn 1 - Thử việc (2 tháng)
+• Tổng thu nhập (Gross): 7.000.000 VNĐ/tháng (tính theo số ngày đi làm thực tế).
+• Khấu trừ Thuế Thu nhập cá nhân (TNCN) (10%): 700.000 VNĐ/tháng (theo quy định hiện hành).
+• Hoa hồng và thưởng: Áp dụng theo chính sách của công ty
+• Thu nhập thực nhận (Net): 6.300.000 VNĐ/tháng (tính theo số ngày đi làm thực tế).
+Lưu ý: Trong giai đoạn thử việc, công ty chưa áp dụng đóng các chế độ Bảo hiểm bắt buộc theo quy định.
+
+Giai đoạn 2 - Làm việc chính thức (Sau thử việc)
+• Điều kiện áp dụng: Người lao động vượt qua kỳ đánh giá thử việc và đáp ứng được các tiêu chí của công ty.
+• Cấu trúc thu nhập:
+  - Thu nhập cố định trước bảo hiểm (Gross): 8.000.000 VNĐ/tháng
+  - Hoa hồng và thưởng: Áp dụng theo chính sách của công ty
+  - Tổng thu nhập hàng tháng = 8.000.000 VNĐ + Hoa hồng + Thưởng (nếu có).
+• Chế độ Bảo hiểm và Khấu trừ:
+  - Lương cơ bản (Dùng làm căn cứ đóng bảo hiểm): 5.400.000 VNĐ/tháng.
+  - Mức khấu trừ bảo hiểm của người lao động (10.5% tính trên Lương cơ bản):
+    + BHXH (8%): 432.000 VNĐ
+    + BHYT (1.5%): 81.000 VNĐ
+    + BHTN (1%): 54.000 VNĐ
+    + Tổng tiền bảo hiểm khấu trừ: 5.400.000 VNĐ x 10.5% = 567.000 VNĐ/tháng.
+• Thu nhập thực nhận hàng tháng:
+  - Thu nhập thực nhận = Thu nhập cố định (8.000.000 VNĐ) - Tiền bảo hiểm (567.000 VNĐ) + Thưởng hoa hồng + Thưởng (nếu có).
+  - Thu nhập thực nhận (Net) = 7.433.000 VNĐ + Thưởng hoa hồng + Thưởng (nếu có).
+
+Hàng quý, bạn được đăng ký level KPI theo mong muốn và năng lực theo bảng sau: Mức lương theo level (https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing) (Điều kiện lên level Junior đã ghi trong file trên. Các level có thể được thay đổi bởi công ty cho phù hợp với từng giai đoạn và sẽ được thông báo trước tới bạn).
+
+Lưu ý: Nhân viên vui lòng chuẩn bị laptop cá nhân để phục vụ cho công việc.
+
+Bạn vui lòng phản hồi lại email này trước 17h00 Thứ 7 để xác nhận và đồng ý tham gia quá trình onboarding và làm việc theo cú pháp: “Tôi đã đọc và sẵn sàng tham gia vào quá trình đào tạo của công ty."
+
+Một lần nữa, chúng tôi xin cảm ơn bạn đã quan tâm ETRON làm nơi để phát triển sự nghiệp. Chúng tôi rất mong được chào đón bạn gia nhập đội ngũ của mình và cùng nhau tạo nên những thành tựu đáng tự hào.
+Nếu bạn có bất kỳ câu hỏi nào, xin vui lòng liên hệ qua email này hoặc nhắn tin qua zalo số {{sdt_lien_he}} ({{nguoi_lien_he}}).
+
+Trân trọng,
+Phòng Nhân sự ETRON
+{{nguoi_lien_he}}`,
+        updatedAt: Date.now()
+    },
+    {
+        id: 'tpl-hr-interview-reject',
+        category: 'reject',
+        categoryLabel: 'Từ chối / Cảm ơn',
+        title: '[ETRON] Thư cảm ơn & Kết quả phỏng vấn không phù hợp (RỚT)',
+        subject: '[ETRON] THƯ CẢM ƠN',
+        content: `Thân chào {{ten_ung_vien}},  
+Chúng mình xin chân thành cảm ơn vì bạn đã quan tâm và ứng tuyển vào vị trí {{vi_tri}} của CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON. 
+Chúng mình đánh giá cao sự nhiệt tình cũng như kinh nghiệm của bạn đối với vị trí này. Tuy nhiên, ở thời điểm hiện tại, bạn chưa thật sự phù hợp với những yêu cầu mà công ty chúng mình đang tìm kiếm. 
+Vậy nên chúng mình sẽ lưu thông tin của bạn để trong tương lai sẽ giới thiệu những cơ hội phù hợp hơn. ETRON cảm ơn sự tham gia của bạn vào buổi phỏng vấn của công ty. Chúc bạn sẽ đạt được nhiều thành công trong cuộc sống và hy vọng trong tương lai có cơ hội được hợp tác với bạn. 
+
+Trân trọng cảm ơn! 
+Phòng Nhân sự 
+Nguyễn Nhật Mai`,
+        updatedAt: Date.now()
+    },
+    {
+        id: 'tpl-hr-interview-invite',
+        category: 'interview',
+        categoryLabel: 'Mời phỏng vấn',
+        title: '[ETRON] Thư mời phỏng vấn vị trí Nhân viên Kinh doanh (Offline)',
+        subject: '[ETRON] THƯ MỜI PHỎNG VẤN VỊ TRÍ {{vi_tri}}',
+        content: `Thân gửi {{ten_ung_vien}},
+Chúc mừng bạn đã vượt qua vòng duyệt hồ sơ apply vào vị trí {{vi_tri}} tại CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON.
+Công ty ETRON muốn mời bạn đăng ký tham gia phỏng vấn tại công ty vào tuần tới để chúng ta có thể hiểu nhau hơn. Khung thời gian phỏng vấn đã được ghi tại link dưới đây.
+Bạn vui lòng chọn 1 khung giờ và GHI NHỚ lịch đã đăng ký:
+👉 Link đăng ký lịch phỏng vấn: https://docs.google.com/forms/d/e/1FAIpQLSe48IEet9SoUhZ6HsIEmtpP_1b4eJuMF0ne2ZS5lj4MmQ_kXg/viewform?usp=dialog
+
+Hình thức phỏng vấn: Offline
+Thời gian phỏng vấn dự kiến: 30 - 50 phút
+Địa chỉ công ty: {{dia_diem}}
+
+Sau khi đã đăng ký xong, bạn vui lòng trả lời lại email này để xác nhận khả năng tham gia buổi phỏng vấn theo cú pháp: “Tôi đã đăng ký lịch và sẽ tham gia buổi phỏng vấn đúng giờ” trước 12h00 ngày hẹn phỏng vấn. Trong trường hợp bạn có lý do đột xuất hoặc có bất kỳ đề xuất về lịch, vui lòng liên hệ qua email này hoặc nhắn tin qua zalo số {{sdt_lien_he}} ({{nguoi_lien_he}}).
+
+Rất mong nhận được phản hồi từ bạn và được gặp bạn trong buổi phỏng vấn tới!
+
+Trân trọng,
+Phòng Nhân sự ETRON
+{{nguoi_lien_he}}`,
+        updatedAt: Date.now()
+    },
+    {
+        id: 'tpl-hr-cv-reject',
+        category: 'reject',
+        categoryLabel: 'Từ chối / Cảm ơn',
+        title: '[ETRON] Thư thông báo kết quả xét duyệt hồ sơ ứng tuyển CV (Không đạt)',
+        subject: '[ETRON] THÔNG BÁO KẾT QUẢ XÉT DUYỆT HỒ SƠ ỨNG TUYỂN – {{vi_tri}}',
+        content: `Thân gửi {{ten_ung_vien}},
+Trước tiên, Công ty Cổ phần Giải pháp ETRON xin chân thành cảm ơn bạn đã quan tâm và dành thời gian ứng tuyển vào vị trí {{vi_tri}} tại công ty.
+Sau quá trình xem xét và đánh giá hồ sơ, rất tiếc hiện tại chúng tôi chưa thể tiếp tục quy trình tuyển dụng cùng bạn trong đợt tuyển dụng lần này.
+Chúng tôi trân trọng sự quan tâm của bạn dành cho ETRON và hy vọng sẽ có cơ hội đồng hành cùng bạn ở những vị trí phù hợp hơn trong tương lai.
+Một lần nữa, cảm ơn bạn đã dành thời gian ứng tuyển. Chúc bạn thật nhiều sức khỏe, may mắn và thành công trên con đường sự nghiệp sắp tới!
+
+Trân trọng,
+Phòng Nhân sự ETRON
+{{nguoi_lien_he}}`,
+        updatedAt: Date.now()
+    },
     {
         id: 'tpl-hr-preboard-zalo',
         category: 'preboard',
@@ -187,52 +336,6 @@ Khi tới nơi, {{ten_ung_vien}} cứ nhắn hoặc gọi cho mình nhé. Hẹn 
 • Học xong phần nào, bạn có thể bấm tích hoàn thành ngay trên trang để tự theo dõi tiến độ của mình nhé.
 
 Trong quá trình tìm hiểu, nếu có bất kỳ phần nào chưa rõ, {{ten_ung_vien}} cứ trao đổi trực tiếp với mình hoặc {{nguoi_lien_he}} nha. Chúc bạn có tuần Onboard đầu tiên thật thuận lợi và hiệu quả! 💪`,
-        updatedAt: Date.now()
-    },
-    {
-        id: 'tpl-hr-offer-letter',
-        category: 'offer',
-        categoryLabel: 'Mời nhận việc (Offer)',
-        title: 'Thư mời nhận việc (Offer Letter) – Vị trí Nhân viên Kinh doanh',
-        subject: '[ETRON HCM] THƯ MỜI NHẬN VIỆC (OFFER LETTER) – {{vi_tri}} – {{ten_ung_vien}}',
-        content: `Thân gửi {{ten_ung_vien}},
-
-Trước hết, Bộ phận Nhân sự Etron HCM cảm ơn bạn đã dành thời gian tham gia buổi phỏng vấn vừa qua. Chúng tôi đánh giá rất cao sự nhiệt huyết, tư duy và tiềm năng phát triển của bạn.
-
-Etron HCM trân trọng gửi tới {{ten_ung_vien}} lời mời hợp tác tại công ty với các thông tin chi tiết như sau:
-
-1. Vị trí công việc: {{vi_tri}}
-2. Bộ phận: Phòng Kinh doanh – Etron HCM (Giải pháp Adahub CRM & Callbot AI Ucall)
-3. Ngày bắt đầu làm việc (Onboard): {{gio_onboard}}, {{ngay_onboard}}
-4. Địa điểm làm việc: {{dia_diem}}
-5. Thời gian thử việc: Theo quy định của công ty (có lộ trình đào tạo bài bản ngay từ tuần đầu tiên)
-6. Người hướng dẫn / Liên hệ hỗ trợ: {{nguoi_lien_he}} – SĐT: {{sdt_lien_he}}
-
-Bạn vui lòng phản hồi xác nhận nhận việc qua tin nhắn/email này trước ngày làm việc để bộ phận HR chuẩn bị chu đáo chỗ ngồi và tài khoản hệ thống cho bạn nhé.
-
-Rất mong được chào đón và đồng hành cùng {{ten_ung_vien}} tại Etron HCM!
-
-Trân trọng,
-Bộ phận Nhân sự – Etron HCM`,
-        updatedAt: Date.now()
-    },
-    {
-        id: 'tpl-hr-interview-invite',
-        category: 'interview',
-        categoryLabel: 'Mời phỏng vấn',
-        title: 'Thư / Tin nhắn mời phỏng vấn ứng viên Sales',
-        subject: '[ETRON HCM] Thư mời phỏng vấn vị trí {{vi_tri}} – {{ten_ung_vien}}',
-        content: `Chào {{ten_ung_vien}},
-
-Mình liên hệ từ bộ phận Tuyển dụng Nhân sự của Etron HCM (Đơn vị cung cấp giải pháp phần mềm quản lý khách hàng Adahub CRM & Trợ lý ảo tổng đài Callbot AI Ucall).
-
-Sau khi xem qua hồ sơ ứng tuyển của bạn cho vị trí {{vi_tri}}, bên mình nhận thấy định hướng của bạn rất phù hợp với đội ngũ hiện tại. Mình trân trọng mời {{ten_ung_vien}} tham dự buổi trao đổi / phỏng vấn với thông tin sau:
-
-• Thời gian: {{gio_onboard}} ngày {{ngay_onboard}}
-• Địa điểm / Hình thức: {{dia_diem}}
-• Người phụ trách đón tiếp: {{nguoi_lien_he}} ({{sdt_lien_he}})
-
-{{ten_ung_vien}} vui lòng phản hồi lại tin nhắn này để xác nhận lịch hẹn nhé. Hẹn gặp bạn tại buổi trao đổi!`,
         updatedAt: Date.now()
     },
     {

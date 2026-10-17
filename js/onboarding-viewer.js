@@ -314,6 +314,12 @@ class OnboardingViewer {
                                                     <span>${this.escapeHtml(day.duration)}</span>
                                                 </span>
                                             ` : ''}
+                                            ${day.trainer ? `
+                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white text-indigo-700 border border-indigo-200 flex items-center gap-1 shadow-2xs">
+                                                    <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>
+                                                    <span>Phụ trách: ${this.escapeHtml(day.trainer)}</span>
+                                                </span>
+                                            ` : ''}
                                             <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${doneCount === dayTasks.length && dayTasks.length > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
                                                 Hoàn thành ${doneCount}/${dayTasks.length}
                                             </span>
