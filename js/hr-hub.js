@@ -1806,7 +1806,7 @@ class HrHubApp {
 
         wrapper.innerHTML = `
             <button type="button" onclick="window.hrHub.toggleTplCandDropdown(event)"
-                class="flex items-center justify-between gap-2 px-3 py-2 bg-white hover:bg-slate-50 rounded-xl border border-slate-200/90 shadow-2xs transition-all active:scale-[0.99] text-left text-xs">
+                class="flex items-center justify-between gap-2 px-3 py-2 bg-white hover:bg-slate-50 rounded-xl border border-slate-200/90 shadow-2xs transition-all active:scale-[0.99] text-left text-xs h-9">
                 <div class="flex items-center gap-2 min-w-0">
                     <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600 shrink-0"></i>
                     <span class="font-bold text-slate-800 truncate max-w-[140px] sm:max-w-[200px]">
@@ -1854,49 +1854,24 @@ class HrHubApp {
         }
         if (toggleBtn) {
             if (this.isQuickVarsExpanded) {
-                toggleBtn.classList.remove('bg-slate-100', 'text-slate-700');
+                toggleBtn.classList.remove('bg-white', 'text-slate-600', 'border-slate-200/90');
                 toggleBtn.classList.add('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
+                toggleBtn.setAttribute('title', 'Đóng tùy chỉnh biến');
             } else {
                 toggleBtn.classList.remove('bg-emerald-100', 'text-emerald-800', 'border-emerald-300');
-                toggleBtn.classList.add('bg-slate-100', 'text-slate-700');
+                toggleBtn.classList.add('bg-white', 'text-slate-600', 'border-slate-200/90');
+                toggleBtn.setAttribute('title', 'Tùy chỉnh biến điền mẫu');
             }
         }
         if (toggleText) {
             toggleText.textContent = this.isQuickVarsExpanded ? 'Đóng tùy chỉnh biến' : 'Tùy chỉnh biến (7)';
         }
+        if (window.lucide) lucide.createIcons();
     }
 
     renderQuickVarsSummary() {
         const bar = document.getElementById('hr-quick-vars-summary-bar');
-        if (!bar) return;
-
-        const items = [
-            { label: 'Ứng viên', val: this.quickVars.ten_ung_vien, icon: 'user', color: 'emerald' },
-            { label: 'Vị trí', val: this.quickVars.vi_tri, icon: 'briefcase', color: 'indigo' },
-            { label: 'Ngày', val: this.quickVars.ngay_onboard, icon: 'calendar', color: 'blue' },
-            { label: 'Giờ', val: this.quickVars.gio_onboard, icon: 'clock', color: 'violet' },
-            { label: 'Địa điểm', val: this.quickVars.dia_diem, icon: 'map-pin', color: 'rose' },
-            { label: 'Người đón', val: this.quickVars.nguoi_lien_he, icon: 'user-check', color: 'amber' }
-        ];
-
-        bar.innerHTML = `
-            <span class="text-[11px] font-bold text-slate-400 mr-1 flex items-center gap-1 shrink-0">
-                <i data-lucide="tag" class="w-3 h-3 text-slate-400"></i>
-                <span>Biến đang áp dụng:</span>
-            </span>
-            ${items.map(it => {
-                const hasVal = !!(it.val && it.val.trim());
-                return `
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold border transition-colors ${
-                        hasVal ? 'bg-slate-50 text-slate-700 border-slate-200' : 'bg-slate-50/50 text-slate-400 border-dashed border-slate-200'
-                    }" title="${it.label}: ${this.escapeHtml(it.val || 'Chưa điền')}">
-                        <i data-lucide="${it.icon}" class="w-2.5 h-2.5 text-${it.color}-600"></i>
-                        <span class="text-slate-500">${it.label}:</span>
-                        <span class="max-w-[100px] truncate ${hasVal ? 'text-slate-900 font-extrabold' : 'italic text-slate-400'}">${this.escapeHtml(it.val || 'Chưa có')}</span>
-                    </span>
-                `;
-            }).join('')}
-        `;
+        if (bar) bar.innerHTML = '';
     }
 
     getTemplateCategories() {

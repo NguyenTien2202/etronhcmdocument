@@ -170,6 +170,36 @@ function fakeFirebase() {
         assert.equal(await day1Body.evaluate(el => !el.classList.contains('hidden')), true, 'Day 1 should be expanded');
         assert.equal(await day2Body.evaluate(el => !el.classList.contains('hidden')), true, 'Day 2 should be expanded');
 
+        console.log('--- 2.5. Testing HrHub Templates Tab Compact Controls ---');
+        await page.evaluate(() => window.hrHub.switchTab('templates'));
+        const quickVarsBar = page.locator('#hr-quick-vars-summary-bar');
+        assert.equal(await quickVarsBar.count(), 0, 'Quick vars summary bar should be removed from DOM');
+
+        const toggleVarsBtn = page.locator('#hr-quick-vars-toggle-btn');
+        assert.equal(await toggleVarsBtn.isVisible(), true, 'Toggle vars button should be visible');
+        const toggleVarsSvg = await toggleVarsBtn.locator('svg').count();
+        assert.ok(toggleVarsSvg >= 1, 'Toggle vars button should render an icon');
+        const toggleVarsText = await toggleVarsBtn.innerText();
+        assert.equal(toggleVarsText.trim(), '', 'Toggle vars button should be icon-only');
+
+        const addTplBtn = page.locator('button[onclick="window.hrHub.openTemplateModal()"]');
+        assert.equal(await addTplBtn.isVisible(), true, 'Add template button should be visible');
+        const addTplSvg = await addTplBtn.locator('svg').count();
+        assert.ok(addTplSvg >= 1, 'Add template button should render an icon');
+        const addTplText = await addTplBtn.innerText();
+        assert.equal(addTplText.trim(), '', 'Add template button should be icon-only');
+
+        // Test toggling vars form
+        const varsForm = page.locator('#hr-quick-vars-form');
+        assert.equal(await varsForm.evaluate(el => el.classList.contains('hidden')), true, 'Vars form should default to hidden');
+        await toggleVarsBtn.click();
+        assert.equal(await varsForm.evaluate(el => !el.classList.contains('hidden')), true, 'Vars form should expand on click');
+        await toggleVarsBtn.click();
+        assert.equal(await varsForm.evaluate(el => el.classList.contains('hidden')), true, 'Vars form should collapse on click');
+
+        // Verify mobile responsiveness
+        await page.setViewportSize({ width: 390, height: 844 });
+
         console.log('--- 3. Testing Candidate Onboard Viewer (Mobile & Compact Header) ---');
         await page.setViewportSize({ width: 390, height: 844 });
         await page.goto(base + '/onboard.html#key=' + 'b'.repeat(64));

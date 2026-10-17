@@ -391,8 +391,8 @@
         <!-- ========================================== -->
         <div id="hr-view-templates" class="hr-tab-view hidden space-y-5">
             <!-- Thanh Điền Thông Tin Ứng Viên Tự Động (1-Click Autofill) -->
-            <div class="bg-white rounded-2xl border border-emerald-200/90 shadow-xs p-4 sm:p-5 space-y-3.5">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+            <div class="bg-white rounded-2xl border border-emerald-200/90 shadow-xs p-3.5 sm:p-5 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div class="space-y-0.5">
                         <h2 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
                             <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -405,29 +405,25 @@
                         </p>
                     </div>
 
-                    <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                    <div class="flex items-center gap-2 shrink-0">
                         <!-- Dropdown Chọn Ứng viên cho Mẫu Tin -->
                         <div id="hr-tpl-cand-dropdown-wrapper" class="relative">
                             <!-- Populated by hrHub.renderTplCandidateDropdown() -->
                         </div>
                         <button type="button" onclick="window.hrHub.toggleQuickVarsExpanded()"
                             id="hr-quick-vars-toggle-btn"
-                            class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
-                            title="Tùy chỉnh các trường thông tin điền mẫu">
-                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-500"></i>
-                            <span id="hr-quick-vars-toggle-text">Tùy chỉnh biến (7)</span>
+                            class="w-9 h-9 rounded-xl bg-white hover:bg-slate-50 text-slate-600 hover:text-emerald-700 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+                            title="Tùy chỉnh biến điền mẫu"
+                            aria-label="Tùy chỉnh biến điền mẫu">
+                            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
                         </button>
                         <button type="button" onclick="window.hrHub.openTemplateModal()"
-                            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all">
+                            class="w-9 h-9 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-2xs active:scale-95 transition-all shrink-0"
+                            title="Thêm mẫu mới"
+                            aria-label="Thêm mẫu mới">
                             <i data-lucide="plus" class="w-4 h-4"></i>
-                            <span>Thêm Mẫu Mới</span>
                         </button>
                     </div>
-                </div>
-
-                <!-- Preview thanh biến tóm tắt (Khi thu gọn) -->
-                <div id="hr-quick-vars-summary-bar" class="flex flex-wrap items-center gap-1.5 pt-0.5">
-                    <!-- Populated dynamically by hrHub.renderQuickVarsSummary() -->
                 </div>
 
                 <!-- Form chỉnh sửa 7 biến (Mặc định thu gọn, click để mở rộng) -->
@@ -900,14 +896,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261018_v81"></script>
+    <script src="js/sync-status.js?v=20261018_v82"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261018_v81"></script>
+    <script src="js/firebase-config.js?v=20261018_v82"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261018_v81"></script>
-    <script src="js/document-hub.js?v=20261018_v81"></script>
-    <script src="js/hr-onboarding-data.js?v=20261018_v81"></script>
+    <script src="js/store.js?v=20261018_v82"></script>
+    <script src="js/document-hub.js?v=20261018_v82"></script>
+    <script src="js/hr-onboarding-data.js?v=20261018_v82"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -917,7 +913,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261018_v81"></script>
-    <script src="js/hr-hub.js?v=20261018_v81"></script>
+    <script src="js/hr-auth.js?v=20261018_v82"></script>
+    <script src="js/hr-hub.js?v=20261018_v82"></script>
 </body>
 </html>
