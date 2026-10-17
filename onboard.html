@@ -122,20 +122,27 @@
     <!-- Core Scripts for Document Preview & Onboarding Roadmap -->
     <script src="js/store.js?v=20261018_v87"></script>
     <script src="js/document-hub.js?v=20261018_v87"></script>
-    <script src="js/hr-onboarding-data.js?v=20261018_v87"></script>
-    <script src="js/onboarding-viewer.js?v=20261018_v87"></script>
+    <script src="js/hr-onboarding-data.js?v=20261018_v88"></script>
+    <script src="js/onboarding-viewer.js?v=20261018_v88"></script>
     <script>
         // Minimal salesApp shim for notifications & mobile modal scroll lock on standalone onboard.html
         window.salesApp = {
             showNotification(msg, type = 'info') {
-                if (type !== 'error') return;
                 const container = document.getElementById('toast-container');
                 if (!container) return;
                 const toast = document.createElement('div');
-                toast.className = 'p-3.5 rounded-xl shadow-lg border text-xs font-bold bg-rose-800 text-white border-rose-700';
-                toast.textContent = msg;
+                let colorClass = 'bg-slate-800 text-white border-slate-700';
+                if (type === 'success') colorClass = 'bg-emerald-700 text-white border-emerald-600 shadow-emerald-900/20';
+                else if (type === 'error') colorClass = 'bg-rose-800 text-white border-rose-700 shadow-rose-900/20';
+                else if (type === 'warning') colorClass = 'bg-amber-700 text-white border-amber-600 shadow-amber-900/20';
+                toast.className = `p-3.5 rounded-xl shadow-lg border text-xs font-bold transition-all duration-300 pointer-events-auto flex items-center gap-2 ${colorClass}`;
+                toast.innerHTML = `<span>${msg}</span>`;
                 container.appendChild(toast);
-                setTimeout(() => toast.remove(), 3000);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(8px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
             }
         };
 

@@ -45,10 +45,12 @@ service cloud.firestore {
       allow get: if isHr() || activeLink(token);
       allow list, delete: if isHr();
       allow create, update: if (isHr() || activeLink(token))
-        && request.resource.data.keys().hasOnly(['completedTasks'])
+        && request.resource.data.keys().hasOnly(['completedTasks', 'taskSubmissions'])
         && request.resource.data.completedTasks is map
         && request.resource.data.completedTasks.size() <= 300
-        && request.resource.data.completedTasks.values().hasOnly([true, false]);
+        && request.resource.data.completedTasks.values().hasOnly([true, false])
+        && (!('taskSubmissions' in request.resource.data)
+            || (request.resource.data.taskSubmissions is map && request.resource.data.taskSubmissions.size() <= 100));
     }
     // Deny all other collections, including legacy/private HR data.
     match /{document=**} { allow read, write: if false; }

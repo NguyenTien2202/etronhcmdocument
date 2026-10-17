@@ -150,12 +150,6 @@ class OnboardingViewer {
 
         try {
             await window.hrOnboardingStore.saveTaskSubmission(taskId, payload, this.candidateId);
-            if (window.hrOnboardingStore) {
-                const progress = window.hrOnboardingStore.getTaskProgress(this.candidateId);
-                if (!progress[taskId]) {
-                    await window.hrOnboardingStore.toggleTaskProgress(taskId, this.candidateId);
-                }
-            }
             delete this.pendingFiles[taskId];
             this.editingSubmissions.delete(taskId);
             if (window.salesApp?.showNotification) {
@@ -163,6 +157,7 @@ class OnboardingViewer {
             }
             this.render();
         } catch (err) {
+            console.error('[OnboardingViewer] Lỗi lưu bài nộp:', err);
             alert('Chưa lưu được bài nộp. Vui lòng thử lại!');
         }
     }

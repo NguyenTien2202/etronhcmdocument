@@ -55,8 +55,14 @@ test('only HR can publish links; link holders can update only boolean progress',
     await assertFails(setDoc(doc(publicDb, 'onboarding_links', token), { fullName: 'Changed' }));
     const progress = doc(publicDb, 'onboarding_progress', token);
     await assertSucceeds(setDoc(progress, { completedTasks: { task1: true } }));
+    await assertSucceeds(setDoc(progress, {
+        completedTasks: { task1: true },
+        taskSubmissions: { task1: { note: 'Completed assignment', link: 'https://example.com' } }
+    }));
     await assertFails(setDoc(progress, { completedTasks: { task1: 'yes' } }));
+    await assertFails(setDoc(progress, { completedTasks: { task1: true }, taskSubmissions: 'not-a-map' }));
     await assertFails(setDoc(progress, { completedTasks: {}, salaryNote: 'injected' }));
+    await assertFails(setDoc(progress, { completedTasks: {}, taskSubmissions: {}, salaryNote: 'injected' }));
     await assertFails(setDoc(doc(publicDb, 'onboarding_progress', otherToken), { completedTasks: {} }));
     await assertFails(getDocs(collection(publicDb, 'onboarding_progress')));
     await assertSucceeds(deleteDoc(doc(hrDb, 'onboarding_links', token)));

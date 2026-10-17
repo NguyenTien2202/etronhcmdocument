@@ -851,23 +851,38 @@ class HrOnboardingStore {
             return;
         }
 
-        if (!this.token) {
-            this.personalSubmissions ||= {};
-            this.personalSubmissions[taskId] = payload;
-            try { localStorage.setItem('etron_public_task_submissions', JSON.stringify(this.personalSubmissions)); } catch (_) {}
-            if (!this.personalProgress[taskId]) {
-                await this.toggleTaskProgress(taskId);
+        // 1. Luôn lưu cục bộ tức thì vào máy học viên để không bao giờ bị mất bài làm
+        this.personalSubmissions ||= {};
+        this.personalSubmissions[taskId] = payload;
+        this.personalProgress[taskId] = true;
+        try {
+            localStorage.setItem('etron_public_task_submissions', JSON.stringify(this.personalSubmissions));
+            localStorage.setItem('etron_public_learning_progress', JSON.stringify(this.personalProgress));
+            if (this.token) {
+                localStorage.setItem(`etron_task_sub_${this.token}`, JSON.stringify(this.personalSubmissions));
+                localStorage.setItem(`etron_task_prog_${this.token}`, JSON.stringify(this.personalProgress));
             }
-        } else {
-            if (!this.personalProgressReady || !this.publicCandidate) throw new Error('Chưa tải được tiến độ.');
-            this.personalSubmissions ||= {};
-            this.personalSubmissions[taskId] = payload;
-            await window.firebaseDb.collection('onboarding_progress').doc(this.token).update(
-                new firebase.firestore.FieldPath('taskSubmissions', taskId), payload,
-                new firebase.firestore.FieldPath('completedTasks', taskId), true
-            );
-            this.personalProgress[taskId] = true;
+        } catch (_) {}
+
+        // 2. Đồng bộ lên Cloud nếu có token liên kết
+        if (this.token && window.firebaseDb) {
+            try {
+                // Ghi cả taskSubmissions và completedTasks lên Cloud bằng merge: true
+                await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({
+                    completedTasks: { [taskId]: true },
+                    taskSubmissions: { [taskId]: payload }
+                }, { merge: true });
+            } catch (err) {
+                console.warn('[HrOnboardingStore] Cảnh báo lưu submission lên Cloud:', err);
+                // Fallback: ghi nhận ít nhất completedTasks nếu Cloud rules chưa cập nhật taskSubmissions
+                try {
+                    await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({
+                        completedTasks: { [taskId]: true }
+                    }, { merge: true });
+                } catch (_) {}
+            }
         }
+
         this.notifyChange('submissions');
         this.notifyChange('progress');
     }
@@ -882,19 +897,26 @@ class HrOnboardingStore {
             return;
         }
 
-        if (!this.token) {
-            if (this.personalSubmissions) {
-                delete this.personalSubmissions[taskId];
-                try { localStorage.setItem('etron_public_task_submissions', JSON.stringify(this.personalSubmissions)); } catch (_) {}
-            }
-        } else {
-            if (!this.personalProgressReady || !this.publicCandidate) throw new Error('Chưa tải được tiến độ.');
-            if (this.personalSubmissions) delete this.personalSubmissions[taskId];
-            const delVal = window.firebase?.firestore?.FieldValue?.delete ? window.firebase.firestore.FieldValue.delete() : null;
-            if (delVal) {
-                await window.firebaseDb.collection('onboarding_progress').doc(this.token).update(new firebase.firestore.FieldPath('taskSubmissions', taskId), delVal);
-            } else {
-                await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({ taskSubmissions: this.personalSubmissions }, { merge: true });
+        if (this.personalSubmissions) {
+            delete this.personalSubmissions[taskId];
+            try {
+                localStorage.setItem('etron_public_task_submissions', JSON.stringify(this.personalSubmissions));
+                if (this.token) {
+                    localStorage.setItem(`etron_task_sub_${this.token}`, JSON.stringify(this.personalSubmissions));
+                }
+            } catch (_) {}
+        }
+
+        if (this.token && window.firebaseDb) {
+            try {
+                const delVal = window.firebase?.firestore?.FieldValue?.delete ? window.firebase.firestore.FieldValue.delete() : null;
+                if (delVal) {
+                    await window.firebaseDb.collection('onboarding_progress').doc(this.token).update(new firebase.firestore.FieldPath('taskSubmissions', taskId), delVal);
+                } else {
+                    await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({ taskSubmissions: this.personalSubmissions }, { merge: true });
+                }
+            } catch (err) {
+                console.warn('[HrOnboardingStore] Không thể xóa submission trên Cloud:', err);
             }
         }
         this.notifyChange('submissions');
