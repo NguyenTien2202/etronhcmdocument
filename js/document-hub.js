@@ -1131,7 +1131,8 @@ class DocumentHub {
             this.renderDocumentsList();
             this.showTrash();
             window.salesApp.showNotification('Đã xóa vĩnh viễn tài liệu.', 'info');
-        } catch (_) {
+        } catch (err) {
+            console.error('Lỗi khi xóa vĩnh viễn tài liệu:', err);
             window.salesApp.showNotification('Chưa xóa được tài liệu. Hãy thử lại.', 'error');
         }
     }
@@ -1262,7 +1263,12 @@ class DocumentHub {
                 permDelete.className = 'w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 flex items-center justify-center transition-all shadow-2xs shrink-0 active:scale-95';
                 permDelete.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
                 permDelete.onclick = async () => {
-                    await this.permanentlyDeleteDocument(doc.id);
+                    permDelete.disabled = true;
+                    try {
+                        await this.permanentlyDeleteDocument(doc.id);
+                    } finally {
+                        permDelete.disabled = false;
+                    }
                 };
 
                 actions.append(restore, permDelete);

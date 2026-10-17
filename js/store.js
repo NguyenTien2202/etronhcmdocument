@@ -804,14 +804,15 @@ class SalesStore {
     // Documents
     getAllDocuments() {
         try {
-            return JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];
+            const list = JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];
+            return list.filter(doc => !doc.permanentlyDeleted);
         } catch {
             return [];
         }
     }
 
     getDocuments() { return this.getAllDocuments().filter(doc => !doc.deletedAt); }
-    getTrashedDocuments() { return this.getAllDocuments().filter(doc => !!doc.deletedAt); }
+    getTrashedDocuments() { return this.getAllDocuments().filter(doc => !!doc.deletedAt && !doc.permanentlyDeleted); }
 
     saveDocument(doc) {
         const docs = this.getAllDocuments();
@@ -867,19 +868,37 @@ class SalesStore {
     async restoreDocument(id) { return this.setDocumentTrashState(id, null); }
     async permanentlyDeleteDocument(id) {
         if (window.firebaseDb) {
-            await window.firebaseDb.collection('documents').doc(id).delete();
+            try {
+                await window.firebaseDb.collection('documents').doc(id).set({
+                    permanentlyDeleted: true,
+                    deletedAt: Date.now()
+                }, { merge: true });
+            } catch (err) {
+                console.warn('Lỗi ghi nhận xóa vĩnh viễn trên Firestore:', err);
+            }
         }
-        const latest = this.getAllDocuments().filter(item => item.id !== id);
-        localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(latest));
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];
+            const latest = raw.filter(item => item.id !== id && !item.permanentlyDeleted);
+            localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(latest));
+        } catch (_) {}
     }
     async setDocumentTrashState(id, deletedAt) {
         const docs = this.getAllDocuments();
         const doc = docs.find(item => item.id === id);
         if (!doc) throw new Error('Không tìm thấy tài liệu.');
-        if (window.firebaseDb) await window.firebaseDb.collection('documents').doc(id).update({ deletedAt });
+        if (window.firebaseDb) {
+            await window.firebaseDb.collection('documents').doc(id).set({
+                deletedAt,
+                permanentlyDeleted: false
+            }, { merge: true });
+        }
         const latest = this.getAllDocuments();
         const current = latest.find(item => item.id === id);
-        if (current) current.deletedAt = deletedAt;
+        if (current) {
+            current.deletedAt = deletedAt;
+            current.permanentlyDeleted = false;
+        }
         localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(latest));
     }
 
@@ -1131,7 +1150,10 @@ class SalesStore {
                 }
                 const cloudDocs = [];
                 snapshot.forEach(docSnap => {
-                    cloudDocs.push({ id: docSnap.id, ...docSnap.data() });
+                    const data = docSnap.data();
+                    if (data && !data.permanentlyDeleted) {
+                        cloudDocs.push({ id: docSnap.id, ...data });
+                    }
                 });
                 
                 cloudDocs.sort((a, b) => {
@@ -1146,6 +1168,10 @@ class SalesStore {
                     window.documentHub.renderStats();
                     window.documentHub.renderQuickAccess();
                     window.documentHub.renderDocumentsList();
+                    const trashDialog = document.getElementById('document-trash-dialog');
+                    if (trashDialog && trashDialog.open && typeof window.documentHub.showTrash === 'function') {
+                        window.documentHub.showTrash();
+                    }
                     if (typeof window.documentHub.syncLocalIndexedDBFilesToCloud === 'function') {
                         window.documentHub.syncLocalIndexedDBFilesToCloud();
                     }
