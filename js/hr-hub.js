@@ -810,7 +810,12 @@ class HrHubApp {
             defaultStart = `${y}-${m}-${d}`;
         }
         document.getElementById('hr-cand-start').value = defaultStart;
-        document.getElementById('hr-cand-deadline').value = cand?.targetDate || '';
+        const defaultDeadline = cand?.targetDate || (defaultStart && window.hrOnboardingStore ? window.hrOnboardingStore.getWorkingDayDate(defaultStart, 7) : '');
+        const deadlineEl = document.getElementById('hr-cand-deadline');
+        if (deadlineEl) {
+            deadlineEl.value = defaultDeadline;
+            deadlineEl.dataset.autoFilled = cand?.targetDate ? 'false' : 'true';
+        }
         document.getElementById('hr-cand-dob').value = (cand && cand.dob) ? cand.dob : '';
         document.getElementById('hr-cand-phone').value = cand ? (cand.phone || '') : '';
         document.getElementById('hr-cand-email').value = cand ? (cand.email || '') : '';
@@ -1984,6 +1989,98 @@ class HrHubApp {
             this.showToast(`Đã cập nhật ngày cho ${day.dayNumber}: ${this.formatDayDate(day.date) || 'Chưa chọn'}`, 'info');
         } catch (err) {
             alert('Lỗi cập nhật ngày: ' + err.message);
+        }
+    }
+
+    handleCandStartDateChange(newDate) {
+        if (!newDate || !window.hrOnboardingStore) return;
+        const [y, m, d] = newDate.split('-').map(Number);
+        const dt = new Date(y, m - 1, d);
+        if (dt.getDay() === 0 || dt.getDay() === 6) {
+            const adjusted = window.hrOnboardingStore.getWorkingDayDate(newDate, 0);
+            this.showToast('Lưu ý: ETRON HCM làm việc Thứ 2 – Thứ 6. Ngày bắt đầu được chuyển sang Thứ 2 tiếp theo.', 'info');
+            const startEl = document.getElementById('hr-cand-start');
+            if (startEl) startEl.value = adjusted;
+            newDate = adjusted;
+        }
+        const deadlineEl = document.getElementById('hr-cand-deadline');
+        if (deadlineEl && (!deadlineEl.value || deadlineEl.dataset.autoFilled === 'true')) {
+            deadlineEl.value = window.hrOnboardingStore.getWorkingDayDate(newDate, 7);
+            deadlineEl.dataset.autoFilled = 'true';
+        }
+    }
+
+    autoFillCandDeadline() {
+        const startVal = document.getElementById('hr-cand-start')?.value;
+        if (!startVal) {
+            alert('Vui lòng chọn Ngày bắt đầu Onboard trước!');
+            return;
+        }
+        if (window.hrOnboardingStore) {
+            const deadline = window.hrOnboardingStore.getWorkingDayDate(startVal, 7);
+            const deadlineEl = document.getElementById('hr-cand-deadline');
+            if (deadlineEl) {
+                deadlineEl.value = deadline;
+                deadlineEl.dataset.autoFilled = 'true';
+                this.showToast(`Đã tự động tính hạn 8 ngày làm việc (T2–T6): ${this.formatDayDate(deadline)}`, 'info');
+            }
+        }
+    }
+
+    autoFillRoadmapDates(startDateStr = null) {
+        if (!startDateStr) {
+            const candidates = window.hrOnboardingStore.getCandidates();
+            const currentCand = this.selectedCandidateId ? candidates.find(c => c.id === this.selectedCandidateId) : null;
+            let defaultDate = currentCand?.startDate || '';
+            if (!defaultDate) {
+                const today = new Date();
+                const dow = today.getDay();
+                const daysUntilMon = ((1 + 7 - dow) % 7) || 7;
+                const nextMon = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilMon);
+                const y = nextMon.getFullYear();
+                const m = String(nextMon.getMonth() + 1).padStart(2, '0');
+                const d = String(nextMon.getDate()).padStart(2, '0');
+                defaultDate = `${y}-${m}-${d}`;
+            }
+
+            const promptVal = prompt('Nhập ngày bắt đầu Onboard (YYYY-MM-DD) để tự động điền lịch đào tạo (hệ thống sẽ tự động trừ Thứ 7 & Chủ Nhật):', defaultDate);
+            if (!promptVal) return;
+            startDateStr = promptVal.trim();
+        }
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(startDateStr)) {
+            alert('Định dạng ngày không hợp lệ. Vui lòng nhập theo dạng YYYY-MM-DD (VD: 2026-10-19)');
+            return;
+        }
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const schedule = window.hrOnboardingStore.getWorkingDaysSchedule(startDateStr, roadmap.length);
+
+        roadmap.forEach((day, idx) => {
+            day.date = schedule[idx] || '';
+        });
+
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast(`Đã tự động điền lịch đào tạo ${roadmap.length} ngày (Thứ 2 đến Thứ 6)!`, 'success');
+        } catch (err) {
+            alert('Lỗi cập nhật lộ trình: ' + err.message);
+        }
+    }
+
+    clearRoadmapDates() {
+        if (!confirm('Bạn có chắc muốn xóa các ngày cố định trong lộ trình? Khi xóa, trang Onboard sẽ tự động tính lịch học linh hoạt theo ngày bắt đầu của từng nhân sự (chỉ tính Thứ 2 đến Thứ 6).')) return;
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        roadmap.forEach(day => {
+            day.date = '';
+        });
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast('Đã chuyển về chế độ tự động tính ngày theo từng nhân sự.', 'info');
+        } catch (err) {
+            alert('Lỗi: ' + err.message);
         }
     }
 

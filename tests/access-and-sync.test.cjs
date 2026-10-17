@@ -96,3 +96,22 @@ test('onboarding deadline uses Vietnam date and completed plans are not overdue'
     assert.equal(complete.isOverdue, false);
     assert.equal(complete.nextDay, undefined);
 });
+test('working days calculation excludes Saturday and Sunday (Monday to Friday only)', () => {
+    const { store } = storeHarness();
+    // Monday 2026-10-19
+    const schedule = store.getWorkingDaysSchedule('2026-10-19', 8);
+    assert.deepEqual([...schedule], [
+        '2026-10-19', // Day 1: Thứ Hai
+        '2026-10-20', // Day 2: Thứ Ba
+        '2026-10-21', // Day 3: Thứ Tư
+        '2026-10-22', // Day 4: Thứ Năm
+        '2026-10-23', // Day 5: Thứ Sáu
+        '2026-10-26', // Day 6: Thứ Hai (trừ T7 24/10 và CN 25/10)
+        '2026-10-27', // Day 7: Thứ Ba
+        '2026-10-28', // Day 8: Thứ Tư
+    ]);
+    // If start date is on Saturday 2026-10-17, it should shift to next Monday 2026-10-19
+    assert.equal(store.getWorkingDayDate('2026-10-17', 0), '2026-10-19');
+    // If start date is on Sunday 2026-10-18, it should shift to next Monday 2026-10-19
+    assert.equal(store.getWorkingDayDate('2026-10-18', 0), '2026-10-19');
+});

@@ -936,6 +936,38 @@ class HrOnboardingStore {
         return list.sort((a, b) => a.daysLeft - b.daysLeft);
     }
 
+    getWorkingDayDate(startDateStr, dayOffset = 0) {
+        if (!startDateStr || !/^\d{4}-\d{2}-\d{2}$/.test(String(startDateStr).trim())) return '';
+        const [y, m, d] = String(startDateStr).trim().split('-').map(Number);
+        let cur = new Date(y, m - 1, d);
+        // Nếu ngày bắt đầu rơi vào Thứ 7 hoặc Chủ Nhật, dời đến Thứ Hai tuần tới (HCM chỉ làm việc từ T2 đến T6)
+        while (cur.getDay() === 0 || cur.getDay() === 6) {
+            cur.setDate(cur.getDate() + 1);
+        }
+        let step = 0;
+        while (step < dayOffset) {
+            cur.setDate(cur.getDate() + 1);
+            // Bỏ qua Thứ 7 và Chủ Nhật vì văn phòng HCM chỉ làm việc từ Thứ 2 đến Thứ 6
+            while (cur.getDay() === 0 || cur.getDay() === 6) {
+                cur.setDate(cur.getDate() + 1);
+            }
+            step++;
+        }
+        const yyyy = cur.getFullYear();
+        const mm = String(cur.getMonth() + 1).padStart(2, '0');
+        const dd = String(cur.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    getWorkingDaysSchedule(startDateStr, count = 8) {
+        const schedule = [];
+        for (let i = 0; i < count; i++) {
+            const dateStr = this.getWorkingDayDate(startDateStr, i);
+            if (dateStr) schedule.push(dateStr);
+        }
+        return schedule;
+    }
+
     createDefaultChecklist() {
         return createDefaultChecklistItems();
     }

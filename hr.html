@@ -326,7 +326,18 @@
                     </p>
                 </div>
 
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <button type="button" onclick="window.hrHub.autoFillRoadmapDates()"
+                        class="px-3 sm:px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95"
+                        title="Tự động điền ngày đào tạo cho toàn bộ các ngày (Thứ 2 đến Thứ 6, bỏ qua Thứ 7 & CN)">
+                        <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Auto Điền Ngày (T2–T6)</span>
+                    </button>
+                    <button type="button" onclick="window.hrHub.clearRoadmapDates()"
+                        class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95"
+                        title="Xóa các ngày cố định (để hệ thống tự động tính ngày theo ngày Onboard của từng ứng viên)">
+                        <i data-lucide="calendar-x" class="w-4 h-4"></i>
+                    </button>
                     <a href="onboard.html" target="_blank"
                         class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95"
                         title="Xem trước giao diện Onboard mẫu" aria-label="Xem trước giao diện Onboard mẫu">
@@ -516,11 +527,17 @@
                             <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
                             <span>Ngày bắt đầu Onboard *</span>
                         </label>
-                        <input type="date" id="hr-cand-start" required
+                        <input type="date" id="hr-cand-start" required onchange="window.hrHub.handleCandStartDateChange(this.value)"
                             class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium">
+                        <p class="text-[10px] text-slate-400 mt-1">ETRON HCM làm việc Thứ 2 – Thứ 6 (trừ T7 & CN)</p>
                     </div>
                     <div>
-                        <label for="hr-cand-deadline" class="block font-bold text-slate-700 mb-1">Hạn hoàn thành onboarding</label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label for="hr-cand-deadline" class="block font-bold text-slate-700">Hạn hoàn thành (8 ngày)</label>
+                            <button type="button" onclick="window.hrHub.autoFillCandDeadline()" class="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> Tự tính
+                            </button>
+                        </div>
                         <input type="date" id="hr-cand-deadline" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
                     </div>
                     <div>
@@ -845,14 +862,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261017_v76"></script>
+    <script src="js/sync-status.js?v=20261017_v77"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261017_v76"></script>
+    <script src="js/firebase-config.js?v=20261017_v77"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261017_v76"></script>
-    <script src="js/document-hub.js?v=20261017_v76"></script>
-    <script src="js/hr-onboarding-data.js?v=20261017_v76"></script>
+    <script src="js/store.js?v=20261017_v77"></script>
+    <script src="js/document-hub.js?v=20261017_v77"></script>
+    <script src="js/hr-onboarding-data.js?v=20261017_v77"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -862,7 +879,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261017_v76"></script>
-    <script src="js/hr-hub.js?v=20261017_v76"></script>
+    <script src="js/hr-auth.js?v=20261017_v77"></script>
+    <script src="js/hr-hub.js?v=20261017_v77"></script>
 </body>
 </html>
