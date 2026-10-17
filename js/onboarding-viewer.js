@@ -65,19 +65,25 @@ class OnboardingViewer {
         this.render();
     }
 
-    handleCustomLink(url, type) {
-        if (!url || /^(?:javascript|data|vbscript):/i.test(url.trim())) return;
+    handleCustomLink(url, type, docId = null) {
+        if (!url && !docId) return;
+        if (url && /^(?:javascript|data|vbscript):/i.test(url.trim())) return;
+        const targetDocId = docId || (url && url.includes('doc=') ? url.split('doc=')[1].split('&')[0] : null);
+        if (targetDocId && window.documentHub && typeof window.documentHub.openDocument === 'function') {
+            window.documentHub.openDocument(targetDocId);
+            return;
+        }
         // Nếu đang ở trên trang index.html (SalesHub) và link trỏ tới tab nội bộ
-        if (url.startsWith('index.html?tab=') && window.salesApp && typeof window.salesApp.switchTab === 'function') {
+        if (url && url.startsWith('index.html?tab=') && window.salesApp && typeof window.salesApp.switchTab === 'function') {
             const tabId = url.split('tab=')[1];
             if (tabId) {
                 window.salesApp.switchTab(tabId);
                 return;
             }
         }
-        if (url.startsWith('http://') || url.startsWith('https://')) {
+        if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
             window.open(url, '_blank', 'noopener,noreferrer');
-        } else {
+        } else if (url) {
             window.location.href = url;
         }
     }
@@ -437,7 +443,7 @@ class OnboardingViewer {
                                                                     </span>
                                                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
                                                                         ${taskLinks.map(link => `
-                                                                            <div onclick="window.onboardingViewer.handleCustomLink('${this.escapeJs(link.url)}', '${this.escapeJs(link.type || '')}')"
+                                                                            <div onclick="window.onboardingViewer.handleCustomLink('${this.escapeJs(link.url)}', '${this.escapeJs(link.type || '')}', '${this.escapeJs(link.docId || '')}')"
                                                                                 class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-white hover:bg-indigo-50/70 border border-slate-200/90 hover:border-indigo-300 transition-all cursor-pointer group shadow-2xs">
                                                                                 <div class="flex items-center gap-2 min-w-0">
                                                                                     <i data-lucide="${link.type === 'internal' ? 'folder' : 'external-link'}" class="w-4 h-4 text-indigo-500 shrink-0"></i>
