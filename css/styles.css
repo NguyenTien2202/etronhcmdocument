@@ -440,3 +440,58 @@ body.modal-open-lock {
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
 }
+
+/* ======================================================== */
+/* WORD (.DOCX) & EXCEL (.XLSX) INLINE PREVIEW STYLING      */
+/* ======================================================== */
+.word-doc-content {
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.8;
+    color: #1e293b;
+    word-break: break-word;
+}
+.word-doc-content h1 { font-size: 1.6rem; font-weight: 800; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #0f172a; line-height: 1.3; }
+.word-doc-content h2 { font-size: 1.35rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; color: #1e293b; line-height: 1.3; }
+.word-doc-content h3 { font-size: 1.15rem; font-weight: 700; margin-top: 0.75rem; margin-bottom: 0.25rem; color: #334155; }
+.word-doc-content p { margin-bottom: 0.85rem; font-size: 0.875rem; }
+.word-doc-content ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.875rem; }
+.word-doc-content ol { list-style-type: decimal; margin-left: 1.5rem; margin-bottom: 0.85rem; font-size: 0.875rem; }
+.word-doc-content li { margin-bottom: 0.25rem; }
+.word-doc-content table { border-collapse: collapse; width: 100%; margin: 1.25rem 0; font-size: 0.8rem; background: #ffffff; }
+.word-doc-content th,
+.word-doc-content td { border: 1px solid #cbd5e1; padding: 7px 12px; text-align: left; }
+.word-doc-content th { background-color: #f1f5f9; font-weight: 700; color: #0f172a; }
+.word-doc-content img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 0.75rem auto; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.word-doc-content blockquote { border-left: 4px solid #6366f1; padding: 0.5rem 1rem; margin: 0.75rem 0; font-style: italic; background-color: #f8fafc; border-radius: 0 0.5rem 0.5rem 0; color: #475569; }
+
+.excel-preview-wrapper {
+    background-color: #ffffff;
+}
+.excel-preview-wrapper table {
+    border-collapse: collapse;
+    min-width: 100%;
+    font-size: 11.5px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    color: #1e293b;
+}
+.excel-preview-wrapper th,
+.excel-preview-wrapper td {
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px;
+    white-space: nowrap;
+    text-align: left;
+    min-width: 60px;
+}
+.excel-preview-wrapper tr:first-child th,
+.excel-preview-wrapper tr:first-child td {
+    background-color: #f8fafc;
+    font-weight: 700;
+    color: #334155;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.excel-preview-wrapper tr:hover td {
+    background-color: #f1f5f9;
+}

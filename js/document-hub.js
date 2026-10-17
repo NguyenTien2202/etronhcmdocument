@@ -1011,7 +1011,19 @@ class DocumentHub {
             return;
         }
 
-        // Nếu là tệp file khác (Word, Excel) được tải lên
+        // Nếu là tài liệu Word tải lên
+        if (['doc', 'docx'].includes(doc.fileType) && !doc.fileUrl) {
+            this.openWordDocument(doc);
+            return;
+        }
+
+        // Nếu là bảng tính Excel tải lên
+        if (['xls', 'xlsx', 'csv'].includes(doc.fileType) && !doc.fileUrl) {
+            this.openExcelDocument(doc);
+            return;
+        }
+
+        // Nếu là tệp file khác được tải lên
         if (!doc.fileUrl) {
             this.downloadDocument(id);
             return;
@@ -2513,6 +2525,88 @@ class DocumentHub {
         return this.pdfJsLoadingPromise;
     }
 
+    async getArrayBufferFromData(data) {
+        if (!data) throw new Error('Dữ liệu rỗng');
+        if (data instanceof ArrayBuffer) return data;
+        if (data instanceof Blob) return await data.arrayBuffer();
+        if (typeof data === 'string' && data.startsWith('data:')) {
+            const commaIdx = data.indexOf(',');
+            const base64 = commaIdx >= 0 ? data.slice(commaIdx + 1) : data;
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+        if (typeof data === 'string') {
+            const res = await fetch(data);
+            return await res.arrayBuffer();
+        }
+        throw new Error('Định dạng dữ liệu không được hỗ trợ');
+    }
+
+    ensureXlsxLoaded() {
+        if (window.XLSX) return Promise.resolve(window.XLSX);
+        if (this.xlsxLoadingPromise) return this.xlsxLoadingPromise;
+
+        this.xlsxLoadingPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'js/xlsx.full.min.js';
+            script.onload = () => {
+                if (window.XLSX) resolve(window.XLSX);
+                else reject(new Error('XLSX failed to initialize'));
+            };
+            script.onerror = () => {
+                const cdnScript = document.createElement('script');
+                cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+                cdnScript.onload = () => {
+                    if (window.XLSX) resolve(window.XLSX);
+                    else reject(new Error('XLSX CDN failed to initialize'));
+                };
+                cdnScript.onerror = (err) => {
+                    this.xlsxLoadingPromise = null;
+                    reject(err);
+                };
+                document.head.appendChild(cdnScript);
+            };
+            document.head.appendChild(script);
+        });
+
+        return this.xlsxLoadingPromise;
+    }
+
+    ensureMammothLoaded() {
+        if (window.mammoth) return Promise.resolve(window.mammoth);
+        if (this.mammothLoadingPromise) return this.mammothLoadingPromise;
+
+        this.mammothLoadingPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'js/mammoth.browser.min.js';
+            script.onload = () => {
+                if (window.mammoth) resolve(window.mammoth);
+                else reject(new Error('Mammoth failed to initialize'));
+            };
+            script.onerror = () => {
+                const cdnScript = document.createElement('script');
+                cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+                cdnScript.onload = () => {
+                    if (window.mammoth) resolve(window.mammoth);
+                    else reject(new Error('Mammoth CDN failed to initialize'));
+                };
+                cdnScript.onerror = (err) => {
+                    this.mammothLoadingPromise = null;
+                    reject(err);
+                };
+                document.head.appendChild(cdnScript);
+            };
+            document.head.appendChild(script);
+        });
+
+        return this.mammothLoadingPromise;
+    }
+
     async openPdfDocument(doc) {
         const modal = document.getElementById('media-preview-modal');
         const titleEl = document.getElementById('media-preview-title');
@@ -2545,6 +2639,98 @@ class DocumentHub {
                         <i data-lucide="file-warning" class="w-6 h-6"></i>
                     </div>
                     <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp PDF trên Cloud</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
+                    </p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    async openWordDocument(doc) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+
+        if (!modal || !container || !doc) return;
+
+        titleEl.textContent = doc.title || 'Xem tài liệu Word';
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+        container.scrollTop = 0;
+        container.innerHTML = `
+            <div class="w-full py-16 flex flex-col items-center justify-center text-slate-600 gap-3">
+                <div class="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs sm:text-sm font-bold text-slate-700">Đang đọc tài liệu Word...</p>
+                <p class="text-[11px] text-slate-400">Vui lòng đợi trong giây lát</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        const fileData = await this.getOrFetchFile(doc);
+        if (fileData && fileData.blob) {
+            try {
+                const arrayBuffer = await fileData.blob.arrayBuffer();
+                await this.openWordPreview(arrayBuffer, doc);
+            } catch (err) {
+                console.warn('[DocumentHub] Không thể parse Word, chuyển về tải về:', err);
+                this.downloadDocument(doc.id);
+            }
+        } else {
+            container.innerHTML = `
+                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3 shadow-sm">
+                    <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
+                        <i data-lucide="file-warning" class="w-6 h-6"></i>
+                    </div>
+                    <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp Word trên Cloud</h5>
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
+                    </p>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+    }
+
+    async openExcelDocument(doc) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+
+        if (!modal || !container || !doc) return;
+
+        titleEl.textContent = doc.title || 'Xem bảng tính Excel';
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+        container.scrollTop = 0;
+        container.innerHTML = `
+            <div class="w-full py-16 flex flex-col items-center justify-center text-slate-600 gap-3">
+                <div class="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs sm:text-sm font-bold text-slate-700">Đang đọc bảng tính Excel...</p>
+                <p class="text-[11px] text-slate-400">Vui lòng đợi trong giây lát</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        const fileData = await this.getOrFetchFile(doc);
+        if (fileData && fileData.blob) {
+            try {
+                const arrayBuffer = await fileData.blob.arrayBuffer();
+                await this.openExcelPreview(arrayBuffer, doc);
+            } catch (err) {
+                console.warn('[DocumentHub] Không thể parse Excel, chuyển về tải về:', err);
+                this.downloadDocument(doc.id);
+            }
+        } else {
+            container.innerHTML = `
+                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3 shadow-sm">
+                    <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
+                        <i data-lucide="file-warning" class="w-6 h-6"></i>
+                    </div>
+                    <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp Excel trên Cloud</h5>
                     <p class="text-xs text-slate-500 leading-relaxed">
                         Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
                     </p>
@@ -2667,6 +2853,243 @@ class DocumentHub {
                     <iframe src="${objectUrl}" class="w-full h-[72vh] rounded-xl bg-white border border-slate-200"></iframe>
                 `;
             }
+        }
+    }
+
+    async openWordPreview(arrayBuffer, doc = {}) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+        if (!modal || !container || !arrayBuffer) return;
+
+        const fileName = doc.fileName || `${doc.title || 'tai-lieu'}.docx`;
+        titleEl.textContent = doc.title || fileName || 'Xem tài liệu Word';
+        container.scrollTop = 0;
+
+        container.innerHTML = `
+            <div class="w-full py-16 flex flex-col items-center justify-center text-slate-600 gap-3">
+                <div class="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs sm:text-sm font-bold text-slate-700">Đang đọc và kết xuất tài liệu Word...</p>
+                <p class="text-[11px] text-slate-400">Vui lòng đợi trong giây lát</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+
+        try {
+            const mammoth = await this.ensureMammothLoaded();
+            const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+            const docHtml = result.value || '<p class="text-slate-400 italic">Tài liệu không có nội dung chữ.</p>';
+
+            container.innerHTML = `
+                <div class="w-full max-w-4xl mx-auto space-y-4 pb-6">
+                    <div class="w-full flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                        <div class="flex items-center gap-2 text-xs font-semibold text-slate-700 min-w-0">
+                            <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-extrabold border border-blue-200/80 flex items-center gap-1 shrink-0">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> DOCX
+                            </span>
+                            <span class="truncate font-bold">${this.escapeHtml(fileName)}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] text-slate-400">Xem trực tiếp trên trình duyệt</span>
+                        </div>
+                    </div>
+
+                    <div class="w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-10 select-text leading-relaxed text-slate-800 word-doc-content overflow-x-auto min-h-[300px]">
+                        ${docHtml}
+                    </div>
+
+                    ${doc.note ? `
+                        <div class="p-3.5 bg-white rounded-2xl border border-amber-200 shadow-2xs text-xs space-y-1">
+                            <span class="font-extrabold text-amber-900 block text-[11px] flex items-center gap-1.5">
+                                <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-700"></i>
+                                Ghi chú của học viên:
+                            </span>
+                            <p class="text-slate-800 whitespace-pre-wrap leading-relaxed select-text">${this.escapeHtml(doc.note)}</p>
+                        </div>
+                    ` : ''}
+
+                    ${doc.link ? `
+                        <div class="p-3 bg-white rounded-2xl border border-indigo-100 shadow-2xs flex items-center justify-between gap-3 text-xs">
+                            <div class="min-w-0">
+                                <span class="font-bold text-slate-500 block text-[10px]">Đường link bài làm nộp kèm:</span>
+                                <a href="${this.escapeHtml(doc.link)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 font-bold underline truncate block mt-0.5">${this.escapeHtml(doc.link)}</a>
+                            </div>
+                            <a href="${this.escapeHtml(doc.link)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shrink-0 flex items-center gap-1 shadow-2xs">
+                                <span>Mở link</span>
+                                <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                            </a>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+
+            if (downloadBtn) {
+                downloadBtn.classList.remove('hidden');
+                downloadBtn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5"></i> <span>Tải Word</span>`;
+                downloadBtn.onclick = () => {
+                    let downloadUrl = typeof doc.fileData === 'string' && doc.fileData ? doc.fileData : null;
+                    let revoke = false;
+                    if (!downloadUrl) {
+                        const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+                        downloadUrl = URL.createObjectURL(blob);
+                        revoke = true;
+                    }
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    if (revoke) {
+                        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+                    }
+                };
+            }
+            if (window.lucide) lucide.createIcons();
+        } catch (err) {
+            console.error('[DocumentHub] Lỗi render Word DOCX:', err);
+            throw err;
+        }
+    }
+
+    async openExcelPreview(arrayBuffer, doc = {}) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+        if (!modal || !container || !arrayBuffer) return;
+
+        const fileName = doc.fileName || `${doc.title || 'bang-tinh'}.xlsx`;
+        titleEl.textContent = doc.title || fileName || 'Xem bảng tính Excel';
+        container.scrollTop = 0;
+
+        container.innerHTML = `
+            <div class="w-full py-16 flex flex-col items-center justify-center text-slate-600 gap-3">
+                <div class="w-8 h-8 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs sm:text-sm font-bold text-slate-700">Đang đọc dữ liệu bảng tính Excel...</p>
+                <p class="text-[11px] text-slate-400">Vui lòng đợi trong giây lát</p>
+            </div>
+        `;
+        modal.classList.remove('hidden');
+
+        try {
+            const XLSX = await this.ensureXlsxLoaded();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheetNames = workbook.SheetNames || [];
+
+            if (sheetNames.length === 0) {
+                container.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs">File Excel rỗng, không có Sheet nào.</div>`;
+                return;
+            }
+
+            let currentSheetIndex = 0;
+
+            const renderSheet = (index) => {
+                currentSheetIndex = index;
+                const sheetName = sheetNames[index];
+                const worksheet = workbook.Sheets[sheetName];
+                const htmlTable = XLSX.utils.sheet_to_html(worksheet, { id: 'excel-preview-table', editable: false });
+
+                const sheetTabsHtml = sheetNames.map((name, i) => `
+                    <button type="button" data-sheet-idx="${i}"
+                        class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${i === currentSheetIndex ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                        <i data-lucide="sheet" class="w-3.5 h-3.5"></i>
+                        <span>${this.escapeHtml(name)}</span>
+                    </button>
+                `).join('');
+
+                container.innerHTML = `
+                    <div class="w-full max-w-5xl mx-auto space-y-3 pb-6">
+                        <!-- Top Toolbar with Sheet tabs -->
+                        <div class="w-full flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                            <div class="flex items-center gap-2 text-xs font-semibold text-slate-700 min-w-0">
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 font-extrabold border border-emerald-200/80 flex items-center gap-1 shrink-0">
+                                    <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> EXCEL
+                                </span>
+                                <span class="truncate font-bold">${this.escapeHtml(fileName)}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
+                                ${sheetTabsHtml}
+                            </div>
+                        </div>
+
+                        <!-- Excel Table Container -->
+                        <div class="w-full bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs text-slate-500">
+                                <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                    <i data-lucide="table" class="w-4 h-4 text-emerald-600"></i>
+                                    <span>Đang xem Sheet: <span class="text-emerald-700">${this.escapeHtml(sheetName)}</span></span>
+                                </span>
+                                <span class="text-[11px] text-slate-400">Cuộn ngang/dọc để xem toàn bộ ô tính</span>
+                            </div>
+                            <div class="w-full overflow-auto max-h-[65vh] p-2 excel-preview-wrapper select-text">
+                                ${htmlTable}
+                            </div>
+                        </div>
+
+                        ${doc.note ? `
+                            <div class="p-3.5 bg-white rounded-2xl border border-amber-200 shadow-2xs text-xs space-y-1">
+                                <span class="font-extrabold text-amber-900 block text-[11px] flex items-center gap-1.5">
+                                    <i data-lucide="message-square" class="w-3.5 h-3.5 text-amber-700"></i>
+                                    Ghi chú của học viên:
+                                </span>
+                                <p class="text-slate-800 whitespace-pre-wrap leading-relaxed select-text">${this.escapeHtml(doc.note)}</p>
+                            </div>
+                        ` : ''}
+
+                        ${doc.link ? `
+                            <div class="p-3 bg-white rounded-2xl border border-indigo-100 shadow-2xs flex items-center justify-between gap-3 text-xs">
+                                <div class="min-w-0">
+                                    <span class="font-bold text-slate-500 block text-[10px]">Đường link bài làm nộp kèm:</span>
+                                    <a href="${this.escapeHtml(doc.link)}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 font-bold underline truncate block mt-0.5">${this.escapeHtml(doc.link)}</a>
+                                </div>
+                                <a href="${this.escapeHtml(doc.link)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shrink-0 flex items-center gap-1 shadow-2xs">
+                                    <span>Mở link</span>
+                                    <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
+                                </a>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                container.querySelectorAll('button[data-sheet-idx]').forEach(btn => {
+                    btn.onclick = () => {
+                        const idx = parseInt(btn.getAttribute('data-sheet-idx'), 10);
+                        renderSheet(idx);
+                    };
+                });
+
+                if (window.lucide) lucide.createIcons();
+            };
+
+            renderSheet(0);
+
+            if (downloadBtn) {
+                downloadBtn.classList.remove('hidden');
+                downloadBtn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5"></i> <span>Tải Excel</span>`;
+                downloadBtn.onclick = () => {
+                    let downloadUrl = typeof doc.fileData === 'string' && doc.fileData ? doc.fileData : null;
+                    let revoke = false;
+                    if (!downloadUrl) {
+                        const blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                        downloadUrl = URL.createObjectURL(blob);
+                        revoke = true;
+                    }
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = fileName;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    if (revoke) {
+                        setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+                    }
+                };
+            }
+        } catch (err) {
+            console.error('[DocumentHub] Lỗi render Excel XLSX:', err);
+            throw err;
         }
     }
 
@@ -2866,9 +3289,23 @@ class DocumentHub {
         const isVideo = lowerType.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(lowerName);
         const isAudio = lowerType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a)$/i.test(lowerName);
 
-        // 4. Text / Markdown / Code / JSON / CSV
+        // 4. Word (.docx, .doc)
+        const isWord = lowerType.includes('wordprocessingml') ||
+                       lowerType.includes('msword') ||
+                       /\.(docx|doc)$/i.test(lowerName) ||
+                       strData.startsWith('data:application/vnd.openxmlformats-officedocument.wordprocessingml') ||
+                       strData.startsWith('data:application/msword');
+
+        // 5. Excel (.xlsx, .xls, .csv)
+        const isExcel = lowerType.includes('spreadsheetml') ||
+                        lowerType.includes('ms-excel') ||
+                        /\.(xlsx|xls|csv)$/i.test(lowerName) ||
+                        strData.startsWith('data:application/vnd.openxmlformats-officedocument.spreadsheetml') ||
+                        strData.startsWith('data:application/vnd.ms-excel');
+
+        // 6. Text / Markdown / Code / JSON
         const isText = lowerType.startsWith('text/') || lowerType === 'application/json' ||
-                       /\.(txt|md|csv|json|js|html|css|xml|log)$/i.test(lowerName);
+                       /\.(txt|md|json|js|html|css|xml|log)$/i.test(lowerName);
 
         if (isPdf && fileData) {
             try {
@@ -2926,6 +3363,26 @@ class DocumentHub {
                 return;
             } catch (pdfErr) {
                 console.warn('[DocumentHub] Lỗi render PDF, chuyển sang khung iframe:', pdfErr);
+            }
+        }
+
+        if (isWord && fileData) {
+            try {
+                const arrayBuffer = await this.getArrayBufferFromData(fileData);
+                await this.openWordPreview(arrayBuffer, { ...payload, title: effectiveTitle, fileName: fileName || 'tai-lieu.docx' });
+                return;
+            } catch (wordErr) {
+                console.warn('[DocumentHub] Không thể parse Word trực tiếp, chuyển sang tải về:', wordErr);
+            }
+        }
+
+        if (isExcel && fileData) {
+            try {
+                const arrayBuffer = await this.getArrayBufferFromData(fileData);
+                await this.openExcelPreview(arrayBuffer, { ...payload, title: effectiveTitle, fileName: fileName || 'bang-tinh.xlsx' });
+                return;
+            } catch (excelErr) {
+                console.warn('[DocumentHub] Không thể parse Excel trực tiếp, chuyển sang tải về:', excelErr);
             }
         }
 
@@ -3025,7 +3482,7 @@ class DocumentHub {
             <div class="w-full max-w-2xl mx-auto space-y-4 py-4">
                 <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm text-center space-y-3">
                     <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 mx-auto flex items-center justify-center shadow-2xs border border-indigo-100">
-                        <i data-lucide="${isText ? 'file-code' : (lowerName.endsWith('.pdf') ? 'file-text' : 'file')}" class="w-8 h-8"></i>
+                        <i data-lucide="${isText ? 'file-code' : (isWord ? 'file-text' : (isExcel ? 'file-spreadsheet' : (lowerName.endsWith('.pdf') ? 'file-text' : 'file')))}" class="w-8 h-8"></i>
                     </div>
                     <div class="space-y-1">
                         <h4 class="text-base font-extrabold text-slate-800 break-all">${this.escapeHtml(fileName || 'Tệp bài tập nộp')}</h4>
