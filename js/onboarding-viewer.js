@@ -308,7 +308,7 @@ class OnboardingViewer {
 
                 <!-- Danh sách Chi tiết từng Ngày Onboard -->
                 <div class="space-y-5">
-                    ${visibleDays.map(day => {
+                    ${visibleDays.map((day, dIdx) => {
                         const theme = this.getBadgeColors(day.badgeColor);
                         const dayTasks = day.tasks || [];
                         const doneCount = dayTasks.filter(t => progress[t.id]).length;
@@ -316,6 +316,7 @@ class OnboardingViewer {
                             .map(id => allDocs.find(d => d.id === id))
                             .filter(Boolean);
                         const customLinks = day.customLinks || [];
+                        const formattedDayDate = this.getFormattedDayDate(day, dIdx, candidate);
 
                         return `
                             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all hover:border-indigo-200">
@@ -326,6 +327,12 @@ class OnboardingViewer {
                                             <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${theme.pill} shadow-2xs">
                                                 ${this.escapeHtml(day.dayNumber)}
                                             </span>
+                                            ${formattedDayDate ? `
+                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white text-indigo-700 border border-indigo-200 flex items-center gap-1 shadow-2xs">
+                                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                                    <span>${formattedDayDate}</span>
+                                                </span>
+                                            ` : ''}
                                             ${day.duration ? `
                                                 <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-white text-slate-600 border border-slate-200 flex items-center gap-1">
                                                     <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
@@ -343,7 +350,7 @@ class OnboardingViewer {
                                             </span>
                                         </div>
                                         <h3 class="text-base sm:text-lg font-extrabold text-slate-900 pt-0.5">
-                                            ${this.escapeHtml(day.title)}
+                                            ${this.escapeHtml(this.cleanTaskTitle(day.title))}
                                         </h3>
                                         ${day.goal ? `
                                             <p class="text-xs text-slate-600 flex items-start gap-1.5 pt-0.5">
@@ -356,14 +363,14 @@ class OnboardingViewer {
 
                                 <!-- Nội dung chính của Ngày -->
                                 <div class="p-4 sm:p-5 space-y-4">
-                                    <!-- Danh sách các Module đào tạo (Click để xổ xuống xem chi tiết & link) -->
+                                    <!-- Danh sách nội dung đào tạo (Click để xổ xuống xem chi tiết & link) -->
                                     <div class="space-y-2.5">
                                         <div class="flex items-center justify-between">
                                             <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                                                 <i data-lucide="layers" class="w-4 h-4 text-indigo-600"></i>
-                                                <span>Các Module học tập & thực hành trong ngày (${dayTasks.length} module)</span>
+                                                <span>Nội dung học tập & thực hành trong ngày (${dayTasks.length} mục)</span>
                                             </h4>
-                                            <span class="text-[11px] text-slate-400">Bấm từng module để xem chi tiết & link</span>
+                                            <span class="text-[11px] text-slate-400">Bấm từng mục để xem chi tiết & tài liệu</span>
                                         </div>
                                         <div class="space-y-2">
                                             ${dayTasks.map(task => {
@@ -373,7 +380,7 @@ class OnboardingViewer {
 
                                                 return `
                                                     <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-all hover:border-indigo-300">
-                                                        <!-- Module Header Row -->
+                                                        <!-- Header Row -->
                                                         <div class="p-3 sm:p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors ${isDone ? 'bg-emerald-50/20' : ''}"
                                                             onclick="window.onboardingViewer.toggleModule('${task.id}')">
                                                             <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -382,7 +389,7 @@ class OnboardingViewer {
                                                                     onchange="window.onboardingViewer.toggleTask('${task.id}')"
                                                                     class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 shrink-0 cursor-pointer">
                                                                 <span class="text-xs sm:text-sm font-extrabold text-slate-800 truncate ${isDone ? 'line-through text-slate-400 font-medium' : ''}">
-                                                                    ${this.escapeHtml(task.title)}
+                                                                    ${this.escapeHtml(this.cleanTaskTitle(task.title))}
                                                                 </span>
                                                             </div>
                                                             <div class="flex items-center gap-2 shrink-0">
@@ -509,7 +516,7 @@ class OnboardingViewer {
                                         <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-start gap-2.5 text-xs text-amber-950">
                                             <i data-lucide="sparkles" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
                                             <div class="leading-relaxed">
-                                                <strong class="font-bold">Lưu ý hỗ trợ cho bạn:</strong> ${this.escapeHtml(day.mentorNote)}
+                                                <strong class="font-bold">Lưu ý hỗ trợ cho bạn:</strong> ${this.escapeHtml(this.cleanMentorNote(day.mentorNote))}
                                             </div>
                                         </div>
                                     ` : ''}
@@ -522,6 +529,43 @@ class OnboardingViewer {
         `;
 
         if (window.lucide) lucide.createIcons();
+    }
+
+    cleanTaskTitle(title) {
+        if (!title) return '';
+        return String(title).replace(/^(Module\s*\d+(\.\d+)?[:\s-]*)/i, '').trim();
+    }
+
+    cleanMentorNote(note) {
+        if (!note) return '';
+        return String(note).replace(/^Phụ trách:\s*[^.]*\.\s*/i, '').trim();
+    }
+
+    getFormattedDayDate(day, index, candidate) {
+        let dateStr = day.date;
+        if (!dateStr && candidate && candidate.startDate && /^\d{4}-\d{2}-\d{2}$/.test(candidate.startDate)) {
+            const [y, m, d] = candidate.startDate.split('-').map(Number);
+            let cur = new Date(y, m - 1, d);
+            let step = 0;
+            while (step < index) {
+                cur.setDate(cur.getDate() + 1);
+                // Bỏ qua Chủ Nhật vì Sales Etron làm việc từ Thứ 2 đến Thứ 7
+                if (cur.getDay() === 0) {
+                    cur.setDate(cur.getDate() + 1);
+                }
+                step++;
+            }
+            const yyyy = cur.getFullYear();
+            const mm = String(cur.getMonth() + 1).padStart(2, '0');
+            const dd = String(cur.getDate()).padStart(2, '0');
+            dateStr = `${yyyy}-${mm}-${dd}`;
+        }
+        if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return '';
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        const dayOfWeek = dayNames[date.getDay()];
+        return `${dayOfWeek}, ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
     }
 
     escapeHtml(str) {

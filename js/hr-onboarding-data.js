@@ -8,7 +8,9 @@
 const DEFAULT_ONBOARDING_ROADMAP = [
     {
         id: 'day-1',
+        day: 1,
         dayNumber: 'Ngày 1',
+        date: '',
         title: 'Hội Nhập Công Ty, Văn Hóa Etron, Quy Định & Thiết Lập Công Cụ',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Hiểu về công ty, tầm nhìn sứ mệnh, cơ cấu tổ chức các phòng ban, hệ sinh thái sản phẩm, nắm vững chính sách sale và chuẩn bị đầy đủ công cụ làm việc.',
@@ -17,7 +19,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-101',
-                title: 'Module 1: Giới thiệu công ty',
+                title: 'Giới thiệu công ty',
                 type: 'learn',
                 activity: 'Giới thiệu về công ty Etron, tầm nhìn, sứ mệnh, cơ cấu tổ chức, các phòng ban chính và cách phối hợp làm việc.',
                 outcome: 'Trình bày được cơ cấu tổ chức của công ty; nêu được chức năng các phòng ban chính; biết đầu mối liên hệ khi cần phối hợp công việc.',
@@ -28,7 +30,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-102',
-                title: 'Module 2: Văn hóa & Quy định làm việc',
+                title: 'Văn hóa & Quy định làm việc',
                 type: 'learn',
                 activity: 'Nội quy làm việc, quy chế ứng xử, quy trình chấm công, xin nghỉ phép, báo cáo công việc và văn hóa doanh nghiệp Etron.',
                 outcome: 'Đã đọc và hiểu nội quy công ty, nắm vững quy trình chấm công, xin nghỉ phép và báo cáo công việc hàng ngày.',
@@ -38,7 +40,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-103',
-                title: 'Module 3: Tổng quan hệ sinh thái sản phẩm',
+                title: 'Tổng quan hệ sinh thái sản phẩm',
                 type: 'learn',
                 activity: 'Giới thiệu hệ sinh thái sản phẩm Etron: Sản phẩm chủ lực (Trợ lý ảo Callbot AI Ucall, Phần mềm CSKH Adahub CRM, Tổng đài VoIP), sản phẩm mở rộng và chân dung khách hàng mục tiêu.',
                 outcome: 'Mô tả được chức năng cơ bản của từng sản phẩm, xác định sản phẩm chủ lực và bài toán mà từng sản phẩm giải quyết cho doanh nghiệp.',
@@ -48,7 +50,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-104',
-                title: 'Module 4: Thiết lập công cụ làm việc',
+                title: 'Thiết lập công cụ làm việc',
                 type: 'action',
                 activity: 'Tạo và đăng nhập tài khoản phục vụ công việc: Email công ty, Admin, UCALL portal (app.ucall.vn & staging), tham gia các nhóm chat Zalo nội bộ, mở Kho tài liệu SalesHub.',
                 outcome: 'Đăng nhập thành công tất cả tài khoản được cấp, gia nhập đầy đủ nhóm làm việc nội bộ và kiểm tra các công cụ sẵn sàng.',
@@ -58,7 +60,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-105',
-                title: 'Module 5: Chính sách SALE & Cơ chế hoa hồng',
+                title: 'Chính sách SALE & Cơ chế hoa hồng',
                 type: 'learn',
                 activity: 'Tìm hiểu chính sách sales, định nghĩa và thuật ngữ sale, KPI cá nhân/team, cơ chế tính hoa hồng và các level thăng tiến tại Etron.',
                 outcome: 'Nắm rõ các định nghĩa, thuật ngữ sale, hiểu cách tính hoa hồng và lộ trình thăng tiến level KPI.',
@@ -69,7 +71,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-106',
-                title: 'Module 6: Bài tập thực hành Ngày 1',
+                title: 'Bài tập thực hành Ngày 1',
                 type: 'practice',
                 activity: 'Thực hiện bài tập tổng kết: Tóm tắt lại các lợi ích, giải pháp cốt lõi của công ty và giải pháp đó hỗ trợ giải quyết bài toán gì cho khách hàng.',
                 outcome: 'Nộp bản tóm tắt cho người hướng dẫn và được giải đáp thắc mắc cuối ngày.',
@@ -78,11 +80,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Ngày đầu tiên bạn thoải mái làm quen môi trường, thiết lập đầy đủ công cụ và ghi chú lại các thắc mắc để được giải đáp nhé!'
+        mentorNote: 'Ngày đầu tiên bạn thoải mái làm quen môi trường, thiết lập đầy đủ công cụ và ghi chú lại các thắc mắc để được giải đáp nhé!'
     },
     {
         id: 'day-2',
+        day: 2,
         dayNumber: 'Ngày 2',
+        date: '',
         title: 'Đào Tạo Chuyên Sâu Sản Phẩm Trợ Lý Ảo Callbot AI Ucall',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Trình bày được tổng quan, nguyên lý hoạt động và quy trình vận hành Callbot; thành thạo xây dựng kịch bản và setup chiến dịch gọi tự động.',
@@ -91,7 +95,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-201',
-                title: 'Module 1: Tổng quan sản phẩm Callbot AI',
+                title: 'Tổng quan sản phẩm Callbot AI',
                 type: 'learn',
                 activity: 'Tổng quan công nghệ Callbot AI Voice Bot, nguyên lý nhận diện giọng nói (STT), xử lý ngôn ngữ tự nhiên (NLU), chuyển đổi văn bản thành giọng nói (TTS) và bài toán tối ưu chi phí vận hành cho doanh nghiệp.',
                 outcome: 'Trình bày được tổng quan công nghệ và quy trình hoạt động của Callbot trong thực tế.',
@@ -102,7 +106,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-202',
-                title: 'Module 2: Phân loại bot & Tính cước phút gọi',
+                title: 'Phân loại bot & Tính cước phút gọi',
                 type: 'learn',
                 activity: 'Phân loại các gói bot: CB2 (45N), CB3 (90N), CB4 (120N), cách tính cước theo phút gọi phát sinh và cách tư vấn gói bot tối ưu cho từng lĩnh vực ngành nghề.',
                 outcome: 'Tư vấn đúng loại bot theo nhu cầu và ngân sách của khách hàng.',
@@ -112,7 +116,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-203',
-                title: 'Module 3: Xây dựng kịch bản Callbot',
+                title: 'Xây dựng kịch bản Callbot',
                 type: 'learn',
                 activity: 'Kỹ thuật thiết kế luồng hội thoại, tạo intent câu hỏi - câu trả lời, xử lý ngắt lời khi khách nói và xây dựng kịch bản rẽ nhánh thông minh.',
                 outcome: 'Tự lên được luồng kịch bản sơ bộ cho một ngành nghề cụ thể (BĐS, Tài chính, Tuyển sinh).',
@@ -122,7 +126,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-204',
-                title: 'Module 4: Thực hành & Chữa kịch bản Callbot',
+                title: 'Thực hành & Chữa kịch bản Callbot',
                 type: 'practice',
                 activity: 'Thực hành tạo kịch bản thực tế trên hệ thống và được Trainer / Mentor chữa trực tiếp từng câu intent.',
                 outcome: 'Hoàn thiện 01 kịch bản Callbot hoàn chỉnh chuẩn kịch bản bán hàng.',
@@ -130,7 +134,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-205',
-                title: 'Module 5: Thiết lập và chạy chiến dịch gọi thử nghiệm',
+                title: 'Thiết lập và chạy chiến dịch gọi thử nghiệm',
                 type: 'practice',
                 activity: 'Thao tác tạo chiến dịch gọi tự động trên app.ucall.vn, import danh sách số điện thoại test, gán kịch bản bot, kiểm tra báo cáo cuộc gọi và nghe lại ghi âm bot gọi.',
                 outcome: 'Tự tạo và chạy thành công 01 chiến dịch test, đọc hiểu các trường trong báo cáo cuộc gọi.',
@@ -141,11 +145,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Nghe kỹ các file ghi âm mẫu trên SalesHub để cảm nhận cách Callbot AI phản hồi thông minh nhé!'
+        mentorNote: 'Nghe kỹ các file ghi âm mẫu trên SalesHub để cảm nhận cách Callbot AI phản hồi thông minh nhé!'
     },
     {
         id: 'day-3',
+        day: 3,
         dayNumber: 'Ngày 3',
+        date: '',
         title: 'Phần Mềm Quản Lý CSKH Adahub CRM, Dịch Vụ ZNS & Dashboard KPI',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Làm chủ hệ thống Adahub CRM, quy trình đăng ký & gửi tin Zalo ZNS và biết cách theo dõi chỉ số hiệu quả trên Dashboard KPI.',
@@ -154,7 +160,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-301',
-                title: 'Module 1: Tổng quan hệ thống Adahub CRM',
+                title: 'Tổng quan hệ thống Adahub CRM',
                 type: 'learn',
                 activity: 'Vai trò của CRM trong quy trình bán hàng B2B, quản lý lead, phân bổ khách hàng tiềm năng, lưu trữ lịch sử tương tác và phễu chuyển đổi bán hàng.',
                 outcome: 'Trình bày được vai trò của CRM và các phân hệ chức năng chính.',
@@ -164,7 +170,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-302',
-                title: 'Module 2: Các tính năng Adahub CRM chi tiết',
+                title: 'Các tính năng Adahub CRM chi tiết',
                 type: 'practice',
                 activity: 'Thực hành thao tác tạo contact, chia deal, cập nhật trạng thái pipeline, gắn tag phân loại, đặt lịch nhắc hẹn và ghi nhận lịch sử tương tác.',
                 outcome: 'Sử dụng thành thạo CRM để quản lý khách hàng hàng ngày.',
@@ -174,7 +180,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-303',
-                title: 'Module 3: Giải pháp ZNS & Quy trình tích hợp',
+                title: 'Giải pháp ZNS & Quy trình tích hợp',
                 type: 'learn',
                 activity: 'Giới thiệu về Zalo Notification Service (ZNS), các loại mẫu tin chăm sóc khách hàng, chi phí gửi tin và quy trình kiểm duyệt mẫu tin Zalo OA.',
                 outcome: 'Nắm được quy trình gửi tin ZNS tự động từ hệ thống Callbot/CRM đến Zalo của khách hàng.',
@@ -185,7 +191,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-304',
-                title: 'Module 4: Dashboard & Quản lý KPI Bán hàng',
+                title: 'Dashboard & Quản lý KPI Bán hàng',
                 type: 'practice',
                 activity: 'Hướng dẫn đọc báo cáo chỉ số cuộc gọi, tỷ lệ chuyển đổi, doanh số cá nhân và báo cáo tiến độ tuần/tháng trên hệ thống Dashboard.',
                 outcome: 'Biết cách tự theo dõi mục tiêu doanh số và báo cáo kết quả định kỳ cho quản lý.',
@@ -196,11 +202,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. CRM là công cụ sống còn của Sales, hãy thực hành nhập thử lead và quản lý deal để quen tay.'
+        mentorNote: 'CRM là công cụ sống còn của Sales, hãy thực hành nhập thử lead và quản lý deal để quen tay.'
     },
     {
         id: 'day-4',
+        day: 4,
         dayNumber: 'Ngày 4',
+        date: '',
         title: 'Hệ Thống Tổng Đài VoIP, Quay Số Telesale Tự Động & Các Loại Đầu Số',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Trình bày được chức năng tổng đài, phân biệt chính xác các loại đầu số viễn thông và tự thiết lập chiến dịch quay số telesale.',
@@ -209,7 +217,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-401',
-                title: 'Module 1: Tổng quan hệ thống Tổng đài VoIP',
+                title: 'Tổng quan hệ thống Tổng đài VoIP',
                 type: 'learn',
                 activity: 'Lợi ích của tổng đài Cloud VoIP, tính năng ghi âm cuộc gọi, chuyển tiếp máy nhánh, định tuyến thông minh và tích hợp phần mềm CRM.',
                 outcome: 'Trình bày được chức năng và lợi ích của giải pháp tổng đài đám mây so với tổng đài truyền thống.',
@@ -219,7 +227,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-402',
-                title: 'Module 2: Quay số Telesale tự động (Auto Dialer)',
+                title: 'Quay số Telesale tự động (Auto Dialer)',
                 type: 'practice',
                 activity: 'Nguyên lý hoạt động của hệ thống quay số tự động (Progressive / Predictive dialer), tự tạo chiến dịch gọi, cài đặt thông số cuộc gọi và phân tích các trường hợp ứng dụng.',
                 outcome: 'Tự tạo được chiến dịch quay số phục vụ công việc gọi điện hàng ngày.',
@@ -229,7 +237,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-403',
-                title: 'Module 3: Tìm hiểu các loại Đầu số viễn thông',
+                title: 'Tìm hiểu các loại Đầu số viễn thông',
                 type: 'learn',
                 activity: 'Phân loại các đầu số phổ biến trên thị trường: Đầu số cố định (024/028), đầu số di động doanh nghiệp, đầu số 1800/1900 và Voice Brandname (hiển thị tên thương hiệu).',
                 outcome: 'Phân biệt chính xác ưu nhược điểm, chi phí và thủ tục đăng ký từng loại đầu số.',
@@ -239,7 +247,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-404',
-                title: 'Module 4: Tư vấn phương án đầu số tối ưu cho khách hàng',
+                title: 'Tư vấn phương án đầu số tối ưu cho khách hàng',
                 type: 'learn',
                 activity: 'Phân tích nhu cầu từng ngành để tư vấn đúng loại đầu số, tối ưu chi phí cước viễn thông và nâng cao tỷ lệ bắt máy.',
                 outcome: 'Đưa ra được giải pháp đầu số phù hợp khi khách hàng yêu cầu phương án gọi ra/gọi vào.',
@@ -248,11 +256,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Hiểu đúng đầu số và cước viễn thông sẽ giúp bạn tư vấn phương án tiết kiệm nhất cho khách hàng.'
+        mentorNote: 'Hiểu đúng đầu số và cước viễn thông sẽ giúp bạn tư vấn phương án tiết kiệm nhất cho khách hàng.'
     },
     {
         id: 'day-5',
+        day: 5,
         dayNumber: 'Ngày 5',
+        date: '',
         title: 'Chính Sách Bán Hàng, Bảng Giá, Quy Trình Thanh Toán & Lập Báo Giá',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Thuộc lòng bảng giá các gói sản phẩm, quy trình thanh toán, xuất hóa đơn VAT và thành thạo công cụ lập báo giá PDF trên SalesHub trong 2 phút.',
@@ -261,7 +271,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-501',
-                title: 'Module 1: Giá sản phẩm & Gói dịch vụ',
+                title: 'Giá sản phẩm & Gói dịch vụ',
                 type: 'learn',
                 activity: 'Phân tích chi tiết bảng giá các gói dịch vụ: Phút gọi Ucall, phí khởi tạo/triển khai, phí duy trì tổng đài hàng tháng, gói Adahub CRM và các gói combo tích hợp.',
                 outcome: 'Tư vấn chuẩn xác giá thành các gói theo từng quy mô và nhu cầu khách hàng.',
@@ -271,7 +281,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-502',
-                title: 'Module 2: Quy trình thanh toán & Hợp đồng',
+                title: 'Quy trình thanh toán & Hợp đồng',
                 type: 'learn',
                 activity: 'Nắm vững quy trình thanh toán (tạm ứng, đặt cọc, thanh toán đợt cuối), quy trình ký kết hợp đồng, bảo mật thông tin và thủ tục kích hoạt dịch vụ.',
                 outcome: 'Tư vấn đúng quy trình pháp lý và thanh toán cho khách hàng theo đúng quy chế công ty.',
@@ -281,7 +291,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-503',
-                title: 'Module 3: Chính sách xuất hóa đơn VAT điện tử',
+                title: 'Chính sách xuất hóa đơn VAT điện tử',
                 type: 'learn',
                 activity: 'Hướng dẫn thông tin cần lấy từ khách hàng (Tên công ty, MST, địa chỉ đăng ký kinh doanh, email nhận hóa đơn) và quy trình kế toán xuất hóa đơn VAT.',
                 outcome: 'Thu thập đầy đủ thông tin chuẩn xác và phối hợp mượt mà với kế toán công ty.',
@@ -289,7 +299,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-504',
-                title: 'Module 4: Thực hành Lập Báo Giá trên Etron SalesHub',
+                title: 'Thực hành Lập Báo Giá trên Etron SalesHub',
                 type: 'practice',
                 activity: 'Sử dụng công cụ Tạo Báo Giá Online trên Etron SalesHub để tự tạo 02 bản báo giá PDF hoàn chỉnh (01 bản Callbot AI, 01 bản Adahub CRM/Tổng đài) và gửi cho Trainer duyệt.',
                 outcome: 'Thành thạo lập báo giá chuyên nghiệp chỉ trong 2 phút.',
@@ -300,11 +310,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Hãy tận dụng công cụ Báo giá trên SalesHub để có thể tạo báo giá gửi khách ngay trên điện thoại hoặc máy tính nhé!'
+        mentorNote: 'Hãy tận dụng công cụ Báo giá trên SalesHub để có thể tạo báo giá gửi khách ngay trên điện thoại hoặc máy tính nhé!'
     },
     {
         id: 'day-6',
+        day: 6,
         dayNumber: 'Ngày 6',
+        date: '',
         title: 'Quy Trình Bán Hàng & Kỹ Năng Gọi Điện Tiếp Cận Chuyên Sâu',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Nắm vững quy trình bán hàng B2B từ đầu đến cuối; thành thạo kỹ năng gọi điện tiếp cận, kịch bản mở lời, khơi gợi nhu cầu và chốt lịch hẹn meeting.',
@@ -313,7 +325,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-601',
-                title: 'Module 1: Tổng quan Quy trình bán hàng B2B',
+                title: 'Tổng quan Quy trình bán hàng B2B',
                 type: 'learn',
                 activity: 'Quy trình bán hàng chuẩn từ tiếp nhận lead, phân loại tiềm năng, tiếp cận ban đầu, hẹn meeting demo, gửi báo giá, follow-up đến chốt ký hợp đồng và phối hợp chăm sóc.',
                 outcome: 'Trình bày trọn vẹn các bước trong phễu bán hàng B2B và cách phối hợp nhịp nhàng giữa các bộ phận.',
@@ -323,7 +335,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-602',
-                title: 'Module 2: Kỹ năng tiếp cận khách hàng & Kịch bản gọi điện',
+                title: 'Kỹ năng tiếp cận khách hàng & Kịch bản gọi điện',
                 type: 'learn',
                 activity: 'Kỹ thuật gọi điện telesale B2B chuyên sâu: 10 giây mở lời gây ấn tượng, cách vượt qua lễ tân, kỹ thuật khơi gợi nỗi đau vận hành doanh nghiệp và kỹ năng chốt hẹn lịch meeting.',
                 outcome: 'Thành thạo cấu trúc cuộc gọi tiếp cận và sẵn sàng kịch bản gọi cho từng ngành mục tiêu.',
@@ -334,7 +346,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-603',
-                title: 'Module 3: Xử lý từ chối trong cuộc gọi đầu tiên',
+                title: 'Xử lý từ chối trong cuộc gọi đầu tiên',
                 type: 'learn',
                 activity: 'Phân tích các tình huống khách hàng từ chối phổ biến khi nhận cuộc gọi đầu (Bận, Không có nhu cầu, Đã có giải pháp, Gửi mail xem sau...) và phương pháp ứng biến linh hoạt.',
                 outcome: 'Áp dụng các mẫu câu xử lý từ chối để giữ được cuộc hội thoại và chuyển hóa thành lịch hẹn.',
@@ -344,7 +356,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-604',
-                title: 'Module 4: Thực hành gọi điện 1-1 cùng Trainer',
+                title: 'Thực hành gọi điện 1-1 cùng Trainer',
                 type: 'practice',
                 activity: 'Role-play thực tế 1-1 với Trainer/Mentor đóng vai khách hàng khó tính, được chỉnh sửa ngữ điệu, tốc độ nói và cách xử lý từ chối ngay lập tức.',
                 outcome: 'Tự tin thực hiện cuộc gọi thực tế và vượt qua bài test kỹ năng gọi điện.',
@@ -353,11 +365,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Gọi điện tiếp cận là chìa khóa mở ra các cơ hội bán hàng lớn, hãy tự tin vào giá trị giải pháp Etron mang lại!'
+        mentorNote: 'Gọi điện tiếp cận là chìa khóa mở ra các cơ hội bán hàng lớn, hãy tự tin vào giá trị giải pháp Etron mang lại!'
     },
     {
         id: 'day-7',
+        day: 7,
         dayNumber: 'Ngày 7',
+        date: '',
         title: 'Kỹ Năng Meeting Tư Vấn, Demo Giải Pháp & Hướng Dẫn Sử Dụng (HDSD)',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Làm chủ cấu trúc buổi Meeting demo giải pháp với khách hàng doanh nghiệp; thành thạo quy trình HDSD sản phẩm và kỹ thuật chốt deal sau demo.',
@@ -366,7 +380,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-701',
-                title: 'Module 1: Kỹ năng Meeting tư vấn & Demo sản phẩm',
+                title: 'Kỹ năng Meeting tư vấn & Demo sản phẩm',
                 type: 'learn',
                 activity: 'Cấu trúc buổi Meeting chuẩn (Online Google Meet / Offline trực tiếp): Chuẩn bị trước meeting, giới thiệu giải pháp, lắng nghe nhu cầu sâu, trình diễn demo sản phẩm thực tế và chốt bán.',
                 outcome: 'Nắm vững cấu trúc buổi Meeting, tự tin dẫn dắt demo sản phẩm theo đúng nỗi đau của khách hàng.',
@@ -376,7 +390,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-702',
-                title: 'Module 2: Đào tạo kỹ năng Meeting HDSD chuẩn',
+                title: 'Đào tạo kỹ năng Meeting HDSD chuẩn',
                 type: 'learn',
                 activity: 'Quy trình tổ chức meeting Hướng dẫn sử dụng (HDSD) chuẩn sau khi khách hàng đồng ý giải pháp, phối hợp cùng đội ngũ CS Ucall để onboarding khách hàng mượt mà.',
                 outcome: 'Nắm được các bước bàn giao tài khoản, hướng dẫn khách hàng tạo chiến dịch đầu tiên và thiết lập tổng đài.',
@@ -386,7 +400,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-703',
-                title: 'Module 3: Follow-up khách hàng mới & Chốt bán sau meeting',
+                title: 'Follow-up khách hàng mới & Chốt bán sau meeting',
                 type: 'practice',
                 activity: 'Thời điểm vàng để follow-up sau meeting, kịch bản gửi bản ghi tóm tắt meeting, phương pháp giải tỏa các nỗi lo do dự và kỹ thuật chốt deal B2B dứt khoát.',
                 outcome: 'Áp dụng quy trình follow-up có hệ thống, không để mất dấu khách hàng tiềm năng sau buổi demo.',
@@ -397,7 +411,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-704',
-                title: 'Module 4: Xử lý từ chối sau meeting',
+                title: 'Xử lý từ chối sau meeting',
                 type: 'learn',
                 activity: 'Phân tích các case thực tế khách hàng từ chối sau demo (Giá cao hơn dự toán, Cần hỏi ý kiến sếp/ban giám đốc, So sánh với phần mềm khác...).',
                 outcome: 'Biết cách đưa ra đề xuất giá trị bổ sung (Value Proposition) và phương án chốt thử nghiệm để thúc đẩy ký hợp đồng.',
@@ -408,11 +422,13 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Meeting là lúc bạn thể hiện sự chuyên nghiệp và uy tín của Etron, chuẩn bị chu đáo trước buổi hẹn nhé!'
+        mentorNote: 'Meeting là lúc bạn thể hiện sự chuyên nghiệp và uy tín của Etron, chuẩn bị chu đáo trước buổi hẹn nhé!'
     },
     {
         id: 'day-8',
+        day: 8,
         dayNumber: 'Ngày 8',
+        date: '',
         title: 'Nghiên Cứu Tài Liệu Tổng Hợp, Thị Trường, Đối Thủ & Customer Success',
         duration: '08:30 – 18:00 (Nghỉ trưa: 12:00 – 13:30)',
         goal: 'Đọc và nghiên cứu toàn diện bộ tài liệu thị trường, phân tích đối thủ cạnh tranh, tư duy giữ chân khách hàng và sẵn sàng nhận data khách hàng thực chiến.',
@@ -421,7 +437,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         tasks: [
             {
                 id: 'm-801',
-                title: 'Module 1: Nghiên cứu thị trường & Phân tích đối thủ cạnh tranh',
+                title: 'Nghiên cứu thị trường & Phân tích đối thủ cạnh tranh',
                 type: 'learn',
                 activity: 'Đọc tài liệu chuyên sâu về thị trường Callbot AI và CRM tại Việt Nam; phân tích điểm mạnh, điểm yếu và mức giá của các đối thủ cạnh tranh chính trên thị trường.',
                 outcome: 'Nắm vững lợi thế cạnh tranh cốt lõi (USP) của Etron và Ucall để tự tin tư vấn so sánh khi khách hàng hỏi.',
@@ -431,7 +447,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-802',
-                title: 'Module 2: Customer Success & Giữ chân khách hàng',
+                title: 'Customer Success & Giữ chân khách hàng',
                 type: 'learn',
                 activity: 'Nghiên cứu tài liệu Customer Success, tư duy đồng hành hỗ trợ khách hàng đạt hiệu quả kinh doanh, chính sách gia hạn dịch vụ và chiến lược up-sell/cross-sell.',
                 outcome: 'Hiểu rõ tầm quan trọng của việc giữ chân khách hàng và vai trò của Sales trong giai đoạn sau bán.',
@@ -441,7 +457,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-803',
-                title: 'Module 3: Tổng ôn tài liệu & Rèn luyện kỹ năng thực chiến',
+                title: 'Tổng ôn tài liệu & Rèn luyện kỹ năng thực chiến',
                 type: 'practice',
                 activity: 'Nghe lại các file recording cuộc gọi xuất sắc của các Top Performer, xem recording các buổi meeting mẫu thành công và hoàn thành bài đánh giá kết thúc tuần Onboard.',
                 outcome: 'Hoàn tất toàn bộ lộ trình 8 ngày đào tạo nền tảng, sẵn sàng nhận data chính thức trên CRM.',
@@ -452,7 +468,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
             },
             {
                 id: 'm-804',
-                title: 'Module 4: Nhận Data khách hàng đầu tiên & Bắt đầu hành trình Etron!',
+                title: 'Nhận Data khách hàng đầu tiên & Bắt đầu hành trình Etron!',
                 type: 'action',
                 activity: 'Trainer / Quản lý bàn giao danh sách data khách hàng đầu tiên trên Adahub CRM, thiết lập mục tiêu tuần đầu tiên và chính thức bắt đầu công việc kinh doanh.',
                 outcome: 'Bắt đầu thực hiện những cuộc gọi đầu tiên với sự đồng hành 1-1 của mentor.',
@@ -461,7 +477,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
         ],
         attachedDocIds: [],
         customLinks: [],
-        mentorNote: 'Phụ trách: Nguyễn Thủy Tiên. Chúc mừng bạn đã hoàn thành lộ trình đào tạo 8 ngày! Chúc bạn bứt phá doanh số và gặt hái nhiều thành công tại Etron HCM!'
+        mentorNote: 'Chúc mừng bạn đã hoàn thành lộ trình đào tạo 8 ngày! Chúc bạn bứt phá doanh số và gặt hái nhiều thành công tại Etron HCM!'
     }
 ];
 
@@ -925,4 +941,6 @@ class HrOnboardingStore {
     }
 
 }
+window.DEFAULT_ONBOARDING_ROADMAP = DEFAULT_ONBOARDING_ROADMAP;
+window.DEFAULT_HR_TEMPLATES = DEFAULT_HR_TEMPLATES;
 window.hrOnboardingStore = new HrOnboardingStore();

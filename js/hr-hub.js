@@ -74,6 +74,7 @@ class HrHubApp {
         if (window.hrOnboardingStore) {
             window.hrOnboardingStore.setupCloudSync();
             window.hrOnboardingStore.onChange(() => {
+                this.autoSyncIfOutdated();
                 this.renderAll();
             });
         }
@@ -934,6 +935,16 @@ class HrHubApp {
                                 <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-indigo-600 text-white">
                                     ${this.escapeHtml(day.dayNumber)}
                                 </span>
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs hover:border-indigo-400 transition-colors shadow-2xs"
+                                    title="Chọn ngày đào tạo thực tế từ lịch cho ngày này">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
+                                    <span class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Ngày:</span>
+                                    <input type="date" value="${day.date || ''}"
+                                        onchange="window.hrHub.handleQuickDayDateChange('${day.id}', this.value)"
+                                        class="text-xs font-bold text-slate-800 bg-transparent border-0 p-0 focus:outline-none cursor-pointer"
+                                        aria-label="Chọn ngày trên lịch">
+                                    ${day.date ? `<span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">${this.formatDayDate(day.date)}</span>` : ''}
+                                </div>
                                 <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-white text-slate-600 border border-slate-200">
                                     ${this.escapeHtml(day.duration || '08:30 – 17:30')}
                                 </span>
@@ -942,10 +953,10 @@ class HrHubApp {
                                     <span>Phụ trách: ${this.escapeHtml(day.trainer || 'Nguyễn Thủy Tiên')}</span>
                                 </span>
                                 <span class="text-[11px] font-semibold text-slate-500">
-                                    • ${tasks.length} module đào tạo
+                                    • ${tasks.length} nội dung đào tạo
                                 </span>
                             </div>
-                            <h3 class="text-base font-extrabold text-slate-900 pt-0.5">${this.escapeHtml(day.title)}</h3>
+                            <h3 class="text-base font-extrabold text-slate-900 pt-0.5">${this.escapeHtml(this.cleanTaskTitle(day.title))}</h3>
                             ${day.goal ? `<p class="text-xs text-slate-600"><strong>Mục tiêu:</strong> ${this.escapeHtml(day.goal)}</p>` : ''}
                         </div>
 
@@ -983,7 +994,7 @@ class HrHubApp {
                             <div class="flex items-center justify-between">
                                 <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                                     <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                    <span>Danh sách Module học tập (${tasks.length} module - Bấm để xổ xuống xem nội dung & link):</span>
+                                    <span>Nội dung học tập (${tasks.length} mục - Bấm để xổ xuống xem nội dung & link):</span>
                                 </span>
                             </div>
 
@@ -994,13 +1005,13 @@ class HrHubApp {
 
                                     return `
                                         <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-all hover:border-indigo-300">
-                                            <!-- Module Header -->
+                                            <!-- Task Header -->
                                             <div class="p-3 sm:p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors"
                                                 onclick="window.hrHub.toggleModule('${task.id}')">
                                                 <div class="flex items-center gap-3 min-w-0 flex-1">
                                                     <i data-lucide="check-square" class="w-4 h-4 text-indigo-500 shrink-0"></i>
                                                     <span class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
-                                                        ${this.escapeHtml(task.title)}
+                                                        ${this.escapeHtml(this.cleanTaskTitle(task.title))}
                                                     </span>
                                                 </div>
                                                 <div class="flex items-center gap-2 shrink-0">
@@ -1013,7 +1024,7 @@ class HrHubApp {
                                                     ${window.onboardingViewer ? window.onboardingViewer.getTaskTypeBadge(task.type) : ''}
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.openAddLinkModal('${day.id}', '${task.id}')"
                                                         class="px-2 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center gap-1"
-                                                        title="Gắn thêm link cho module này">
+                                                        title="Gắn thêm link cho mục này">
                                                         <i data-lucide="plus" class="w-3 h-3"></i>
                                                         <span class="hidden sm:inline">Gắn link</span>
                                                     </button>
@@ -1046,7 +1057,7 @@ class HrHubApp {
                                                     </div>
                                                 ` : ''}
 
-                                                <!-- Links đính kèm của Module -->
+                                                <!-- Links đính kèm của mục -->
                                                 <div class="space-y-1.5 pt-1">
                                                     <div class="flex items-center justify-between">
                                                         <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
@@ -1056,17 +1067,17 @@ class HrHubApp {
                                                         <button type="button" onclick="window.hrHub.openAddLinkModal('${day.id}', '${task.id}')"
                                                             class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
                                                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                                                            <span>Thêm link/note cho module này</span>
+                                                            <span>Thêm link/note cho mục này</span>
                                                         </button>
                                                     </div>
 
                                                     ${taskLinks.length === 0 ? `
                                                         <div class="p-2.5 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 pl-5">
-                                                            Chưa có tài liệu đính kèm riêng cho module này.
+                                                            Chưa có tài liệu đính kèm riêng cho mục này.
                                                         </div>
                                                     ` : `
                                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
-                                                            ${taskLinks.map((link, lIdx) => `
+                                                             ${taskLinks.map((link, lIdx) => `
                                                                 <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs group hover:border-indigo-300">
                                                                     <a href="${this.escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer"
                                                                         class="flex items-center gap-2 min-w-0 flex-1 text-xs font-bold text-slate-800 hover:text-indigo-600">
@@ -1079,7 +1090,7 @@ class HrHubApp {
                                                                             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
                                                                         </a>
                                                                         <button type="button" onclick="window.hrHub.deleteLinkFromModule('${day.id}', '${task.id}', ${lIdx})"
-                                                                            class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Xóa link khỏi module">
+                                                                            class="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50" title="Xóa link khỏi mục này">
                                                                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                                                         </button>
                                                                     </div>
@@ -1154,7 +1165,7 @@ class HrHubApp {
 
                         ${day.mentorNote ? `
                             <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/70 text-xs text-amber-950">
-                                <strong>Lời nhắn cho nhân sự mới:</strong> ${this.escapeHtml(day.mentorNote)}
+                                <strong>Lời nhắn cho nhân sự mới:</strong> ${this.escapeHtml(this.cleanMentorNote(day.mentorNote))}
                             </div>
                         ` : ''}
                     </div>
@@ -1173,6 +1184,8 @@ class HrHubApp {
 
         document.getElementById('hr-day-modal-title').textContent = day ? `Chỉnh Sửa ${day.dayNumber}` : 'Thêm Ngày / Giai Đoạn Onboard Mới';
         document.getElementById('hr-day-number').value = day ? (day.dayNumber || '') : `Ngày ${roadmap.length + 1}`;
+        const dayDateEl = document.getElementById('hr-day-date');
+        if (dayDateEl) dayDateEl.value = day ? (day.date || '') : '';
         document.getElementById('hr-day-duration').value = day ? (day.duration || '08:30 – 17:30') : '08:30 – 17:30';
         document.getElementById('hr-day-title').value = day ? (day.title || '') : '';
         const trainerEl = document.getElementById('hr-day-trainer');
@@ -1204,6 +1217,7 @@ class HrHubApp {
             return;
         }
 
+        const dayDate = (document.getElementById('hr-day-date')?.value || '').trim();
         const duration = document.getElementById('hr-day-duration').value.trim();
         const trainerEl = document.getElementById('hr-day-trainer');
         const trainer = (trainerEl && trainerEl.value.trim()) ? trainerEl.value.trim() : 'Nguyễn Thủy Tiên';
@@ -1221,6 +1235,7 @@ class HrHubApp {
         if (target) {
             const oldTasks = target.tasks || [];
             target.dayNumber = dayNumber;
+            target.date = dayDate;
             target.title = title;
             target.duration = duration;
             target.trainer = trainer;
@@ -1242,6 +1257,7 @@ class HrHubApp {
             target = {
                 id: 'day-' + Date.now(),
                 dayNumber,
+                date: dayDate,
                 title,
                 duration,
                 trainer,
@@ -1897,6 +1913,78 @@ class HrHubApp {
             toast.classList.add('opacity-0', 'translate-y-2');
             setTimeout(() => toast.remove(), 300);
         }, 2800);
+    }
+
+    handleQuickDayDateChange(dayId, dateValue) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day) return;
+        day.date = dateValue ? dateValue.trim() : '';
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast(`Đã cập nhật ngày cho ${day.dayNumber}: ${this.formatDayDate(day.date) || 'Chưa chọn'}`, 'info');
+        } catch (err) {
+            alert('Lỗi cập nhật ngày: ' + err.message);
+        }
+    }
+
+    formatDayDate(dateStr) {
+        if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return '';
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const date = new Date(y, m - 1, d);
+        const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        const dayOfWeek = dayNames[date.getDay()];
+        return `${dayOfWeek}, ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+    }
+
+    cleanTaskTitle(title) {
+        if (!title) return '';
+        return String(title).replace(/^(Module\s*\d+(\.\d+)?[:\s-]*)/i, '').trim();
+    }
+
+    cleanMentorNote(note) {
+        if (!note) return '';
+        return String(note).replace(/^Phụ trách:\s*[^.]*\.\s*/i, '').trim();
+    }
+
+    autoSyncIfOutdated() {
+        if (!window.hrAuth?.isHr()) return;
+        const store = window.hrOnboardingStore;
+        if (!store) return;
+
+        // Auto-upgrade roadmap to 8 days & clean titles if Firestore still holds old/module data
+        if (store.ready.has('roadmap')) {
+            const roadmap = store.getRoadmap();
+            const needsRoadmapUpdate = !Array.isArray(roadmap) || roadmap.length < 8 || roadmap.some(d =>
+                (d.tasks || []).some(t => /^Module\s*\d+/i.test(t.title)) ||
+                (d.mentorNote && /^Phụ trách:/i.test(d.mentorNote))
+            );
+            if (needsRoadmapUpdate && !this._roadmapAutoSynced) {
+                this._roadmapAutoSynced = true;
+                try {
+                    const defaultRoadmap = JSON.parse(JSON.stringify(window.DEFAULT_ONBOARDING_ROADMAP));
+                    store.saveRoadmap(defaultRoadmap);
+                } catch (e) {
+                    console.warn('[HrHub] Lỗi tự động đồng bộ roadmap:', e);
+                }
+            }
+        }
+
+        // Auto-upgrade templates to 8 official templates if Firestore holds older set
+        if (store.ready.has('templates')) {
+            const templates = store.getTemplates();
+            const needsTplUpdate = !Array.isArray(templates) || templates.length < 8 || !templates.some(t => t.id === 'tpl-offer-letter-pass');
+            if (needsTplUpdate && !this._tplAutoSynced) {
+                this._tplAutoSynced = true;
+                try {
+                    const defaultTemplates = JSON.parse(JSON.stringify(window.DEFAULT_HR_TEMPLATES));
+                    store.saveTemplates(defaultTemplates);
+                } catch (e) {
+                    console.warn('[HrHub] Lỗi tự động đồng bộ templates:', e);
+                }
+            }
+        }
     }
 
     escapeJs(str) {

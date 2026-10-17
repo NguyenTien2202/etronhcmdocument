@@ -327,12 +327,6 @@
                 </div>
 
                 <div class="flex items-center gap-2 shrink-0">
-                    <button type="button" onclick="window.hrHub.resetRoadmapToDefault()"
-                        class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95"
-                        title="Khôi phục 6 ngày đào tạo chuẩn của Etron">
-                        <i data-lucide="rotate-ccw" class="w-4 h-4 text-slate-500"></i>
-                        <span class="hidden sm:inline">Lộ trình chuẩn Etron</span>
-                    </button>
                     <a href="onboard.html" target="_blank"
                         class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95"
                         title="Xem trước giao diện Onboard mẫu" aria-label="Xem trước giao diện Onboard mẫu">
@@ -370,12 +364,6 @@
                         <select id="hr-tpl-candidate-select" onchange="window.hrHub.handleQuickCandidateSelect(this.value)"
                             class="text-xs font-bold px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50/50 text-emerald-900 focus:outline-none">
                         </select>
-                        <button type="button" onclick="window.hrHub.resetTemplatesToDefault()"
-                            class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shadow-2xs flex items-center gap-1.5 shrink-0 transition-all active:scale-95"
-                            title="Khôi phục các mẫu Email/Tin nhắn chuẩn của Etron">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4 text-slate-500"></i>
-                            <span class="hidden sm:inline">Mẫu chuẩn Etron</span>
-                        </button>
                         <button type="button" onclick="window.hrHub.openTemplateModal()"
                             class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0">
                             <i data-lucide="plus" class="w-4 h-4"></i>
@@ -599,11 +587,19 @@
                 </button>
             </div>
             <form onsubmit="window.hrHub.handleSaveRoadmapDay(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs flex-1">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Nhãn Ngày / Giai đoạn *</label>
+                        <label class="block font-bold text-slate-700 mb-1">Nhãn Ngày *</label>
                         <input type="text" id="hr-day-number" required placeholder="VD: Ngày 1"
                             class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1 text-slate-700">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>Ngày cụ thể (Lịch)</span>
+                        </label>
+                        <input type="date" id="hr-day-date"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Khung thời gian</label>
@@ -849,14 +845,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261017_v72"></script>
+    <script src="js/sync-status.js?v=20261017_v73"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261017_v72"></script>
+    <script src="js/firebase-config.js?v=20261017_v73"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261017_v72"></script>
-    <script src="js/document-hub.js?v=20261017_v72"></script>
-    <script src="js/hr-onboarding-data.js?v=20261017_v72"></script>
+    <script src="js/store.js?v=20261017_v73"></script>
+    <script src="js/document-hub.js?v=20261017_v73"></script>
+    <script src="js/hr-onboarding-data.js?v=20261017_v73"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -866,7 +862,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261017_v72"></script>
-    <script src="js/hr-hub.js?v=20261017_v72"></script>
+    <script src="js/hr-auth.js?v=20261017_v73"></script>
+    <script src="js/hr-hub.js?v=20261017_v73"></script>
 </body>
 </html>
