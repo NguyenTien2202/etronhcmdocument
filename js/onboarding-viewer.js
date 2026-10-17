@@ -243,11 +243,21 @@ class OnboardingViewer {
         }
     }
 
+    getEffectiveRoadmap(candidate) {
+        const liveRoadmap = window.hrOnboardingStore?.getRoadmap() || [];
+        // Ưu tiên hiển thị lộ trình chung mới nhất từ Cloud để mọi cập nhật của HR hiển thị ngay lập tức
+        if (Array.isArray(liveRoadmap) && liveRoadmap.length > 0) {
+            return liveRoadmap;
+        }
+        if (candidate && Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length > 0) {
+            return candidate.customRoadmap;
+        }
+        return [];
+    }
+
     toggleAllDays(collapseAll = false) {
         const candidate = this.candidateId ? window.hrOnboardingStore?.getCandidateById(this.candidateId) : null;
-        const roadmap = (candidate && Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length > 0)
-            ? candidate.customRoadmap
-            : window.hrOnboardingStore?.getRoadmap() || [];
+        const roadmap = this.getEffectiveRoadmap(candidate);
         if (collapseAll) {
             roadmap.forEach(d => this.collapsedDays.add(d.id));
         } else {
@@ -550,9 +560,7 @@ class OnboardingViewer {
             return;
         }
         const candidate = this.candidateId ? window.hrOnboardingStore.getCandidateById(this.candidateId) : null;
-        const roadmap = (candidate && Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length > 0)
-            ? candidate.customRoadmap
-            : window.hrOnboardingStore.getRoadmap();
+        const roadmap = this.getEffectiveRoadmap(candidate);
 
         const progress = window.hrOnboardingStore.getTaskProgress(this.candidateId);
         const submissions = (window.hrOnboardingStore && typeof window.hrOnboardingStore.getTaskSubmissions === 'function')

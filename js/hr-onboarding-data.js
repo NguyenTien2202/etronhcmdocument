@@ -988,7 +988,7 @@ class HrOnboardingStore {
             startDate: candidate.startDate || '',
             mentor: candidate.mentor || '',
             targetDate: candidate.targetDate || '',
-            customRoadmap: Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length ? candidate.customRoadmap : (Array.isArray(this.getRoadmap()) ? this.getRoadmap() : []),
+            customRoadmap: Array.isArray(candidate.customRoadmap) ? candidate.customRoadmap : [],
         };
         const ref = window.firebaseDb.collection('onboarding_links').doc(token);
         await ref.set(publicData);
