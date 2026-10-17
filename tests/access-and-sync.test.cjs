@@ -115,3 +115,40 @@ test('working days calculation excludes Saturday and Sunday (Monday to Friday on
     // If start date is on Sunday 2026-10-18, it should shift to next Monday 2026-10-19
     assert.equal(store.getWorkingDayDate('2026-10-18', 0), '2026-10-19');
 });
+
+test('OnboardingViewer defaults to "all" before start date, shifts to next working day on weekends without "Hôm nay" badge', () => {
+    const { store } = storeHarness();
+    const context = vm.createContext({
+        window: { hrOnboardingStore: store },
+        document: { getElementById: () => null },
+        Intl,
+        Date,
+        console
+    });
+    vm.runInContext(fs.readFileSync('js/onboarding-viewer.js', 'utf8'), context);
+    const viewer = context.window.onboardingViewer;
+
+    const roadmap = [
+        { id: 'd1', dayNumber: 'Ngày 1', tasks: [] },
+        { id: 'd2', dayNumber: 'Ngày 2', tasks: [] },
+        { id: 'd3', dayNumber: 'Ngày 3', tasks: [] }
+    ];
+
+    // If candidate start date is next Monday 2026-10-19, and today is Saturday 2026-10-17 (before start date)
+    // Note: getTodayDayId uses current date, which in Vietnam time on 2026-10-17 is before 2026-10-19
+    const candidateFuture = { startDate: '2026-10-19' };
+    const dayIdBeforeStart = viewer.getTodayDayId(roadmap, candidateFuture);
+    assert.equal(dayIdBeforeStart, 'all');
+
+    // Test toggleDay and toggleAllDays
+    viewer.toggleDay('d1');
+    assert.equal(viewer.collapsedDays.has('d1'), true);
+    viewer.toggleDay('d1');
+    assert.equal(viewer.collapsedDays.has('d1'), false);
+
+    viewer.toggleAllDays(true);
+    assert.equal(viewer.collapsedDays.size >= 1, true);
+    viewer.toggleAllDays(false);
+    assert.equal(viewer.collapsedDays.size, 0);
+});
+

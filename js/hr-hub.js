@@ -31,6 +31,12 @@ class HrHubApp {
         this.expandedModules = new Set();
         this.linkTargetDayId = null;
         this.linkTargetTaskId = null;
+        this.isCandInfoCollapsed = false;
+    }
+
+    toggleCandidateInfo() {
+        this.isCandInfoCollapsed = !this.isCandInfoCollapsed;
+        this.renderCandidatesTab();
     }
 
     toggleModule(taskId) {
@@ -484,6 +490,12 @@ class HrHubApp {
                                     ${statusMeta.label}
                                 </span>
                                 ${learningSummary.isOverdue ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Quá hạn học</span>` : ''}
+                                <button type="button" onclick="window.hrHub.toggleCandidateInfo()"
+                                    class="ml-auto sm:ml-2 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-2xs border border-slate-200/80 active:scale-95"
+                                    title="${this.isCandInfoCollapsed ? 'Xem chi tiết thông tin hồ sơ' : 'Thu gọn bớt thông tin hồ sơ'}">
+                                    <i data-lucide="${this.isCandInfoCollapsed ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5 text-slate-500"></i>
+                                    <span>${this.isCandInfoCollapsed ? 'Xem chi tiết hồ sơ' : 'Thu gọn hồ sơ'}</span>
+                                </button>
                             </div>
                             <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
                                 <span class="font-semibold text-emerald-700 flex items-center gap-1.5">
@@ -559,67 +571,69 @@ class HrHubApp {
                         </div>
                     </div>
 
-                    <!-- Lưới thông tin chi tiết -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4 text-xs">
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <span class="text-[11px] text-slate-400 block mb-0.5">Ngày bắt đầu Onboard</span>
-                            <strong class="text-slate-800 font-bold flex items-center gap-1.5">
-                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                <span>${this.escapeHtml(displayStartDate)}</span>
-                            </strong>
-                        </div>
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <span class="text-[11px] text-slate-400 block mb-0.5">Ngày sinh nhật</span>
-                            <strong class="text-slate-800 font-bold flex items-center gap-1.5">
-                                <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
-                                <span>${dobDisplay}</span>
-                            </strong>
-                        </div>
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <span class="text-[11px] text-slate-400 block mb-0.5">Số điện thoại / Zalo</span>
-                            <strong class="text-slate-800 font-bold flex items-center gap-1.5">
-                                <i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                <span>${this.escapeHtml(activeCand.phone || 'Chưa cập nhật')}</span>
-                            </strong>
-                        </div>
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <span class="text-[11px] text-slate-400 block mb-0.5">Email cá nhân</span>
-                            <strong class="text-slate-800 font-bold truncate block">
-                                ${this.escapeHtml(activeCand.email || 'Chưa cập nhật')}
-                            </strong>
-                        </div>
-                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                            <span class="text-[11px] text-slate-400 block mb-0.5">Người hướng dẫn (Mentor)</span>
-                            <strong class="text-slate-800 font-bold truncate block">
-                                ${this.escapeHtml(activeCand.mentor || 'Quản lý / HR')}
-                            </strong>
-                        </div>
-                        <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
-                            <div class="min-w-0 pr-2">
-                                <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
-                                <span class="text-[10px] text-slate-500 font-mono truncate block">${activeCand.fullName} (?id=${activeCand.id})</span>
+                    <!-- Lưới thông tin chi tiết (Có thể thu gọn / mở rộng) -->
+                    <div id="hr-cand-info-collapsible" class="${this.isCandInfoCollapsed ? 'hidden' : ''}">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4 text-xs">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-[11px] text-slate-400 block mb-0.5">Ngày bắt đầu Onboard</span>
+                                <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                    <span>${this.escapeHtml(displayStartDate)}</span>
+                                </strong>
                             </div>
-                            <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
-                                class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs" title="Copy link">
-                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                            </button>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-[11px] text-slate-400 block mb-0.5">Ngày sinh nhật</span>
+                                <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                    <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
+                                    <span>${dobDisplay}</span>
+                                </strong>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-[11px] text-slate-400 block mb-0.5">Số điện thoại / Zalo</span>
+                                <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                    <i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                    <span>${this.escapeHtml(activeCand.phone || 'Chưa cập nhật')}</span>
+                                </strong>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-[11px] text-slate-400 block mb-0.5">Email cá nhân</span>
+                                <strong class="text-slate-800 font-bold truncate block">
+                                    ${this.escapeHtml(activeCand.email || 'Chưa cập nhật')}
+                                </strong>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-[11px] text-slate-400 block mb-0.5">Người hướng dẫn (Mentor)</span>
+                                <strong class="text-slate-800 font-bold truncate block">
+                                    ${this.escapeHtml(activeCand.mentor || 'Quản lý / HR')}
+                                </strong>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
+                                <div class="min-w-0 pr-2">
+                                    <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
+                                    <span class="text-[10px] text-slate-500 font-mono truncate block">${activeCand.fullName} (?id=${activeCand.id})</span>
+                                </div>
+                                <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
+                                    class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs" title="Copy link">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Thông tin Tài khoản & Ghi chú Lương/Chính sách (Chỉ HR thấy) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-xs">
-                        <div class="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-2.5">
-                            <i data-lucide="key-round" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
-                            <div class="min-w-0 flex-1">
-                                <span class="text-[11px] font-bold text-indigo-900 block">Trạng thái Tài khoản (CRM / Callbot / Email):</span>
-                                <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(activeCand.accountsInfo || 'Chưa ghi chú tài khoản')}</p>
+                        <!-- Thông tin Tài khoản & Ghi chú Lương/Chính sách (Chỉ HR thấy) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-xs">
+                            <div class="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-2.5">
+                                <i data-lucide="key-round" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[11px] font-bold text-indigo-900 block">Trạng thái Tài khoản (CRM / Callbot / Email):</span>
+                                    <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(activeCand.accountsInfo || 'Chưa ghi chú tài khoản')}</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="p-3 rounded-xl bg-amber-50/50 border border-amber-100 flex items-start gap-2.5">
-                            <i data-lucide="shield-lock" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
-                            <div class="min-w-0 flex-1">
-                                <span class="text-[11px] font-bold text-amber-900 block">Chính sách / Thỏa thuận riêng (Chỉ HR thấy):</span>
-                                <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(activeCand.salaryNote || 'Chưa có ghi chú thỏa thuận')}</p>
+                            <div class="p-3 rounded-xl bg-amber-50/50 border border-amber-100 flex items-start gap-2.5">
+                                <i data-lucide="shield-lock" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                                <div class="min-w-0 flex-1">
+                                    <span class="text-[11px] font-bold text-amber-900 block">Chính sách / Thỏa thuận riêng (Chỉ HR thấy):</span>
+                                    <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(activeCand.salaryNote || 'Chưa có ghi chú thỏa thuận')}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
