@@ -433,53 +433,91 @@ class HrHubApp {
         }
 
         const candOnboardUrl = this.getPublicOnboardUrl(activeCand.id);
+        const learningSummary = window.hrOnboardingStore.getLearningSummary(activeCand);
 
         detailEl.innerHTML = `
             <div class="space-y-5">
                 <!-- Thẻ Thông Tin Hồ Sơ Nhân Sự -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6">
-                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100">
-                        <div class="space-y-1.5">
-                            <div class="flex flex-wrap items-center gap-2">
-                                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${this.escapeHtml(activeCand.fullName)}</h2>
-                                <p class="text-xs text-slate-600">Hạn học: ${this.escapeHtml(activeCand.targetDate || 'Chưa đặt')} • Phụ trách: ${this.escapeHtml(activeCand.mentor || 'Chưa đặt')} ${window.hrOnboardingStore.getLearningSummary(activeCand).isOverdue ? '<strong class="text-rose-700">• Quá hạn</strong>' : ''}</p>
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusMeta.bg}">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                        <!-- Thông tin nhân sự bên trái: rộng rãi, không bị gãy dòng -->
+                        <div class="min-w-0 flex-1 space-y-1.5">
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug">${this.escapeHtml(activeCand.fullName)}</h2>
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${statusMeta.bg}">
                                     ${statusMeta.label}
                                 </span>
+                                ${learningSummary.isOverdue ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Quá hạn học</span>` : ''}
                             </div>
-                            <p class="text-xs sm:text-sm font-semibold text-emerald-700 flex items-center gap-1.5">
-                                <i data-lucide="briefcase" class="w-4 h-4"></i>
-                                <span>${this.escapeHtml(activeCand.role || 'Chuyên viên Kinh doanh')} • ${this.escapeHtml(activeCand.department || 'Etron HCM')}</span>
-                            </p>
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+                                <span class="font-semibold text-emerald-700 flex items-center gap-1.5">
+                                    <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
+                                    <span>${this.escapeHtml(activeCand.role || 'Chuyên viên Kinh doanh')} • ${this.escapeHtml(activeCand.department || 'Etron HCM')}</span>
+                                </span>
+                                <span class="text-slate-300 hidden sm:inline">•</span>
+                                <span class="flex items-center gap-1 text-slate-500">
+                                    <span>Phụ trách:</span> <strong class="text-slate-700 font-bold">${this.escapeHtml(activeCand.mentor || 'Quản lý / HR')}</strong>
+                                </span>
+                                ${activeCand.targetDate ? `
+                                    <span class="text-slate-300 hidden sm:inline">•</span>
+                                    <span class="flex items-center gap-1 text-slate-500">
+                                        <span>Hạn học:</span> <strong class="${learningSummary.isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700 font-medium'}">${this.escapeHtml(window.hrOnboardingStore.formatDateDisplay(activeCand.targetDate))}</strong>
+                                    </span>
+                                ` : ''}
+                            </div>
                         </div>
 
-                        <div class="flex flex-wrap items-center gap-2 shrink-0">
+                        <!-- Cụm icon thao tác bên phải: gọn gàng, tinh tế, không chèn ép tiêu đề -->
+                        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs self-start sm:self-center">
+                            <!-- 1. Cập nhật & Copy Link Onboard -->
                             <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
-                                class="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1.5 shadow-2xs"
-                                title="Copy link Cổng Onboard riêng của nhân sự này để gửi cho bạn ấy">
-                                <i data-lucide="link" class="w-3.5 h-3.5"></i>
-                                <span>Cập nhật / Copy Link</span>
+                                aria-label="Cập nhật / Copy Link"
+                                class="p-2 sm:p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all flex items-center justify-center"
+                                title="Cập nhật & Copy Link Cổng Onboard riêng">
+                                <i data-lucide="link" class="w-4 h-4"></i>
                             </button>
-                            <button type="button" class="px-3 py-2 rounded-xl text-xs text-rose-700 bg-rose-50" onclick="window.hrHub.revokeOnboardLink('${activeCand.id}')">Thu hồi link</button>
+
+                            <!-- 2. Mở Cổng Onboard -->
                             <button type="button" onclick="window.hrHub.openCandidateOnboard('${activeCand.id}')"
-                                class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all flex items-center gap-1.5"
-                                title="Mở xem Cổng Onboard với tư cách nhân sự này">
-                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-                                <span class="hidden sm:inline">Mở Cổng Bạn Ấy</span>
+                                aria-label="Mở Cổng Bạn Ấy"
+                                class="p-2 sm:p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 transition-all flex items-center justify-center"
+                                title="Mở xem Cổng Onboard của bạn ấy">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
                             </button>
+
+                            <!-- 3. Mẫu Tin Nhắn / Email -->
                             <button type="button" onclick="window.hrHub.jumpToTemplatesForCandidate('${activeCand.id}')"
-                                class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1.5"
-                                title="Soạn email hoặc tin nhắn Zalo gửi nhân sự này">
-                                <i data-lucide="mail-plus" class="w-3.5 h-3.5"></i>
-                                <span class="hidden sm:inline">Mẫu tin</span>
+                                aria-label="Mẫu tin"
+                                class="p-2 sm:p-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center justify-center"
+                                title="Soạn Email / Tin nhắn Zalo cho nhân sự này">
+                                <i data-lucide="mail-plus" class="w-4 h-4"></i>
                             </button>
+
+                            <!-- 4. Chỉnh sửa hồ sơ -->
                             <button type="button" onclick="window.hrHub.openCandidateModal('${activeCand.id}')"
-                                class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1.5">
-                                <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                <span>Sửa</span>
+                                aria-label="Sửa"
+                                class="p-2 sm:p-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center justify-center"
+                                title="Chỉnh sửa hồ sơ nhân sự">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
+
+                            <!-- 5. Thu hồi liên kết (chỉ hiển thị icon khi đã có token) -->
+                            ${activeCand.onboardToken ? `
+                                <button type="button" onclick="window.hrHub.revokeOnboardLink('${activeCand.id}')"
+                                    aria-label="Thu hồi link"
+                                    class="p-2 sm:p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 transition-all flex items-center justify-center"
+                                    title="Thu hồi liên kết Onboard hiện tại">
+                                    <i data-lucide="link-2-off" class="w-4 h-4"></i>
+                                </button>
+                            ` : ''}
+
+                            <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
+
+                            <!-- 6. Xóa hồ sơ -->
                             <button type="button" onclick="window.hrHub.deleteCandidate('${activeCand.id}')"
-                                class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all" title="Xóa hồ sơ">
+                                aria-label="Xóa hồ sơ"
+                                class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center"
+                                title="Xóa hồ sơ nhân sự này">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>

@@ -63,7 +63,7 @@ function fakeFirebase() {
         async sendPasswordResetEmail() {},
     };
     function auth() { return authInstance; }
-    auth.Auth = { Persistence: { NONE: 'none' } };
+    auth.Auth = { Persistence: { NONE: 'none', LOCAL: 'local', SESSION: 'session' } };
     function firestore() { return { collection: name => ref(name, true) }; }
     firestore.FieldPath = class { constructor(...parts) { this.parts = parts; } };
     window.firebase = { apps: [], initializeApp() { this.apps.push({}); }, firestore, auth };

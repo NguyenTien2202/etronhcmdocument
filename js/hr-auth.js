@@ -12,9 +12,13 @@
             button.disabled = true;
             error.textContent = '';
             try {
-                // Keep HR credentials out of storage shared with the public SalesHub.
-                // A page reload/navigation intentionally requires signing in again.
-                await firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE);
+                const remember = form.elements.remember ? form.elements.remember.checked : true;
+                const persistence = remember
+                    ? (firebase.auth.Auth?.Persistence?.LOCAL || firebase.auth.Auth?.Persistence?.NONE)
+                    : (firebase.auth.Auth?.Persistence?.SESSION || firebase.auth.Auth?.Persistence?.NONE);
+                if (persistence && typeof firebase.auth().setPersistence === 'function') {
+                    await firebase.auth().setPersistence(persistence);
+                }
                 await firebase.auth().signInWithEmailAndPassword(form.elements.email.value.trim(), form.elements.password.value);
                 form.elements.password.value = '';
             } catch (_) {
