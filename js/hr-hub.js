@@ -247,21 +247,41 @@ class HrHubApp {
     }
 
     async openCandidateOnboard(candId) {
-        const candidate = window.hrOnboardingStore.getCandidates().find(c => c.id === candId);
-        if (!candidate?.onboardToken) {
-            this.showToast('Hãy dùng Cập nhật / Copy Link trước để tạo liên kết cá nhân.', 'info');
-            return;
+        try {
+            let candidate = window.hrOnboardingStore.getCandidates().find(c => c.id === candId);
+            if (!candidate?.onboardToken) {
+                this.showToast('Đang khởi tạo liên kết Onboard...', 'info');
+                await window.hrOnboardingStore.publishCandidate(candId);
+                candidate = window.hrOnboardingStore.getCandidates().find(c => c.id === candId);
+                this.renderAll();
+            }
+            window.open(this.getPublicOnboardUrl(candId), '_blank', 'noopener,noreferrer');
+        } catch (err) {
+            console.error('[HrHub] Lỗi mở Onboard:', err);
+            this.showToast('Chưa mở được trang Onboard: ' + (err.message || 'Kiểm tra kết nối'), 'error');
         }
-        window.open(this.getPublicOnboardUrl(candId), '_blank', 'noopener,noreferrer');
     }
     async copyCandidateOnboardLink(candId) {
         try {
+            this.showToast('Đang tạo / cập nhật liên kết Onboard...', 'info');
             await window.hrOnboardingStore.publishCandidate(candId);
+            const candidate = window.hrOnboardingStore.getCandidates().find(c => c.id === candId);
+            if (candidate) {
+                this.syncQuickVarsFromCandidate(candidate);
+            }
             const url = this.getPublicOnboardUrl(candId);
-            await navigator.clipboard.writeText(url);
+            try {
+                await navigator.clipboard.writeText(url);
+                this.showToast(`Đã tạo và copy liên kết Onboard cho ${candidate?.fullName || 'nhân sự'}!`, 'success');
+            } catch (clipErr) {
+                prompt('Copy đường dẫn Cổng Onboard dưới đây:', url);
+                this.showToast('Đã tạo liên kết Onboard thành công.', 'info');
+            }
             this.renderAll();
-            this.showToast('Đã cập nhật và copy liên kết cá nhân. Chỉ gửi cho đúng người nhận.', 'success');
-        } catch (_) { this.showToast('Chưa tạo/copy được liên kết. Kiểm tra kết nối hoặc quyền và thử lại.', 'error'); }
+        } catch (err) {
+            console.error('[HrHub] Lỗi copyCandidateOnboardLink:', err);
+            this.showToast('Chưa tạo/copy được liên kết: ' + (err.message || 'Kiểm tra kết nối hoặc quyền'), 'error');
+        }
     }
     async revokeOnboardLink(candId) {
         if (!confirm('Thu hồi liên kết onboarding hiện tại? Liên kết cũ sẽ ngừng hoạt động.')) return;
@@ -671,6 +691,15 @@ class HrHubApp {
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <h3 class="text-sm sm:text-base font-extrabold text-slate-900 truncate">${this.escapeHtml(cand.fullName)}</h3>
                                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusMeta.bg}">${statusMeta.label}</span>
+                                            ${cand.onboardToken ? `
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 flex items-center gap-1">
+                                                    <i data-lucide="check" class="w-3 h-3"></i> Đã có link
+                                                </span>
+                                            ` : `
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0 flex items-center gap-1">
+                                                    <i data-lucide="link-2" class="w-3 h-3"></i> Chưa tạo link
+                                                </span>
+                                            `}
                                             ${learningSummary.isOverdue ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Quá hạn</span>` : ''}
                                         </div>
                                         <p class="text-xs text-slate-500 truncate">
@@ -697,10 +726,11 @@ class HrHubApp {
                                 <div class="flex flex-wrap items-center justify-between gap-2 pb-2">
                                     <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                         <button type="button" onclick="event.stopPropagation(); window.hrHub.copyCandidateOnboardLink('${cand.id}')"
-                                            aria-label="Cập nhật / Copy Link"
-                                            class="p-2 sm:p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all flex items-center justify-center active:scale-95"
-                                            title="Cập nhật & Copy Link Cổng Onboard riêng">
-                                            <i data-lucide="link" class="w-4 h-4"></i>
+                                            aria-label="${cand.onboardToken ? 'Copy Link Onboard' : 'Tạo Link Onboard'}"
+                                            class="px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all flex items-center gap-1.5 active:scale-95 text-xs font-bold"
+                                            title="${cand.onboardToken ? 'Cập nhật & Copy Link Cổng Onboard riêng' : 'Tạo link Cổng Onboard riêng cho nhân sự này'}">
+                                            <i data-lucide="${cand.onboardToken ? 'copy' : 'link'}" class="w-4 h-4"></i>
+                                            <span>${cand.onboardToken ? 'Copy Link' : 'Tạo Link Onboard'}</span>
                                         </button>
                                         <button type="button" onclick="event.stopPropagation(); window.hrHub.openCandidateOnboard('${cand.id}')"
                                             aria-label="Mở Cổng Onboard"
@@ -775,11 +805,20 @@ class HrHubApp {
                                     <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between shadow-2xs">
                                         <div class="min-w-0 pr-2">
                                             <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
-                                            <span class="text-[10px] text-slate-500 font-mono truncate block">${cand.fullName} (?id=${cand.id})</span>
+                                            ${cand.onboardToken ? `
+                                                <a href="${this.escapeHtml(this.getPublicOnboardUrl(cand.id))}" target="_blank" onclick="event.stopPropagation()"
+                                                    class="text-[10px] text-emerald-700 hover:text-emerald-900 font-mono truncate block underline font-medium" title="Bấm để mở xem Cổng Onboard">
+                                                    ${this.escapeHtml(this.getPublicOnboardUrl(cand.id))}
+                                                </a>
+                                            ` : `
+                                                <span class="text-[10px] text-amber-700 italic block">Chưa tạo link. Bấm nút bên cạnh để tạo ngay!</span>
+                                            `}
                                         </div>
                                         <button type="button" onclick="event.stopPropagation(); window.hrHub.copyCandidateOnboardLink('${cand.id}')"
-                                            class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs" title="Copy link">
-                                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                            class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs flex items-center gap-1 text-[11px] font-bold active:scale-95"
+                                            title="${cand.onboardToken ? 'Copy liên kết Onboard đã tạo' : 'Tạo liên kết Onboard mới'}">
+                                            <i data-lucide="${cand.onboardToken ? 'copy' : 'plus-circle'}" class="w-3.5 h-3.5"></i>
+                                            <span>${cand.onboardToken ? 'Copy Link' : 'Tạo Link'}</span>
                                         </button>
                                     </div>
                                 </div>
@@ -1220,7 +1259,15 @@ class HrHubApp {
         this.syncQuickVarsFromCandidate(target);
         window.hrOnboardingStore.saveCandidates(list);
         this.closeCandidateModal();
-        this.showToast(`Đã lưu hồ sơ nhân sự "${fullName}"!`, 'success');
+        this.showToast(`Đã lưu hồ sơ nhân sự "${fullName}"! Đang tạo link Onboard...`, 'info');
+        window.hrOnboardingStore.publishCandidate(target.id).then(() => {
+            this.syncQuickVarsFromCandidate(target);
+            this.renderAll();
+            this.showToast(`Đã tạo liên kết Onboard riêng cho "${fullName}"!`, 'success');
+        }).catch(pubErr => {
+            console.warn('[HrHub] Chưa tự động publish link được ngay:', pubErr);
+            this.renderAll();
+        });
     }
 
     async deleteCandidate(candId) {

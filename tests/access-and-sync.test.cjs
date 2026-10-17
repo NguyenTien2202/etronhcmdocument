@@ -152,3 +152,28 @@ test('OnboardingViewer defaults to "all" before start date, shifts to next worki
     assert.equal(viewer.collapsedDays.size, 0);
 });
 
+test('publishCandidate generates 64-char token, saves to candidate object and sets up onboarding_progress strictly without extra fields', async () => {
+    const { store, listeners, writes } = storeHarness(true);
+    store.setupCloudSync();
+    listeners.find(l => l.id === 'candidates_data').next({ exists: true, metadata: {}, data: () => ({ items: [{
+        id: 'cand-001', fullName: 'Nguyen Van A', role: 'Sales Lead', startDate: '2026-10-20', mentor: 'Trainer',
+        taskProgress: { 'task-1': true, 'invalid-non-boolean': 'string-val' }
+    }] }) });
+
+    const token = await store.publishCandidate('cand-001');
+    assert.match(token, /^[a-f0-9]{64}$/);
+    const candidate = store.getCandidates().find(c => c.id === 'cand-001');
+    assert.equal(candidate.onboardToken, token);
+
+    // Verify onboarding_progress write only contains completedTasks with booleans
+    const progressWrite = writes.find(w => w.name === 'onboarding_progress' && w.id === token);
+    assert.ok(progressWrite);
+    assert.deepEqual(Object.keys(progressWrite.data), ['completedTasks']);
+    assert.deepEqual(JSON.parse(JSON.stringify(progressWrite.data.completedTasks)), { 'task-1': true });
+
+    // Verify repeating publishCandidate preserves the same token
+    const token2 = await store.publishCandidate('cand-001');
+    assert.equal(token2, token);
+});
+
+

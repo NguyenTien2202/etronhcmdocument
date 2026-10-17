@@ -983,23 +983,38 @@ class HrOnboardingStore {
         if (!candidate) throw new Error('Không tìm thấy hồ sơ.');
         const token = candidate.onboardToken || Array.from(crypto.getRandomValues(new Uint8Array(32)), n => n.toString(16).padStart(2, '0')).join('');
         const publicData = {
-            fullName: candidate.fullName || '', role: candidate.role || '',
-            startDate: candidate.startDate || '', mentor: candidate.mentor || '', targetDate: candidate.targetDate || '',
-            customRoadmap: candidate.customRoadmap?.length ? candidate.customRoadmap : this.getRoadmap(),
+            fullName: candidate.fullName || '',
+            role: candidate.role || '',
+            startDate: candidate.startDate || '',
+            mentor: candidate.mentor || '',
+            targetDate: candidate.targetDate || '',
+            customRoadmap: Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length ? candidate.customRoadmap : (Array.isArray(this.getRoadmap()) ? this.getRoadmap() : []),
         };
         const ref = window.firebaseDb.collection('onboarding_links').doc(token);
         await ref.set(publicData);
-        const progressRef = window.firebaseDb.collection('onboarding_progress').doc(token);
-        const existing = await progressRef.get();
-        if (!existing.exists) {
-            await progressRef.set({
-                completedTasks: candidate.taskProgress || {},
-                taskSubmissions: candidate.taskSubmissions || {}
-            });
+
+        // Khởi tạo trạng thái tiến độ ban đầu trên Cloud tuân thủ đúng Firestore rules
+        try {
+            const progressRef = window.firebaseDb.collection('onboarding_progress').doc(token);
+            const existing = await progressRef.get();
+            if (!existing.exists) {
+                const cleanProgress = {};
+                if (candidate.taskProgress && typeof candidate.taskProgress === 'object') {
+                    for (const [k, v] of Object.entries(candidate.taskProgress)) {
+                        if (typeof v === 'boolean') cleanProgress[k] = v;
+                    }
+                }
+                await progressRef.set({
+                    completedTasks: cleanProgress
+                });
+            }
+        } catch (progErr) {
+            console.warn('[HrOnboardingStore] Khởi tạo onboarding_progress:', progErr);
         }
+
         if (!candidate.onboardToken) {
             candidate.onboardToken = token;
-            await window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: this.getCandidates(), updatedAt: Date.now() });
+            this.saveCandidates(this.getCandidates());
         }
         this.watchProgress(this.getCandidates());
         return token;
