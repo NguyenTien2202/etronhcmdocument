@@ -1138,6 +1138,9 @@ class SalesStore {
                     window.documentHub.renderStats();
                     window.documentHub.renderQuickAccess();
                     window.documentHub.renderDocumentsList();
+                    if (typeof window.documentHub.syncLocalIndexedDBFilesToCloud === 'function') {
+                        window.documentHub.syncLocalIndexedDBFilesToCloud();
+                    }
                 }
             }, (error) => {
                 console.warn('Lỗi đồng bộ Real-time Firestore:', error);

@@ -121,6 +121,7 @@ class DocumentHub {
         this.isModalCatDropdownOpen = false;
         this.selectedModalCategory = null;
         this.isSortDropdownOpen = false;
+        this.syncingDocIds = new Set();
     }
 
     init() {
@@ -134,6 +135,9 @@ class DocumentHub {
 
         this.renderDocumentsList();
         this.setupModalEventListeners();
+
+        // Tự động đẩy các tệp đã tải lên trên trình duyệt này lên Cloud (nếu chưa có trên Cloud)
+        setTimeout(() => this.syncLocalIndexedDBFilesToCloud(), 1500);
 
         // Đóng các dropdown khi click ra ngoài
         document.addEventListener('click', (e) => {
@@ -957,13 +961,26 @@ class DocumentHub {
                 this.openImagePreview(doc.fileUrl, doc.title, doc.fileSize);
                 return;
             }
-            // Đọc từ IndexedDB
-            const fileData = await this.fileStore.getFile(id);
+            if (doc.thumbnail && !doc.hasCloudFile) {
+                // Nếu máy khác chưa có file gốc nhưng có thumbnail ảnh thì ưu tiên thử lấy file gốc, nếu không có thì mở thumbnail
+                const fileData = await this.getOrFetchFile(doc);
+                if (fileData && fileData.blob) {
+                    const objectUrl = URL.createObjectURL(fileData.blob);
+                    this.openImagePreview(objectUrl, doc.title, doc.fileSize);
+                } else {
+                    this.openImagePreview(doc.thumbnail, doc.title, doc.fileSize);
+                }
+                return;
+            }
+            // Đọc từ IndexedDB hoặc tải tự động từ Cloud
+            const fileData = await this.getOrFetchFile(doc);
             if (fileData && fileData.blob) {
                 const objectUrl = URL.createObjectURL(fileData.blob);
                 this.openImagePreview(objectUrl, doc.title, doc.fileSize);
+            } else if (doc.thumbnail) {
+                this.openImagePreview(doc.thumbnail, doc.title, doc.fileSize);
             } else {
-                window.salesApp.showNotification('Không tìm thấy tệp ảnh lưu trữ!', 'error');
+                window.salesApp.showNotification('Tệp ảnh này đang ở trên thiết bị đã tải lên. Hãy mở lại trang trên máy tính một lần để tự động đồng bộ lên Cloud nhé!', 'info');
             }
             return;
         }
@@ -974,24 +991,23 @@ class DocumentHub {
                 this.openVideoPreview(doc.fileUrl, doc.title);
                 return;
             }
-            const fileData = await this.fileStore.getFile(id);
+            const fileData = await this.getOrFetchFile(doc);
             if (fileData && fileData.blob) {
                 const objectUrl = URL.createObjectURL(fileData.blob);
                 this.openVideoPreview(objectUrl, doc.title);
             } else {
-                window.salesApp.showNotification('Không tìm thấy tệp video lưu trữ!', 'error');
+                window.salesApp.showNotification('Tệp video này đang ở trên thiết bị đã tải lên. Hãy mở lại trang trên máy tính một lần để đồng bộ lên Cloud nhé!', 'info');
             }
             return;
         }
 
         // Nếu là tài liệu PDF tải lên
         if (doc.fileType === 'pdf' && !doc.fileUrl) {
-            const fileData = await this.fileStore.getFile(id);
+            const fileData = await this.getOrFetchFile(doc);
             if (fileData && fileData.blob) {
-                const objectUrl = URL.createObjectURL(fileData.blob);
-                window.open(objectUrl, '_blank');
+                this.openPdfPreview(fileData.blob, doc);
             } else {
-                window.salesApp.showNotification('Không tìm thấy tệp PDF lưu trữ!', 'error');
+                window.salesApp.showNotification('Tệp PDF này vừa được lưu cục bộ trên máy tính. Bạn chỉ cần mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp PDF lên Cloud cho điện thoại nhé!', 'info');
             }
             return;
         }
@@ -1021,7 +1037,7 @@ class DocumentHub {
             return;
         }
 
-        const fileData = await this.fileStore.getFile(id);
+        const fileData = await this.getOrFetchFile(doc);
         if (fileData && fileData.blob) {
             const url = URL.createObjectURL(fileData.blob);
             const a = document.createElement('a');
@@ -1033,7 +1049,7 @@ class DocumentHub {
             setTimeout(() => URL.revokeObjectURL(url), 1000);
             window.salesApp.showNotification(`Đang tải xuống: ${doc.title}`, 'success');
         } else {
-            window.salesApp.showNotification('Không tìm thấy dữ liệu tệp để tải về', 'error');
+            window.salesApp.showNotification('Tệp này đang nằm trên máy tính đã tải lên. Hãy mở lại trang trên máy tính 1 lần để tự động đồng bộ lên Cloud nhé!', 'info');
         }
     }
 
@@ -1072,7 +1088,7 @@ class DocumentHub {
                 prompt('Liên kết tài liệu:', doc.fileUrl);
             });
         } else {
-            window.salesApp.showNotification('Tệp này được lưu trên thiết bị của bạn. Bạn hãy bấm "Tải về" để gửi tệp trực tiếp cho khách nhé!', 'info');
+            window.salesApp.showNotification('Tệp này là tệp tải lên trực tiếp. Bạn hãy bấm "Tải về" để gửi tệp cho khách nhé!', 'info');
         }
     }
 
@@ -1095,8 +1111,14 @@ class DocumentHub {
 
     async deleteDocument(id) {
         if (confirm('Bạn có chắc chắn muốn xóa tài liệu này khỏi kho?')) {
+            const docs = window.salesStore.getDocuments();
+            const doc = docs.find(d => d.id === id);
+            const chunkCount = doc && doc.cloudChunkCount ? doc.cloudChunkCount : 0;
+
             window.salesStore.deleteDocument(id);
             await this.fileStore.deleteFile(id);
+            this.deleteCloudFileChunks(id, chunkCount);
+
             this.renderStats();
             this.renderQuickAccess();
             this.renderDocumentsList();
@@ -1930,6 +1952,7 @@ class DocumentHub {
                 targetDoc.fileType = ext;
                 targetDoc.fileName = file.name;
                 targetDoc.fileSize = this.formatFileSize(file.size);
+                targetDoc.mimeType = file.type || (ext === 'pdf' ? 'application/pdf' : '');
                 delete targetDoc.fileUrl;
                 delete targetDoc.content;
 
@@ -1940,6 +1963,11 @@ class DocumentHub {
                 }
 
                 await this.fileStore.saveFile(docId, file);
+
+                // Đồng bộ tệp tải lên sang Firebase Cloud để điện thoại / thiết bị khác mở được ngay
+                this.uploadFileToCloud(docId, file, file.name, targetDoc.mimeType).catch(err => {
+                    console.warn('Cloud file sync warning:', err);
+                });
             } else if (!existingDoc) {
                 alert('Vui lòng chọn tệp từ máy tính để tải lên!');
                 return;
@@ -2061,8 +2089,331 @@ class DocumentHub {
     }
 
     // ==========================================
-    // 5. MEDIA & NOTE PREVIEWS (LIGHTBOX, VIDEO, NOTE READER)
+    // 5. ĐỒNG BỘ TỆP LÊN CLOUD (FIRESTORE CHUNKS) CHO ĐIỆN THOẠI & ĐA THIẾT BỊ
     // ==========================================
+    blobToDataURL(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = (err) => reject(err);
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    dataURLToBlob(dataUrl, fallbackMime = 'application/octet-stream') {
+        try {
+            const parts = dataUrl.split(',');
+            const header = parts[0] || '';
+            const base64 = parts[1] || '';
+            const mimeMatch = header.match(/:(.*?);/);
+            const mime = (mimeMatch && mimeMatch[1]) ? mimeMatch[1] : fallbackMime;
+            const binary = atob(base64);
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return new Blob([bytes], { type: mime });
+        } catch (err) {
+            console.error('dataURLToBlob error:', err);
+            return null;
+        }
+    }
+
+    async uploadFileToCloud(docId, fileOrBlob, fileName, mimeType) {
+        if (!window.firebaseDb || !docId || !fileOrBlob) return false;
+        // Giới hạn tối đa 15MB cho đồng bộ Firestore Chunk để tránh quá tải
+        if (fileOrBlob.size > 15 * 1024 * 1024) {
+            console.warn(`File ${fileName} lớn hơn 15MB, bỏ qua đồng bộ trực tiếp qua Firestore chunks.`);
+            return false;
+        }
+        if (this.syncingDocIds.has(docId)) return false;
+        this.syncingDocIds.add(docId);
+
+        try {
+            const dataUrl = await this.blobToDataURL(fileOrBlob);
+            const CHUNK_SIZE = 650000; // ~650KB mỗi chunk (an toàn dưới ngưỡng 1MB của Firestore)
+            const totalChunks = Math.ceil(dataUrl.length / CHUNK_SIZE);
+
+            for (let i = 0; i < totalChunks; i++) {
+                const chunkData = dataUrl.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+                await window.firebaseDb.collection('document_files').doc(`${docId}_chunk_${i}`).set({
+                    docId: docId,
+                    index: i,
+                    totalChunks: totalChunks,
+                    data: chunkData,
+                    fileName: fileName || '',
+                    mimeType: mimeType || fileOrBlob.type || 'application/octet-stream',
+                    fileSize: fileOrBlob.size || 0,
+                    updatedAt: Date.now()
+                });
+            }
+
+            // Cập nhật cờ hasCloudFile vào metadata tài liệu
+            const docs = window.salesStore.getDocuments();
+            const doc = docs.find(d => d.id === docId);
+            if (doc) {
+                doc.hasCloudFile = true;
+                doc.cloudChunkCount = totalChunks;
+                if (mimeType || fileOrBlob.type) {
+                    doc.mimeType = mimeType || fileOrBlob.type;
+                }
+                window.salesStore.saveDocument(doc);
+            }
+            this.syncingDocIds.delete(docId);
+            return true;
+        } catch (err) {
+            console.warn('Không thể đồng bộ tệp lên Cloud:', err);
+            this.syncingDocIds.delete(docId);
+            return false;
+        }
+    }
+
+    async deleteCloudFileChunks(docId, chunkCount = 0) {
+        if (!window.firebaseDb || !docId) return;
+        const maxChunks = Math.max(chunkCount || 0, 5);
+        for (let i = 0; i < maxChunks; i++) {
+            window.firebaseDb.collection('document_files').doc(`${docId}_chunk_${i}`).delete().catch(() => {});
+        }
+    }
+
+    async getOrFetchFile(doc) {
+        if (!doc || !doc.id) return null;
+
+        // 1. Ưu tiên đọc từ IndexedDB cục bộ trên thiết bị
+        const localData = await this.fileStore.getFile(doc.id);
+        if (localData && localData.blob) {
+            // Nếu thiết bị này có tệp cục bộ mà trên Cloud chưa có cờ hasCloudFile, đẩy ngầm lên Cloud luôn
+            if (!doc.hasCloudFile && window.firebaseDb) {
+                this.uploadFileToCloud(
+                    doc.id,
+                    localData.blob,
+                    localData.fileName || doc.fileName || doc.title,
+                    localData.fileType || doc.mimeType || ''
+                );
+            }
+            return localData;
+        }
+
+        // 2. Nếu thiết bị hiện tại (ví dụ: điện thoại) chưa có tệp trong IndexedDB, tải từ Firebase Cloud về
+        if (!window.firebaseDb) return null;
+
+        try {
+            window.salesApp?.showNotification('Đang tải tệp từ Cloud...', 'info');
+            const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_0`).get();
+            if (!firstChunkSnap.exists) {
+                return null;
+            }
+
+            const firstChunk = firstChunkSnap.data();
+            const totalChunks = firstChunk.totalChunks || doc.cloudChunkCount || 1;
+            const chunks = new Array(totalChunks);
+            chunks[0] = firstChunk.data || '';
+
+            if (totalChunks > 1) {
+                const promises = [];
+                for (let i = 1; i < totalChunks; i++) {
+                    promises.push(
+                        window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_${i}`).get()
+                    );
+                }
+                const snaps = await Promise.all(promises);
+                for (let i = 0; i < snaps.length; i++) {
+                    const snap = snaps[i];
+                    if (!snap.exists) {
+                        return null;
+                    }
+                    chunks[i + 1] = snap.data().data || '';
+                }
+            }
+
+            const fullDataUrl = chunks.join('');
+            const fallbackMime = firstChunk.mimeType || doc.mimeType || (doc.fileType === 'pdf' ? 'application/pdf' : 'application/octet-stream');
+            const blob = this.dataURLToBlob(fullDataUrl, fallbackMime);
+            if (!blob) return null;
+
+            const fileName = firstChunk.fileName || doc.fileName || (doc.title + (doc.fileType ? `.${doc.fileType}` : ''));
+            let fileToCache = blob;
+            try {
+                fileToCache = new File([blob], fileName, { type: blob.type || fallbackMime });
+            } catch (e) {
+                fileToCache.name = fileName;
+            }
+
+            // Lưu đệm vào IndexedDB của điện thoại để lần sau mở tức thì không cần tải lại
+            await this.fileStore.saveFile(doc.id, fileToCache);
+
+            return {
+                id: doc.id,
+                blob: fileToCache,
+                fileName: fileName,
+                fileType: blob.type || fallbackMime,
+                fileSize: blob.size
+            };
+        } catch (err) {
+            console.error('Lỗi khi tải tệp từ Cloud:', err);
+            return null;
+        }
+    }
+
+    async syncLocalIndexedDBFilesToCloud() {
+        if (!window.firebaseDb || !window.salesStore) return;
+        const docs = window.salesStore.getDocuments() || [];
+
+        for (const doc of docs) {
+            // Chỉ kiểm tra các tài liệu dạng tệp tải lên mà chưa được đánh dấu hasCloudFile
+            if (!doc.fileUrl && doc.type !== 'note' && doc.fileType !== 'note' && !doc.hasCloudFile) {
+                const localData = await this.fileStore.getFile(doc.id);
+                if (localData && localData.blob) {
+                    const ok = await this.uploadFileToCloud(
+                        doc.id,
+                        localData.blob,
+                        localData.fileName || doc.fileName || doc.title,
+                        localData.fileType || doc.mimeType || (doc.fileType === 'pdf' ? 'application/pdf' : '')
+                    );
+                    if (ok) {
+                        console.log(`☁️ Đã đồng bộ tệp "${doc.title}" từ máy tính lên Cloud!`);
+                        window.salesApp?.showNotification(`☁️ Đã đồng bộ tệp "${doc.title}" lên Cloud cho điện thoại!`, 'success');
+                    }
+                }
+            }
+        }
+    }
+
+    // ==========================================
+    // 6. MEDIA, PDF & NOTE PREVIEWS (LIGHTBOX, PDF VIEWER, VIDEO, NOTE READER)
+    // ==========================================
+    ensurePdfJsLoaded() {
+        if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+        if (this.pdfJsLoadingPromise) return this.pdfJsLoadingPromise;
+
+        this.pdfJsLoadingPromise = new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+            script.onload = () => {
+                if (window.pdfjsLib) {
+                    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                    resolve(window.pdfjsLib);
+                } else {
+                    reject(new Error('PDF.js failed to initialize'));
+                }
+            };
+            script.onerror = (err) => {
+                this.pdfJsLoadingPromise = null;
+                reject(err);
+            };
+            document.head.appendChild(script);
+        });
+
+        return this.pdfJsLoadingPromise;
+    }
+
+    async openPdfPreview(blob, doc) {
+        const modal = document.getElementById('media-preview-modal');
+        const titleEl = document.getElementById('media-preview-title');
+        const container = document.getElementById('media-preview-content');
+        const downloadBtn = document.getElementById('media-preview-download-btn');
+
+        if (!modal || !container || !blob) return;
+
+        const pdfBlob = blob.type === 'application/pdf' ? blob : new Blob([blob], { type: 'application/pdf' });
+        const objectUrl = URL.createObjectURL(pdfBlob);
+        const fileName = (doc && (doc.fileName || `${doc.title || 'tai-lieu'}.pdf`)) || 'tai-lieu.pdf';
+
+        titleEl.textContent = (doc && doc.title) ? doc.title : 'Xem tài liệu PDF';
+
+        container.innerHTML = `
+            <div class="w-full max-w-4xl mx-auto flex flex-col items-center">
+                <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-3 px-3 py-2 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                    <div class="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                        <span class="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 font-bold border border-rose-200/60">PDF</span>
+                        <span id="pdf-viewer-page-info">Đang tải trang...</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="${objectUrl}" target="_blank" rel="noopener noreferrer"
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors flex items-center gap-1">
+                            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                            <span>Mở tab mới</span>
+                        </a>
+                    </div>
+                </div>
+                <div id="pdf-pages-wrapper" class="w-full max-h-[70vh] overflow-y-auto space-y-3 bg-slate-200/70 p-2 sm:p-4 rounded-xl border border-slate-200 flex flex-col items-center">
+                    <div class="py-12 flex flex-col items-center justify-center text-slate-500 gap-2">
+                        <div class="w-7 h-7 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-xs font-medium">Đang hiển thị tài liệu PDF...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (downloadBtn) {
+            downloadBtn.classList.remove('hidden');
+            downloadBtn.innerHTML = `
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Tải PDF</span>
+            `;
+            downloadBtn.onclick = () => {
+                const a = document.createElement('a');
+                a.href = objectUrl;
+                a.download = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        }
+
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+
+        try {
+            const pdfjsLib = await this.ensurePdfJsLoaded();
+            const arrayBuffer = await pdfBlob.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+            const wrapper = document.getElementById('pdf-pages-wrapper');
+            const pageInfo = document.getElementById('pdf-viewer-page-info');
+            if (!wrapper) return;
+
+            if (pageInfo) {
+                pageInfo.textContent = `${pdf.numPages} trang • Vuốt/cuộn để đọc`;
+            }
+            wrapper.innerHTML = '';
+
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const unscaledViewport = page.getViewport({ scale: 1 });
+                const containerWidth = Math.min(wrapper.clientWidth - 16, 820) || 340;
+                const dpr = Math.min(window.devicePixelRatio || 1.5, 2.5);
+                const cssScale = Math.max(containerWidth / unscaledViewport.width, 0.8);
+                const renderViewport = page.getViewport({ scale: cssScale * dpr });
+
+                const pageCard = document.createElement('div');
+                pageCard.className = 'w-full bg-white rounded-lg shadow-sm border border-slate-200/80 overflow-hidden flex flex-col items-center';
+
+                const canvas = document.createElement('canvas');
+                canvas.width = renderViewport.width;
+                canvas.height = renderViewport.height;
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
+                canvas.className = 'block';
+
+                pageCard.appendChild(canvas);
+                wrapper.appendChild(pageCard);
+
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport: renderViewport }).promise;
+            }
+        } catch (err) {
+            console.warn('Fallback iframe cho PDF:', err);
+            const wrapper = document.getElementById('pdf-pages-wrapper');
+            if (wrapper) {
+                wrapper.innerHTML = `
+                    <iframe src="${objectUrl}" class="w-full h-[68vh] rounded-lg bg-white border-0"></iframe>
+                `;
+            }
+        }
+    }
+
     formatNoteContentHtml(rawText) {
         const escaped = this.escapeHtml(rawText || '');
         // Tự động chuyển các URL http/https trong tin nhắn thành liên kết bấm được
