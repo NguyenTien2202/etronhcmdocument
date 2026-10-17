@@ -218,58 +218,6 @@
     <!-- ========================================== -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
 
-        <!-- Thanh Tóm Tắt Nhanh Của HR (Ẩn trên điện thoại để tiết kiệm không gian, chỉ hiện từ tablet/desktop) -->
-        <div class="hidden sm:grid sm:grid-cols-3 gap-3.5">
-            <div class="bg-white rounded-2xl border border-emerald-200/80 p-4 shadow-2xs flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                        <i data-lucide="user-check" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <span class="text-xs text-slate-500 block">Hồ sơ Nhân sự Onboard</span>
-                        <strong id="hr-stat-candidates" class="text-base font-extrabold text-slate-900">1</strong>
-                    </div>
-                </div>
-                <button type="button" onclick="window.hrHub.openCandidateModal()"
-                    class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                    <span>Thêm mới</span>
-                </button>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-indigo-200/80 p-4 shadow-2xs flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                        <i data-lucide="calendar-range" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <span class="text-xs text-slate-500 block">Khung Lộ trình Đào tạo</span>
-                        <strong id="hr-stat-days" class="text-base font-extrabold text-slate-900">8 ngày</strong>
-                    </div>
-                </div>
-                <button type="button" onclick="window.hrHub.switchTab('roadmap')"
-                    class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold">
-                    Chỉnh sửa
-                </button>
-            </div>
-
-            <div class="bg-white rounded-2xl border border-amber-200/80 p-4 shadow-2xs flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                        <i data-lucide="messages-square" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <span class="text-xs text-slate-500 block">Mẫu Email & Tin nhắn HR</span>
-                        <strong id="hr-stat-templates" class="text-base font-extrabold text-slate-900">6</strong>
-                    </div>
-                </div>
-                <button type="button" onclick="window.hrHub.switchTab('templates')"
-                    class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold">
-                    Mở kho mẫu
-                </button>
-            </div>
-        </div>
-
         <!-- ========================================== -->
         <!-- TAB 1: HỒ SƠ & CHECKLIST NHÂN SỰ MỚI       -->
         <!-- ========================================== -->
@@ -352,31 +300,35 @@
 
                 <div class="flex flex-wrap items-center gap-2 shrink-0">
                     <button type="button" onclick="window.hrHub.autoFillRoadmapDates()"
-                        class="px-3 sm:px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95"
-                        title="Tự động điền ngày đào tạo cho toàn bộ các ngày (Thứ 2 đến Thứ 6, bỏ qua Thứ 7 & CN)">
+                        class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+                        title="Tự động điền ngày đào tạo (Thứ 2 đến Thứ 6)"
+                        aria-label="Tự động điền ngày đào tạo (Thứ 2 đến Thứ 6)">
                         <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-600"></i>
-                        <span>Auto Điền Ngày (T2–T6)</span>
                     </button>
                     <button type="button" onclick="window.hrHub.clearRoadmapDates()"
-                        class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95"
-                        title="Xóa các ngày cố định (để hệ thống tự động tính ngày theo ngày Onboard của từng ứng viên)">
+                        class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+                        title="Xóa các ngày cố định"
+                        aria-label="Xóa các ngày cố định">
                         <i data-lucide="calendar-x" class="w-4 h-4"></i>
                     </button>
                     <a href="onboard.html" target="_blank"
-                        class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95"
-                        title="Xem trước giao diện Onboard mẫu" aria-label="Xem trước giao diện Onboard mẫu">
+                        class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+                        title="Xem trước giao diện Onboard mẫu"
+                        aria-label="Xem trước giao diện Onboard mẫu">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </a>
                     <button type="button" onclick="window.hrHub.toggleAllRoadmapDays()"
-                        class="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95"
-                        title="Thu gọn hoặc mở rộng toàn bộ các ngày học">
+                        class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+                        title="Thu gọn hoặc mở rộng toàn bộ các ngày học"
+                        aria-label="Thu gọn hoặc mở rộng toàn bộ các ngày học">
                         <i data-lucide="fold-vertical" class="w-4 h-4 text-slate-600"></i>
-                        <span class="hidden sm:inline">Thu gọn / Mở rộng</span>
                     </button>
                     <button type="button" onclick="window.hrHub.openRoadmapDayModal()"
-                        class="px-3.5 sm:px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all active:scale-95">
+                        class="h-9 px-2.5 sm:px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shrink-0"
+                        title="Thêm Ngày Onboard"
+                        aria-label="Thêm Ngày Onboard">
                         <i data-lucide="plus" class="w-4 h-4"></i>
-                        <span>Thêm Ngày Onboard</span>
+                        <span class="hidden sm:inline">Thêm ngày</span>
                     </button>
                 </div>
             </div>
@@ -896,14 +848,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261018_v83"></script>
+    <script src="js/sync-status.js?v=20261018_v84"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261018_v83"></script>
+    <script src="js/firebase-config.js?v=20261018_v84"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261018_v83"></script>
-    <script src="js/document-hub.js?v=20261018_v83"></script>
-    <script src="js/hr-onboarding-data.js?v=20261018_v83"></script>
+    <script src="js/store.js?v=20261018_v84"></script>
+    <script src="js/document-hub.js?v=20261018_v84"></script>
+    <script src="js/hr-onboarding-data.js?v=20261018_v84"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -913,7 +865,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261018_v83"></script>
-    <script src="js/hr-hub.js?v=20261018_v83"></script>
+    <script src="js/hr-auth.js?v=20261018_v84"></script>
+    <script src="js/hr-hub.js?v=20261018_v84"></script>
 </body>
 </html>

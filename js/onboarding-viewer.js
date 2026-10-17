@@ -489,12 +489,6 @@ class OnboardingViewer {
                                                     <span>${formattedDayDate}</span>
                                                 </span>
                                             ` : ''}
-                                            ${day.duration ? `
-                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-semibold bg-white text-slate-600 border border-slate-200 flex items-center gap-1">
-                                                    <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
-                                                    <span>${this.escapeHtml(day.duration)}</span>
-                                                </span>
-                                            ` : ''}
                                             ${day.trainer ? `
                                                 <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white text-indigo-700 border border-indigo-200 flex items-center gap-1 shadow-2xs">
                                                     <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>

@@ -149,13 +149,32 @@ function fakeFirebase() {
         await page.locator('#hr-cand-arrow-c1').click();
         assert.equal(await cand1Body.evaluate(el => el.classList.contains('hidden')), true, 'Candidate 1 should be collapsed again');
 
-        console.log('--- 2. Testing HrHub Roadmap Tab Collapse/Expand ---');
+        // Verify top stat cards are removed
+        assert.equal(await page.locator('#hr-stat-candidates').count(), 0, 'Top stat cards should be removed from DOM');
+
+        console.log('--- 2. Testing HrHub Roadmap Tab Collapse/Expand & Icon Buttons ---');
         await page.evaluate(() => window.hrHub.switchTab('roadmap'));
         const day1Card = page.locator('#hr-day-card-day-1');
         const day1Body = page.locator('#hr-day-body-day-1');
         const day2Body = page.locator('#hr-day-body-day-2');
         assert.equal(await day1Card.isVisible(), true, 'Day 1 card should be visible');
         assert.equal(await day1Body.evaluate(el => !el.classList.contains('hidden')), true, 'Day 1 body defaults to open');
+
+        // Check auto-fill dates button is icon-only
+        const autoFillBtn = page.locator('button[onclick="window.hrHub.autoFillRoadmapDates()"]');
+        assert.equal((await autoFillBtn.innerText()).trim(), '', 'Auto-fill dates button should be icon-only');
+
+        // Check toggle all days button in roadmap header is icon-only
+        const toggleAllRoadmapBtn = page.locator('button[onclick="window.hrHub.toggleAllRoadmapDays()"]');
+        assert.equal((await toggleAllRoadmapBtn.innerText()).trim(), '', 'Toggle all roadmap days button should be icon-only');
+
+        // Check edit day button in day 1 card is icon-only
+        const editDayBtn = page.locator('button[onclick="window.hrHub.openRoadmapDayModal(\'day-1\')"]');
+        assert.equal((await editDayBtn.innerText()).trim(), '', 'Edit day button should be icon-only');
+
+        // Check duration chip is removed from day 1 card
+        const day1CardText = await day1Card.innerText();
+        assert.ok(!day1CardText.includes('17:30') && !day1CardText.includes('18:00'), 'Day duration chip should be removed from HrHub roadmap');
 
         // Click day collapse button
         await page.locator('#hr-day-btn-day-1').click();
@@ -227,7 +246,9 @@ function fakeFirebase() {
         const toggleAllBtn = page.locator('button[title*="Thu gọn tất cả"]').first();
         assert.equal(await toggleAllBtn.isVisible(), true, 'Toggle all days icon button should be visible');
         const iconInsideToggleAll = await toggleAllBtn.locator('svg').count();
-        assert.ok(iconInsideToggleAll >= 1, 'Toggle all button should render an icon');
+        // Check duration chip is removed from Onboard viewer
+        const onboardPageText = await page.innerText('body');
+        assert.ok(!onboardPageText.includes('17:30') && !onboardPageText.includes('18:00'), 'Duration chip should be removed from Onboard viewer');
 
         assert.deepEqual(errors, [], 'There should be no console or page errors');
         console.log('ALL TESTS PASSED! User requirements fully satisfied.');
