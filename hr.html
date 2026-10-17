@@ -278,25 +278,21 @@
             <div id="hr-birthday-alert-container"></div>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <!-- Dropdown Chọn Nhân Sự Dành Riêng Cho Điện Thoại (Siêu gọn, không bị dài dòng) -->
-                <div class="lg:hidden bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                <!-- Dropdown Chọn Nhân Sự Dành Riêng Cho Điện Thoại (Thống nhất phong cách với toàn hệ thống) -->
+                <div class="lg:hidden bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
                     <div class="flex items-center justify-between gap-2">
-                        <label for="hr-mobile-candidate-select" class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
+                        <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1.5">
                             <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
                             <span>Chọn Hồ Sơ Nhân Sự:</span>
-                        </label>
+                        </span>
                         <button type="button" onclick="window.hrHub.openCandidateModal()"
-                            class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs active:scale-95">
+                            class="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs active:scale-95 transition-all">
                             <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
                             <span>Thêm bạn mới</span>
                         </button>
                     </div>
-                    <div class="relative">
-                        <select id="hr-mobile-candidate-select" onchange="window.hrHub.selectCandidate(this.value)"
-                            class="w-full text-xs font-bold text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-2.5 pr-8 focus:outline-none focus:border-emerald-500 appearance-none cursor-pointer transition-colors shadow-2xs">
-                            <!-- Populated by hrHub -->
-                        </select>
-                        <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <div id="hr-mobile-cand-dropdown-wrapper" class="relative">
+                        <!-- Rendered by hrHub.renderMobileCandidateDropdown() -->
                     </div>
                 </div>
 
@@ -383,103 +379,111 @@
         <!-- ========================================== -->
         <div id="hr-view-templates" class="hr-tab-view hidden space-y-5">
             <!-- Thanh Điền Thông Tin Ứng Viên Tự Động (1-Click Autofill) -->
-            <div class="bg-white rounded-2xl border border-emerald-200 shadow-xs p-5 space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                    <div>
+            <div class="bg-white rounded-2xl border border-emerald-200/90 shadow-xs p-4 sm:p-5 space-y-3.5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="space-y-0.5">
                         <h2 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-                            <i data-lucide="wand-2" class="w-5 h-5 text-emerald-600"></i>
-                            <span>Điền Nhanh Thông Tin Ứng Viên / Nhân Sự Mới Vào Toàn Bộ Mẫu</span>
+                            <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                <i data-lucide="wand-2" class="w-4 h-4"></i>
+                            </div>
+                            <span>Điền Nhanh Dữ Liệu Vào Toàn Bộ Mẫu</span>
                         </h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Chọn nhanh từ Hồ sơ nhân sự hoặc sửa trực tiếp các ô bên dưới, toàn bộ mẫu Email/Zalo sẽ tự động điền tên thật để bạn bấm Copy gửi ngay!</p>
+                        <p class="text-xs text-slate-500">
+                            Toàn bộ mẫu Email/Zalo bên dưới sẽ tự động thay thế bằng dữ liệu thật của nhân sự để bạn copy gửi ngay.
+                        </p>
                     </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        <select id="hr-tpl-candidate-select" onchange="window.hrHub.handleQuickCandidateSelect(this.value)"
-                            class="text-xs font-bold px-3 py-2 rounded-xl border border-emerald-200 bg-emerald-50/50 text-emerald-900 focus:outline-none">
-                        </select>
+                    <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                        <!-- Dropdown Chọn Ứng viên cho Mẫu Tin -->
+                        <div id="hr-tpl-cand-dropdown-wrapper" class="relative">
+                            <!-- Populated by hrHub.renderTplCandidateDropdown() -->
+                        </div>
+                        <button type="button" onclick="window.hrHub.toggleQuickVarsExpanded()"
+                            id="hr-quick-vars-toggle-btn"
+                            class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
+                            title="Tùy chỉnh các trường thông tin điền mẫu">
+                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-500"></i>
+                            <span id="hr-quick-vars-toggle-text">Tùy chỉnh biến (7)</span>
+                        </button>
                         <button type="button" onclick="window.hrHub.openTemplateModal()"
-                            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shrink-0">
+                            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs active:scale-95 transition-all">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                             <span>Thêm Mẫu Mới</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                <!-- Preview thanh biến tóm tắt (Khi thu gọn) -->
+                <div id="hr-quick-vars-summary-bar" class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <!-- Populated dynamically by hrHub.renderQuickVarsSummary() -->
+                </div>
+
+                <!-- Form chỉnh sửa 7 biến (Mặc định thu gọn, click để mở rộng) -->
+                <div id="hr-quick-vars-form" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-3 border-t border-slate-100">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Tên ứng viên / Nhân sự</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="user" class="w-3 h-3 text-emerald-600"></i> Tên ứng viên / Nhân sự
+                        </label>
                         <input type="text" id="hr-var-ten_ung_vien" oninput="window.hrHub.updateQuickVar('ten_ung_vien', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Vị trí công việc</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="briefcase" class="w-3 h-3 text-indigo-600"></i> Vị trí công việc
+                        </label>
                         <input type="text" id="hr-var-vi_tri" oninput="window.hrHub.updateQuickVar('vi_tri', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Ngày Onboard / Lịch hẹn</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="calendar" class="w-3 h-3 text-emerald-600"></i> Ngày Onboard / Lịch hẹn
+                        </label>
                         <input type="text" id="hr-var-ngay_onboard" oninput="window.hrHub.updateQuickVar('ngay_onboard', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Giờ có mặt</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3 h-3 text-violet-600"></i> Giờ có mặt
+                        </label>
                         <input type="text" id="hr-var-gio_onboard" oninput="window.hrHub.updateQuickVar('gio_onboard', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-semibold text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                     <div class="sm:col-span-2">
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Địa điểm làm việc / Phỏng vấn</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="map-pin" class="w-3 h-3 text-rose-500"></i> Địa điểm làm việc / Phỏng vấn
+                        </label>
                         <input type="text" id="hr-var-dia_diem" oninput="window.hrHub.updateQuickVar('dia_diem', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">Người đón / Liên hệ</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="user-check" class="w-3 h-3 text-amber-600"></i> Người đón / Liên hệ
+                        </label>
                         <input type="text" id="hr-var-nguoi_lien_he" oninput="window.hrHub.updateQuickVar('nguoi_lien_he', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-500 mb-1">SĐT người đón</label>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                            <i data-lucide="phone" class="w-3 h-3 text-blue-600"></i> SĐT người đón
+                        </label>
                         <input type="text" id="hr-var-sdt_lien_he" oninput="window.hrHub.updateQuickVar('sdt_lien_he', this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-emerald-500">
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl text-slate-800 focus:outline-none focus:border-emerald-500 transition-colors">
                     </div>
                 </div>
             </div>
 
-            <!-- Bộ lọc danh mục mẫu -->
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='all'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Tất cả mẫu
-                    </button>
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='preboard'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Dặn dò trước Onboard
-                    </button>
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='welcome'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Chào mừng Ngày 1
-                    </button>
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='offer'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Mời nhận việc (Offer)
-                    </button>
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='interview'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Mời phỏng vấn
-                    </button>
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='reject'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Từ chối / Cảm ơn
-                    </button>
-                    <button type="button" onclick="window.hrHub.templateCategoryFilter='internal'; window.hrHub.renderTemplatesTab();"
-                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:border-emerald-400">
-                        Đánh giá & Nội bộ
-                    </button>
+            <!-- Bộ lọc danh mục mẫu & Tìm kiếm (Đồng bộ Dropdown chuẩn hệ thống) -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div id="hr-tpl-cat-dropdown-wrapper" class="relative w-full sm:w-auto">
+                    <!-- Populated by hrHub.renderTemplateCategoryDropdown() -->
                 </div>
 
-                <input type="text" placeholder="Tìm mẫu mail / tin nhắn..."
-                    oninput="window.hrHub.templateSearch = this.value; window.hrHub.renderTemplatesListOnly();"
-                    class="text-xs px-3.5 py-2 bg-white border border-slate-200 rounded-xl w-full sm:w-64 focus:outline-none focus:border-emerald-500">
+                <div class="relative w-full sm:w-72 shrink-0">
+                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                    <input type="text" placeholder="Tìm tiêu đề, nội dung mẫu..."
+                        oninput="window.hrHub.templateSearch = this.value; window.hrHub.renderTemplatesListOnly();"
+                        class="w-full text-xs pl-9 pr-3.5 py-2.5 border border-slate-200 bg-white rounded-xl shadow-2xs focus:outline-none focus:border-emerald-500 transition-colors">
+                </div>
             </div>
 
             <!-- Danh sách Mẫu Email / Tin nhắn -->
@@ -884,14 +888,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261017_v79"></script>
+    <script src="js/sync-status.js?v=20261017_v80"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261017_v79"></script>
+    <script src="js/firebase-config.js?v=20261017_v80"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261017_v79"></script>
-    <script src="js/document-hub.js?v=20261017_v79"></script>
-    <script src="js/hr-onboarding-data.js?v=20261017_v79"></script>
+    <script src="js/store.js?v=20261017_v80"></script>
+    <script src="js/document-hub.js?v=20261017_v80"></script>
+    <script src="js/hr-onboarding-data.js?v=20261017_v80"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -901,7 +905,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261017_v79"></script>
-    <script src="js/hr-hub.js?v=20261017_v79"></script>
+    <script src="js/hr-auth.js?v=20261017_v80"></script>
+    <script src="js/hr-hub.js?v=20261017_v80"></script>
 </body>
 </html>
