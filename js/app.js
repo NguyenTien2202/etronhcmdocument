@@ -23,7 +23,17 @@ class SalesApp {
         window.documentHub.init();
         window.productCatalog.init();
         if (window.callbotHub) window.callbotHub.init();
+        if (window.onboardingViewer) window.onboardingViewer.init();
         window.quoteBuilder.resetForm();
+
+        // Mở thẳng tab nếu trên URL có ?tab=...
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialTab = urlParams.get('tab');
+            if (initialTab && ['quote-builder', 'documents', 'callbot-hub', 'onboard'].includes(initialTab)) {
+                this.switchTab(initialTab);
+            }
+        } catch (e) {}
 
         // Đồng bộ tức thì khi người dùng mở nhiều tab cùng lúc
         window.addEventListener('storage', () => {
@@ -35,6 +45,9 @@ class SalesApp {
             }
             if (window.callbotHub) {
                 window.callbotHub.render();
+            }
+            if (window.onboardingViewer) {
+                window.onboardingViewer.render();
             }
             if (window.productCatalog) {
                 window.productCatalog.renderCatalogTable();
@@ -88,6 +101,8 @@ class SalesApp {
             window.documentHub.renderDocumentsList();
         } else if (tabId === 'callbot-hub') {
             if (window.callbotHub) window.callbotHub.render();
+        } else if (tabId === 'onboard') {
+            if (window.onboardingViewer) window.onboardingViewer.render();
         } else if (tabId === 'catalog') {
             window.productCatalog.renderCatalogTable();
         } else if (tabId === 'history') {

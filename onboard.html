@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Etron Onboarding - Lộ Trình & Tài Liệu Hội Nhập Nhân Sự Mới</title>
+    <!-- Tailwind CSS -->
+    <script src="js/tailwindcss.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="js/lucide.min.js"></script>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css?v=20261017_v68">
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-indigo-100 shadow-sm sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between py-3">
+                <div class="flex items-center gap-3">
+                    <img src="assets/logo.png" alt="ETRON HCM" class="h-10 w-10 rounded-full object-cover shadow-sm shrink-0 ring-1 ring-slate-200">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-slate-900 text-base sm:text-lg tracking-tight">Etron Onboarding</span>
+                            <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Lộ Trình Hội Nhập</span>
+                        </div>
+                        <p class="text-xs text-slate-500 hidden sm:block">Kế hoạch đào tạo & Tài liệu hội nhập dành cho thành viên mới</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <a href="index.html?tab=documents"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 border border-slate-200/80 transition-all flex items-center gap-1.5">
+                        <i data-lucide="folder-open" class="w-4 h-4 text-indigo-600"></i>
+                        <span>Kho Tài Liệu</span>
+                    </a>
+                    <a href="index.html"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-xs transition-all flex items-center gap-1.5">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Mở Etron SalesHub</span>
+                        <span class="sm:hidden">SalesHub</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Onboarding Roadmap Content -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        <div id="onboarding-roadmap-viewer-root">
+            <!-- Rendered dynamically by js/onboarding-viewer.js -->
+        </div>
+    </main>
+
+    <!-- Media, PDF & Note Preview Modal (Giống hệt SalesHub để mở xem trực tiếp tài liệu PDF/Note trên cả máy tính và điện thoại) -->
+    <div id="media-preview-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-2 sm:p-4 bg-slate-900/80 backdrop-blur-md">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="p-3 sm:p-4 px-4 sm:px-6 bg-slate-900 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5 truncate">
+                    <i data-lucide="eye" class="w-4 h-4 text-indigo-400 shrink-0"></i>
+                    <h4 id="media-preview-title" class="font-bold text-xs sm:text-sm truncate">Xem trước tài liệu</h4>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="media-preview-download-btn" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center gap-1.5 transition-colors hidden">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Tải về</span>
+                    </button>
+                    <button onclick="window.documentHub.closeMediaPreview()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="media-preview-content" class="flex-1 bg-slate-100 p-2 sm:p-4 overflow-y-auto overflow-x-hidden min-h-[280px] max-h-[82vh]" style="-webkit-overflow-scrolling: touch; overscroll-behavior: contain;">
+                <!-- Injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js?v=20261017_v68"></script>
+
+    <!-- Core Scripts for Document Preview & Onboarding Roadmap -->
+    <script src="js/store.js?v=20261017_v68"></script>
+    <script src="js/document-hub.js?v=20261017_v68"></script>
+    <script src="js/hr-onboarding-data.js?v=20261017_v68"></script>
+    <script src="js/onboarding-viewer.js?v=20261017_v68"></script>
+    <script>
+        // Minimal salesApp shim for notifications & mobile modal scroll lock on standalone onboard.html
+        window.salesApp = {
+            showNotification(msg, type = 'info') {
+                if (type !== 'error') return;
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const toast = document.createElement('div');
+                toast.className = 'p-3.5 rounded-xl shadow-lg border text-xs font-bold bg-rose-800 text-white border-rose-700';
+                toast.textContent = msg;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.salesStore) window.salesStore.setupCloudSync();
+            if (window.documentHub) window.documentHub.init();
+            if (window.onboardingViewer) window.onboardingViewer.init();
+
+            // Re-render roadmap when documents sync from Cloud
+            window.addEventListener('storage', () => {
+                if (window.onboardingViewer) window.onboardingViewer.render();
+            });
+
+            // Mobile modal scroll lock for #media-preview-modal
+            const modal = document.getElementById('media-preview-modal');
+            if (modal) {
+                let lockedScrollY = 0;
+                let isLocked = false;
+                const obs = new MutationObserver(() => {
+                    const open = !modal.classList.contains('hidden');
+                    if (open && !isLocked) {
+                        lockedScrollY = window.scrollY || 0;
+                        isLocked = true;
+                        document.documentElement.classList.add('modal-open-lock');
+                        document.body.classList.add('modal-open-lock');
+                        document.body.style.top = `-${lockedScrollY}px`;
+                    } else if (!open && isLocked) {
+                        isLocked = false;
+                        document.documentElement.classList.remove('modal-open-lock');
+                        document.body.classList.remove('modal-open-lock');
+                        document.body.style.top = '';
+                        window.scrollTo(0, lockedScrollY);
+                    }
+                });
+                obs.observe(modal, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            if (window.lucide) lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

@@ -2532,11 +2532,13 @@ class DocumentHub {
                             <span>Cập nhật: ${this.escapeHtml(doc.updatedAt || 'Hôm nay')}</span>
                         </span>
                     </div>
-                    <button type="button" onclick="window.documentHub.closeMediaPreview(); window.documentHub.openEditModal('${doc.id}')"
-                        class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-colors flex items-center gap-1">
-                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                        <span>Chỉnh sửa</span>
-                    </button>
+                    ${document.getElementById('document-add-modal') ? `
+                        <button type="button" onclick="window.documentHub.closeMediaPreview(); window.documentHub.openEditModal('${doc.id}')"
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-colors flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                            <span>Chỉnh sửa</span>
+                        </button>
+                    ` : ''}
                 </div>
 
                 <!-- Nội dung văn bản / tin nhắn -->
