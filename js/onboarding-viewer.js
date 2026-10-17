@@ -8,15 +8,29 @@
 class OnboardingViewer {
     constructor() {
         this.activeDayFilter = 'all';
+        this.candidateId = null;
     }
 
     init() {
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const cid = params.get('id');
+            if (cid) {
+                this.candidateId = cid;
+            }
+        } catch (e) {}
+
         if (window.hrOnboardingStore) {
             window.hrOnboardingStore.setupCloudSync();
             window.hrOnboardingStore.onChange(() => {
                 this.render();
             });
         }
+        this.render();
+    }
+
+    setCandidateId(id) {
+        this.candidateId = id;
         this.render();
     }
 
@@ -27,7 +41,7 @@ class OnboardingViewer {
 
     toggleTask(taskId) {
         if (!window.hrOnboardingStore) return;
-        window.hrOnboardingStore.toggleTaskProgress(taskId);
+        window.hrOnboardingStore.toggleTaskProgress(taskId, this.candidateId);
         this.render();
     }
 
@@ -110,8 +124,12 @@ class OnboardingViewer {
         const container = document.getElementById('onboarding-roadmap-viewer-root');
         if (!container || !window.hrOnboardingStore) return;
 
-        const roadmap = window.hrOnboardingStore.getRoadmap();
-        const progress = window.hrOnboardingStore.getTaskProgress();
+        const candidate = this.candidateId ? window.hrOnboardingStore.getCandidateById(this.candidateId) : null;
+        const roadmap = (candidate && Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length > 0)
+            ? candidate.customRoadmap
+            : window.hrOnboardingStore.getRoadmap();
+
+        const progress = window.hrOnboardingStore.getTaskProgress(this.candidateId);
         const allDocs = (window.salesStore && typeof window.salesStore.getDocuments === 'function')
             ? window.salesStore.getDocuments()
             : [];
@@ -137,16 +155,31 @@ class OnboardingViewer {
                 <div class="bg-white rounded-2xl border border-indigo-100 shadow-sm p-5 sm:p-6 relative overflow-hidden">
                     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div class="space-y-1.5 max-w-2xl">
-                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-bold">
-                                <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
-                                <span>CỔNG ĐÀO TẠO & HỘI NHẬP NHÂN SỰ MỚI • ETRON HCM</span>
-                            </div>
-                            <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
-                                Lộ Trình Onboard & Tài Liệu Đào Tạo Chuẩn
-                            </h1>
-                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                                Chào mừng bạn gia nhập đội ngũ Etron HCM! Dưới đây là kế hoạch học tập từng ngày và các tài liệu quan trọng giúp bạn nhanh chóng làm chủ giải pháp <strong>Adahub CRM</strong> & <strong>Callbot AI Ucall</strong>.
-                            </p>
+                            ${candidate ? `
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold">
+                                    <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                    <span>LỘ TRÌNH DÀNH RIÊNG CHO: ${this.escapeHtml(candidate.fullName).toUpperCase()}</span>
+                                </div>
+                                <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                                    Chào mừng ${this.escapeHtml(candidate.fullName)} gia nhập Etron HCM! 🎉
+                                </h1>
+                                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                    Vị trí: <strong>${this.escapeHtml(candidate.role || 'Chuyên viên Kinh doanh')}</strong> • 
+                                    Ngày nhận việc: <strong>${window.hrOnboardingStore.formatDateDisplay(candidate.startDate)}</strong>
+                                    ${candidate.mentor ? ` • Đồng hành: <strong>${this.escapeHtml(candidate.mentor)}</strong>` : ''}
+                                </p>
+                            ` : `
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-bold">
+                                    <i data-lucide="graduation-cap" class="w-3.5 h-3.5"></i>
+                                    <span>CỔNG ĐÀO TẠO & HỘI NHẬP NHÂN SỰ MỚI • ETRON HCM</span>
+                                </div>
+                                <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                                    Lộ Trình Onboard & Tài Liệu Đào Tạo Chuẩn
+                                </h1>
+                                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                    Chào mừng bạn gia nhập đội ngũ Etron HCM! Dưới đây là kế hoạch học tập từng ngày và các tài liệu quan trọng giúp bạn nhanh chóng làm chủ giải pháp <strong>Adahub CRM</strong> & <strong>Callbot AI Ucall</strong>.
+                                </p>
+                            `}
                         </div>
 
                         <!-- Khung Tiến độ hoàn thành -->

@@ -160,7 +160,8 @@ const DEFAULT_HR_CANDIDATES = [
         fullName: 'Nhân sự Sales mới (Onboard Thứ 2)',
         role: 'Chuyên viên Kinh doanh (Sales Executive)',
         department: 'Kinh doanh - Etron HCM',
-        startDate: 'Thứ Hai tuần này',
+        startDate: '2026-10-19',
+        dob: '1998-10-22',
         phone: '',
         email: '',
         mentor: 'Quản lý / HR Etron HCM',
@@ -169,6 +170,8 @@ const DEFAULT_HR_CANDIDATES = [
         accountsInfo: 'Adahub CRM: Chưa cấp | Callbot Ucall: Chưa cấp',
         privateNote: 'Hồ sơ chuẩn bị đón bạn nhân sự mới vào sáng Thứ 2. Bấm "Sửa hồ sơ" để cập nhật họ tên và SĐT thực tế của bạn ấy.',
         checklist: createDefaultChecklistItems(),
+        taskProgress: {},
+        customRoadmap: null,
         updatedAt: Date.now()
     }
 ];
@@ -407,7 +410,13 @@ class HrOnboardingStore {
     }
 
     // ==================== NEW HIRE TASK PROGRESS ====================
-    getTaskProgress() {
+    getTaskProgress(candidateId = null) {
+        if (candidateId) {
+            const cand = this.getCandidateById(candidateId);
+            if (cand && cand.taskProgress) {
+                return cand.taskProgress;
+            }
+        }
         try {
             const raw = localStorage.getItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS);
             return raw ? JSON.parse(raw) : {};
@@ -416,7 +425,20 @@ class HrOnboardingStore {
         }
     }
 
-    toggleTaskProgress(taskId) {
+    toggleTaskProgress(taskId, candidateId = null) {
+        if (candidateId) {
+            const list = this.getCandidates();
+            const cand = list.find(c => c.id === candidateId);
+            if (cand) {
+                if (!cand.taskProgress) cand.taskProgress = {};
+                cand.taskProgress[taskId] = !cand.taskProgress[taskId];
+                cand.updatedAt = Date.now();
+                this.saveCandidates(list);
+                this.notifyChange('progress');
+                return !!cand.taskProgress[taskId];
+            }
+        }
+
         const progress = this.getTaskProgress();
         progress[taskId] = !progress[taskId];
         localStorage.setItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS, JSON.stringify(progress));
@@ -440,6 +462,11 @@ class HrOnboardingStore {
         return JSON.parse(JSON.stringify(DEFAULT_HR_CANDIDATES));
     }
 
+    getCandidateById(id) {
+        if (!id) return null;
+        return this.getCandidates().find(c => c.id === id) || null;
+    }
+
     saveCandidates(list, syncToCloud = true) {
         localStorage.setItem(HR_STORAGE_KEYS.CANDIDATES, JSON.stringify(list));
         if (syncToCloud && window.firebaseDb) {
@@ -449,6 +476,65 @@ class HrOnboardingStore {
             }).catch(err => console.warn('Cloud sync candidates error:', err));
         }
         this.notifyChange('candidates');
+    }
+
+    formatDateDisplay(dateStr) {
+        if (!dateStr) return 'Chưa cập nhật';
+        const clean = String(dateStr).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+            const [y, m, d] = clean.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            const daysOfWeek = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+            const dow = daysOfWeek[date.getDay()];
+            const padD = String(d).padStart(2, '0');
+            const padM = String(m).padStart(2, '0');
+            return `${dow}, ${padD}/${padM}/${y}`;
+        }
+        return clean;
+    }
+
+    formatShortDate(dateStr) {
+        if (!dateStr) return '---';
+        const clean = String(dateStr).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+            const [, m, d] = clean.split('-');
+            return `${d}/${m}`;
+        }
+        return clean;
+    }
+
+    getUpcomingBirthdays(daysAhead = 7) {
+        const candidates = this.getCandidates().filter(c => c.status !== 'paused');
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const todayTime = new Date(currentYear, now.getMonth(), now.getDate()).getTime();
+
+        const list = [];
+        candidates.forEach(cand => {
+            if (!cand.dob || !/^\d{4}-\d{2}-\d{2}$/.test(cand.dob)) return;
+            const [bYear, bMonth, bDay] = cand.dob.split('-').map(Number);
+
+            // Sinh nhật trong năm nay
+            let nextBday = new Date(currentYear, bMonth - 1, bDay);
+            if (nextBday.getTime() < todayTime) {
+                // Đã qua sinh nhật năm nay, tính sinh nhật năm sau
+                nextBday = new Date(currentYear + 1, bMonth - 1, bDay);
+            }
+
+            const diffDays = Math.round((nextBday.getTime() - todayTime) / (1000 * 60 * 60 * 24));
+            if (diffDays <= daysAhead) {
+                const turningAge = nextBday.getFullYear() - bYear;
+                list.push({
+                    candidate: cand,
+                    daysLeft: diffDays,
+                    formattedDate: `${String(bDay).padStart(2, '0')}/${String(bMonth).padStart(2, '0')}`,
+                    fullDob: `${String(bDay).padStart(2, '0')}/${String(bMonth).padStart(2, '0')}/${bYear}`,
+                    turningAge: turningAge
+                });
+            }
+        });
+
+        return list.sort((a, b) => a.daysLeft - b.daysLeft);
     }
 
     createDefaultChecklist() {

@@ -236,11 +236,14 @@
         <!-- ========================================== -->
         <!-- TAB 1: HỒ SƠ & CHECKLIST NHÂN SỰ MỚI       -->
         <!-- ========================================== -->
-        <div id="hr-view-candidates" class="hr-tab-view">
+        <div id="hr-view-candidates" class="hr-tab-view space-y-4">
+            <!-- Widget Thông Báo Sinh Nhật Sắp Tới (Tự động hiển thị khi có sinh nhật trong 7 ngày tới) -->
+            <div id="hr-birthday-alert-container"></div>
+
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <!-- Cột Trái: Danh sách Nhân sự mới -->
-                <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3">
-                    <div class="flex items-center justify-between">
+                <!-- Cột Trái: Danh sách Nhân sự (Cố định khi cuộn trang, cuộn độc lập bên trong) -->
+                <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-3 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] flex flex-col">
+                    <div class="flex items-center justify-between shrink-0">
                         <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                             <i data-lucide="users" class="w-4 h-4 text-emerald-600"></i>
                             <span>Danh sách Nhân sự</span>
@@ -252,14 +255,14 @@
                         </button>
                     </div>
 
-                    <div class="relative">
+                    <div class="relative shrink-0">
                         <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
                         <input type="text" placeholder="Tìm họ tên, SĐT, vị trí..."
                             oninput="window.hrHub.candidateSearch = this.value; window.hrHub.renderCandidatesTab();"
                             class="w-full text-xs pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500">
                     </div>
 
-                    <div id="hr-candidates-list" class="space-y-2.5 max-h-[65vh] overflow-y-auto pr-0.5">
+                    <div id="hr-candidates-list" class="space-y-2.5 overflow-y-auto pr-0.5 flex-1 max-h-[60vh] lg:max-h-[calc(100vh-14rem)]" style="overscroll-behavior: contain;">
                         <!-- Rendered by hr-hub.js -->
                     </div>
                 </div>
@@ -473,9 +476,20 @@
                             class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500">
                     </div>
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Ngày bắt đầu Onboard</label>
-                        <input type="text" id="hr-cand-start" placeholder="VD: Thứ Hai (20/10)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500">
+                        <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
+                            <span>Ngày bắt đầu Onboard *</span>
+                        </label>
+                        <input type="date" id="hr-cand-start" required
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                            <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
+                            <span>Ngày tháng năm sinh (Sinh nhật)</span>
+                        </label>
+                        <input type="date" id="hr-cand-dob"
+                            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Số điện thoại / Zalo</label>

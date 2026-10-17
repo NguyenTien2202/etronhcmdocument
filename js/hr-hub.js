@@ -31,12 +31,17 @@ class HrHubApp {
         this.enteredPin = '';
     }
 
-    getPublicOnboardUrl() {
+    getPublicOnboardUrl(candidateId = null) {
         try {
             const url = new URL('onboard.html', window.location.href);
+            if (candidateId) {
+                url.searchParams.set('id', candidateId);
+            }
             return url.href;
         } catch (e) {
-            return 'https://nguyentien2202.github.io/etronhcmdocument/onboard.html';
+            return candidateId
+                ? `https://nguyentien2202.github.io/etronhcmdocument/onboard.html?id=${encodeURIComponent(candidateId)}`
+                : 'https://nguyentien2202.github.io/etronhcmdocument/onboard.html';
         }
     }
 
@@ -221,12 +226,22 @@ class HrHubApp {
         if (elTpl) elTpl.textContent = templates.length;
     }
 
-    copyOnboardLink() {
-        const link = this.getPublicOnboardUrl();
+    copyOnboardLink(candidateId = null) {
+        const link = this.getPublicOnboardUrl(candidateId);
         navigator.clipboard.writeText(link).then(() => {
-            this.showToast('Đã copy link Cổng Lộ Trình Onboard để gửi cho nhân sự mới!', 'success');
+            this.showToast('Đã copy link Cổng Onboard để gửi cho nhân sự mới!', 'success');
         }).catch(() => {
-            prompt('Copy đường dẫn Cổng Onboard dưới đây gửi cho nhân sự mới:', link);
+            prompt('Copy đường dẫn Cổng Onboard dưới đây:', link);
+        });
+    }
+
+    copyCandidateOnboardLink(candidateId) {
+        const cand = window.hrOnboardingStore.getCandidates().find(c => c.id === candidateId);
+        const link = this.getPublicOnboardUrl(candidateId);
+        navigator.clipboard.writeText(link).then(() => {
+            this.showToast(`Đã copy link Onboard riêng cho ${cand ? cand.fullName : 'nhân sự'}!`, 'success');
+        }).catch(() => {
+            prompt(`Copy link Onboard riêng cho ${cand ? cand.fullName : 'nhân sự'}:`, link);
         });
     }
 
@@ -258,11 +273,11 @@ class HrHubApp {
         if (!cand) return;
         this.quickVars.ten_ung_vien = cand.fullName || 'Bạn';
         this.quickVars.vi_tri = cand.role || 'Chuyên viên Kinh doanh (Sales Executive)';
-        this.quickVars.ngay_onboard = cand.startDate || 'Thứ Hai tuần này';
+        this.quickVars.ngay_onboard = window.hrOnboardingStore.formatDateDisplay(cand.startDate) || 'Thứ Hai tuần này';
         if (cand.mentor) {
             this.quickVars.nguoi_lien_he = cand.mentor;
         }
-        this.quickVars.link_onboard = this.getPublicOnboardUrl();
+        this.quickVars.link_onboard = this.getPublicOnboardUrl(cand.id);
     }
 
     jumpToTemplatesForCandidate(candId) {
@@ -274,12 +289,90 @@ class HrHubApp {
         this.showToast(`Đã điền sẵn thông tin của "${cand ? cand.fullName : 'ứng viên'}" vào các mẫu Email/Tin nhắn!`, 'success');
     }
 
+    renderBirthdayAlertWidget() {
+        const container = document.getElementById('hr-birthday-alert-container');
+        if (!container) return;
+
+        const upcoming = (window.hrOnboardingStore && typeof window.hrOnboardingStore.getUpcomingBirthdays === 'function')
+            ? window.hrOnboardingStore.getUpcomingBirthdays(7)
+            : [];
+
+        if (!upcoming || upcoming.length === 0) {
+            container.innerHTML = '';
+            container.classList.add('hidden');
+            return;
+        }
+
+        container.classList.remove('hidden');
+        container.innerHTML = `
+            <div class="bg-gradient-to-r from-amber-500/10 via-pink-500/10 to-rose-500/10 border border-amber-300/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-rose-500 text-white flex items-center justify-center shadow-xs shrink-0">
+                            <i data-lucide="cake" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                <span>Nhắc Nhở Sinh Nhật Sắp Tới (${upcoming.length} nhân sự)</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white">Trong 7 ngày tới</span>
+                            </h3>
+                            <p class="text-[11px] sm:text-xs text-slate-600">Chuẩn bị lời chúc hoặc quà sinh nhật từ Etron HCM để tạo niềm vui cho bạn ấy nhé!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    ${upcoming.map(item => {
+                        const cand = item.candidate;
+                        const isToday = item.daysLeft === 0;
+                        return `
+                            <div class="bg-white/95 rounded-xl border ${isToday ? 'border-rose-300 ring-2 ring-rose-500/20' : 'border-amber-200'} p-3 flex items-center justify-between gap-3 shadow-2xs">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <h4 class="text-xs font-extrabold text-slate-900 truncate">${this.escapeHtml(cand.fullName)}</h4>
+                                        ${isToday
+                                            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-rose-500 text-white animate-pulse shrink-0">🎉 Sinh nhật hôm nay!</span>`
+                                            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 shrink-0">Còn ${item.daysLeft} ngày</span>`
+                                        }
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 truncate mt-0.5">
+                                        Sinh nhật: <strong class="text-slate-800">${item.formattedDate}</strong> (tròn ${item.turningAge} tuổi) • ${this.escapeHtml(cand.role || 'Sales')}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <button type="button" onclick="window.hrHub.jumpToTemplatesForCandidate('${cand.id}')"
+                                        class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center gap-1 transition-all"
+                                        title="Soạn tin nhắn chúc mừng sinh nhật">
+                                        <i data-lucide="send" class="w-3 h-3"></i>
+                                        <span class="hidden sm:inline">Chúc mừng</span>
+                                    </button>
+                                    <button type="button" onclick="window.hrHub.selectCandidate('${cand.id}')"
+                                        class="p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-all"
+                                        title="Xem hồ sơ">
+                                        <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
     renderCandidatesTab() {
+        this.renderBirthdayAlertWidget();
+
         const listEl = document.getElementById('hr-candidates-list');
         const detailEl = document.getElementById('hr-candidate-detail');
         if (!listEl || !detailEl) return;
 
         const allCandidates = window.hrOnboardingStore.getCandidates();
+        const upcomingBirthdays = (typeof window.hrOnboardingStore.getUpcomingBirthdays === 'function')
+            ? window.hrOnboardingStore.getUpcomingBirthdays(7)
+            : [];
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+
         const filtered = allCandidates.filter(c => {
             if (this.candidateFilter !== 'all' && c.status !== this.candidateFilter) return false;
             if (this.candidateSearch) {
@@ -311,6 +404,29 @@ class HrHubApp {
                 const doneCount = checklist.filter(i => i.done).length;
                 const pct = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
 
+                // Tiến độ học riêng của bạn này
+                const candProgress = c.taskProgress || {};
+                let candTotalLearn = 0;
+                let candDoneLearn = 0;
+                roadmap.forEach(d => (d.tasks || []).forEach(t => {
+                    candTotalLearn++;
+                    if (candProgress[t.id]) candDoneLearn++;
+                }));
+                const candLearnPct = candTotalLearn > 0 ? Math.round((candDoneLearn / candTotalLearn) * 100) : 0;
+
+                // Huy hiệu sinh nhật sắp tới
+                let bdayBadge = '';
+                const bdayInfo = upcomingBirthdays.find(u => u.candidate.id === c.id);
+                if (bdayInfo) {
+                    if (bdayInfo.daysLeft === 0) {
+                        bdayBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-rose-500 text-white flex items-center gap-0.5 animate-pulse shrink-0"><i data-lucide="cake" class="w-3 h-3"></i> Sinh nhật!</span>`;
+                    } else {
+                        bdayBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-0.5 shrink-0"><i data-lucide="cake" class="w-3 h-3 text-amber-600"></i> ${bdayInfo.daysLeft} ngày</span>`;
+                    }
+                }
+
+                const displayStartDate = window.hrOnboardingStore.formatDateDisplay(c.startDate);
+
                 return `
                     <div onclick="window.hrHub.selectCandidate('${c.id}')"
                         class="p-3.5 rounded-xl border transition-all cursor-pointer ${
@@ -320,18 +436,21 @@ class HrHubApp {
                         }">
                         <div class="flex items-start justify-between gap-2 mb-1">
                             <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${this.escapeHtml(c.fullName)}</h4>
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusMeta.bg}">
-                                ${statusMeta.label}
-                            </span>
+                            <div class="flex items-center gap-1 shrink-0">
+                                ${bdayBadge}
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusMeta.bg}">
+                                    ${statusMeta.label}
+                                </span>
+                            </div>
                         </div>
                         <p class="text-[11px] text-slate-600 truncate">${this.escapeHtml(c.role || 'Nhân viên Kinh doanh')}</p>
                         <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 pt-2 border-t border-slate-100">
                             <span class="flex items-center gap-1">
                                 <i data-lucide="calendar" class="w-3 h-3 text-emerald-600"></i>
-                                <span>${this.escapeHtml(c.startDate || 'Chưa rõ')}</span>
+                                <span>${this.escapeHtml(displayStartDate)}</span>
                             </span>
-                            <span class="font-bold ${pct === 100 ? 'text-emerald-600' : 'text-indigo-600'}">
-                                Checklist: ${doneCount}/${checklist.length} (${pct}%)
+                            <span class="font-bold text-slate-700">
+                                Checklist: ${doneCount}/${checklist.length} • Học: <span class="${candLearnPct === 100 ? 'text-emerald-600 font-extrabold' : 'text-indigo-600'}">${candLearnPct}%</span>
                             </span>
                         </div>
                     </div>
@@ -364,14 +483,13 @@ class HrHubApp {
         const doneCount = checklist.filter(i => i.done).length;
         const pct = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
 
-        // Tiến độ tự học của nhân sự trên trang Onboard
-        const roadmap = window.hrOnboardingStore.getRoadmap();
-        const learnProgress = window.hrOnboardingStore.getTaskProgress();
+        // Tiến độ tự học riêng của nhân sự này trên Cổng Onboard
+        const candLearnProgress = activeCand.taskProgress || {};
         let totalLearn = 0;
         let doneLearn = 0;
         roadmap.forEach(d => (d.tasks || []).forEach(t => {
             totalLearn++;
-            if (learnProgress[t.id]) doneLearn++;
+            if (candLearnProgress[t.id]) doneLearn++;
         }));
         const learnPct = totalLearn > 0 ? Math.round((doneLearn / totalLearn) * 100) : 0;
 
@@ -381,6 +499,25 @@ class HrHubApp {
             { id: 'accounts', title: '3. Cấp phát Tài khoản & Công cụ làm việc', icon: 'key-round', color: 'indigo' },
             { id: 'evaluation', title: '4. Theo dõi & Đánh giá quá trình Onboard / Thử việc', icon: 'award', color: 'emerald' }
         ];
+
+        // Format ngày bắt đầu & ngày sinh
+        const displayStartDate = window.hrOnboardingStore.formatDateDisplay(activeCand.startDate);
+        const activeBdayInfo = upcomingBirthdays.find(u => u.candidate.id === activeCand.id);
+        let dobDisplay = 'Chưa cập nhật';
+        if (activeCand.dob && /^\d{4}-\d{2}-\d{2}$/.test(activeCand.dob)) {
+            const [bYear, bMonth, bDay] = activeCand.dob.split('-');
+            const age = new Date().getFullYear() - Number(bYear);
+            dobDisplay = `${bDay}/${bMonth}/${bYear} (${age} tuổi)`;
+            if (activeBdayInfo) {
+                if (activeBdayInfo.daysLeft === 0) {
+                    dobDisplay += ` • <span class="text-rose-600 font-extrabold">🎉 Sinh nhật hôm nay!</span>`;
+                } else {
+                    dobDisplay += ` • <span class="text-amber-600 font-bold">(còn ${activeBdayInfo.daysLeft} ngày)</span>`;
+                }
+            }
+        }
+
+        const candOnboardUrl = this.getPublicOnboardUrl(activeCand.id);
 
         detailEl.innerHTML = `
             <div class="space-y-5">
@@ -401,15 +538,28 @@ class HrHubApp {
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
+                            <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
+                                class="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1.5 shadow-2xs"
+                                title="Copy link Cổng Onboard riêng của nhân sự này để gửi cho bạn ấy">
+                                <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                                <span>Copy Link Onboard</span>
+                            </button>
+                            <a href="${candOnboardUrl}" target="_blank"
+                                class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all flex items-center gap-1.5"
+                                title="Mở xem Cổng Onboard với tư cách nhân sự này">
+                                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                <span class="hidden sm:inline">Mở Cổng Bạn Ấy</span>
+                            </a>
                             <button type="button" onclick="window.hrHub.jumpToTemplatesForCandidate('${activeCand.id}')"
-                                class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all flex items-center gap-1.5">
+                                class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1.5"
+                                title="Soạn email hoặc tin nhắn Zalo gửi nhân sự này">
                                 <i data-lucide="mail-plus" class="w-3.5 h-3.5"></i>
-                                <span>Soạn Mail / Tin nhắn</span>
+                                <span class="hidden sm:inline">Mẫu tin</span>
                             </button>
                             <button type="button" onclick="window.hrHub.openCandidateModal('${activeCand.id}')"
                                 class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1.5">
                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
-                                <span>Sửa hồ sơ</span>
+                                <span>Sửa</span>
                             </button>
                             <button type="button" onclick="window.hrHub.deleteCandidate('${activeCand.id}')"
                                 class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all" title="Xóa hồ sơ">
@@ -419,19 +569,26 @@ class HrHubApp {
                     </div>
 
                     <!-- Lưới thông tin chi tiết -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-4 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4 text-xs">
                         <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                             <span class="text-[11px] text-slate-400 block mb-0.5">Ngày bắt đầu Onboard</span>
                             <strong class="text-slate-800 font-bold flex items-center gap-1.5">
                                 <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                <span>${this.escapeHtml(activeCand.startDate || 'Chưa cập nhật')}</span>
+                                <span>${this.escapeHtml(displayStartDate)}</span>
+                            </strong>
+                        </div>
+                        <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+                            <span class="text-[11px] text-slate-400 block mb-0.5">Ngày sinh nhật</span>
+                            <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
+                                <span>${dobDisplay}</span>
                             </strong>
                         </div>
                         <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
                             <span class="text-[11px] text-slate-400 block mb-0.5">Số điện thoại / Zalo</span>
                             <strong class="text-slate-800 font-bold flex items-center gap-1.5">
                                 <i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                <span>${this.escapeHtml(activeCand.phone || 'Bấm "Sửa hồ sơ" để thêm')}</span>
+                                <span>${this.escapeHtml(activeCand.phone || 'Chưa cập nhật')}</span>
                             </strong>
                         </div>
                         <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
@@ -445,6 +602,16 @@ class HrHubApp {
                             <strong class="text-slate-800 font-bold truncate block">
                                 ${this.escapeHtml(activeCand.mentor || 'Quản lý / HR')}
                             </strong>
+                        </div>
+                        <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
+                            <div class="min-w-0 pr-2">
+                                <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
+                                <span class="text-[10px] text-slate-500 font-mono truncate block">${activeCand.fullName} (?id=${activeCand.id})</span>
+                            </div>
+                            <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
+                                class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs" title="Copy link">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -485,7 +652,7 @@ class HrHubApp {
                             <div class="flex items-center justify-between text-xs mb-1.5">
                                 <span class="font-bold text-indigo-950 flex items-center gap-1.5">
                                     <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
-                                    Tiến độ Nhân sự học trên Cổng Onboard
+                                    Tiến độ bạn ấy học trên Cổng Onboard
                                 </span>
                                 <span class="font-extrabold text-indigo-700">${doneLearn}/${totalLearn} (${learnPct}%)</span>
                             </div>
@@ -651,7 +818,23 @@ class HrHubApp {
         document.getElementById('hr-cand-modal-title').textContent = cand ? 'Cập Nhật Hồ Sơ Nhân Sự' : 'Thêm Hồ Sơ Nhân Sự Mới';
         document.getElementById('hr-cand-name').value = cand ? (cand.fullName || '') : '';
         document.getElementById('hr-cand-role').value = cand ? (cand.role || 'Chuyên viên Kinh doanh (Sales Executive)') : 'Chuyên viên Kinh doanh (Sales Executive)';
-        document.getElementById('hr-cand-start').value = cand ? (cand.startDate || 'Thứ Hai tuần này') : 'Thứ Hai tuần này';
+
+        // Start Date: pick existing ISO date or compute next Monday
+        let defaultStart = '';
+        if (cand && cand.startDate && /^\d{4}-\d{2}-\d{2}$/.test(cand.startDate)) {
+            defaultStart = cand.startDate;
+        } else if (!cand) {
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday
+            const daysUntilMonday = ((1 + 7 - dayOfWeek) % 7) || 7;
+            const nextMon = new Date(today.getFullYear(), today.getMonth(), today.getDate() + daysUntilMonday);
+            const y = nextMon.getFullYear();
+            const m = String(nextMon.getMonth() + 1).padStart(2, '0');
+            const d = String(nextMon.getDate()).padStart(2, '0');
+            defaultStart = `${y}-${m}-${d}`;
+        }
+        document.getElementById('hr-cand-start').value = defaultStart;
+        document.getElementById('hr-cand-dob').value = (cand && cand.dob) ? cand.dob : '';
         document.getElementById('hr-cand-phone').value = cand ? (cand.phone || '') : '';
         document.getElementById('hr-cand-email').value = cand ? (cand.email || '') : '';
         document.getElementById('hr-cand-mentor').value = cand ? (cand.mentor || 'Quản lý / HR Etron HCM') : 'Quản lý / HR Etron HCM';
@@ -677,19 +860,28 @@ class HrHubApp {
             return;
         }
 
+        const startDate = document.getElementById('hr-cand-start').value.trim();
+        const dob = document.getElementById('hr-cand-dob').value.trim();
+        if (!startDate) {
+            alert('Vui lòng chọn Ngày bắt đầu Onboard!');
+            return;
+        }
+
         const list = window.hrOnboardingStore.getCandidates();
         let target = id ? list.find(c => c.id === id) : null;
 
         if (target) {
             target.fullName = fullName;
             target.role = document.getElementById('hr-cand-role').value.trim();
-            target.startDate = document.getElementById('hr-cand-start').value.trim();
+            target.startDate = startDate;
+            target.dob = dob;
             target.phone = document.getElementById('hr-cand-phone').value.trim();
             target.email = document.getElementById('hr-cand-email').value.trim();
             target.mentor = document.getElementById('hr-cand-mentor').value.trim();
             target.status = document.getElementById('hr-cand-status').value;
             target.accountsInfo = document.getElementById('hr-cand-accounts').value.trim();
             target.salaryNote = document.getElementById('hr-cand-salary').value.trim();
+            if (!target.taskProgress) target.taskProgress = {};
             target.updatedAt = Date.now();
         } else {
             target = {
@@ -697,7 +889,8 @@ class HrHubApp {
                 fullName: fullName,
                 role: document.getElementById('hr-cand-role').value.trim(),
                 department: 'Kinh doanh - Etron HCM',
-                startDate: document.getElementById('hr-cand-start').value.trim(),
+                startDate: startDate,
+                dob: dob,
                 phone: document.getElementById('hr-cand-phone').value.trim(),
                 email: document.getElementById('hr-cand-email').value.trim(),
                 mentor: document.getElementById('hr-cand-mentor').value.trim(),
@@ -705,6 +898,7 @@ class HrHubApp {
                 accountsInfo: document.getElementById('hr-cand-accounts').value.trim(),
                 salaryNote: document.getElementById('hr-cand-salary').value.trim(),
                 privateNote: '',
+                taskProgress: {},
                 checklist: window.hrOnboardingStore.createDefaultChecklist(),
                 updatedAt: Date.now()
             };
