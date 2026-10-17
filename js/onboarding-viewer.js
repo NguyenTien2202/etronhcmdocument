@@ -12,6 +12,26 @@ class OnboardingViewer {
         this.candidateId = null;
         this.expandedModules = new Set();
         this.collapsedDays = new Set();
+        this.isDayDropdownOpen = false;
+    }
+
+    toggleDayDropdown(e, forceState = null) {
+        if (e) {
+            e.stopPropagation();
+            if (e.target && e.target.closest && e.target.closest('#onboard-day-dropdown-menu')) {
+                return;
+            }
+        }
+        this.isDayDropdownOpen = forceState !== null ? forceState : !this.isDayDropdownOpen;
+        const menu = document.getElementById('onboard-day-dropdown-menu');
+        const arrow = document.getElementById('onboard-day-dropdown-arrow');
+        if (menu) {
+            menu.classList.toggle('hidden', !this.isDayDropdownOpen);
+        }
+        if (arrow) {
+            arrow.classList.toggle('rotate-180', this.isDayDropdownOpen);
+        }
+        if (window.lucide) lucide.createIcons();
     }
 
     toggleDay(dayId) {
@@ -83,6 +103,19 @@ class OnboardingViewer {
             try { window.hrOnboardingStore.openPersonalLink(token); }
             catch (_) { window.hrOnboardingStore.personalUnavailable = true; }
         }
+
+        if (typeof document !== 'undefined' && document.addEventListener) {
+            document.addEventListener('click', (e) => {
+                if (this.isDayDropdownOpen && !e.target.closest('#onboard-day-dropdown-container')) {
+                    this.isDayDropdownOpen = false;
+                    const menu = document.getElementById('onboard-day-dropdown-menu');
+                    if (menu) menu.classList.add('hidden');
+                    const arrow = document.getElementById('onboard-day-dropdown-arrow');
+                    if (arrow) arrow.classList.remove('rotate-180');
+                }
+            });
+        }
+
         this.render();
     }
 
@@ -94,6 +127,7 @@ class OnboardingViewer {
     setDayFilter(dayId) {
         this.userSelectedFilter = true;
         this.activeDayFilter = dayId;
+        this.isDayDropdownOpen = false;
         this.render();
     }
 
@@ -281,146 +315,117 @@ class OnboardingViewer {
             ? roadmap
             : roadmap.filter(d => d.id === this.activeDayFilter);
 
+        const selectedDay = roadmap.find(d => d.id === this.activeDayFilter);
+        const selectedDayLabel = this.activeDayFilter === 'all'
+            ? `Tất cả lộ trình (${roadmap.length} ngày)`
+            : (selectedDay ? `${selectedDay.dayNumber}: ${this.cleanTaskTitle(selectedDay.title)}` : `Tất cả (${roadmap.length} ngày)`);
+        const isSelectedDayToday = selectedDay && exactTodayDayId === selectedDay.id;
+
         container.innerHTML = `
-            <div class="space-y-6">
-                <!-- Banner chào mừng & Tổng quan tiến độ học tập -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 sm:p-7 relative overflow-hidden">
-                    <!-- Decorative Top Accent Bar -->
-                    <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-teal-400 to-emerald-500"></div>
+            <div class="space-y-5">
+                <!-- Compact Onboard Header Card (Tinh gọn, tối ưu trên cả điện thoại và máy tính) -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs p-3.5 sm:p-4 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-teal-400 to-emerald-500"></div>
 
-                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pt-1">
-                        <!-- Cột trái: Thông tin nhân sự & Định hướng -->
-                        <div class="space-y-3 max-w-2xl min-w-0">
-                            ${candidate ? `
-                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 text-[11px] font-extrabold tracking-wide uppercase shadow-2xs">
-                                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                    <span>Lộ Trình Cá Nhân Hóa</span>
+                    <!-- Header Row: Info & Mini Progress Bar -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
+                        <!-- Left: Avatar + Title & Meta -->
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-emerald-600 text-white flex items-center justify-center shrink-0 font-black text-xs shadow-xs">
+                                ${this.escapeHtml((candidate?.fullName || 'E').charAt(0).toUpperCase())}
+                            </div>
+                            <div class="min-w-0 flex-1 space-y-0.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <h1 class="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight leading-snug truncate">
+                                        ${candidate ? `Chào mừng <span class="text-indigo-600">${this.escapeHtml(candidate.fullName)}</span> 🎉` : 'Lộ Trình Đào Tạo Hội Nhập'}
+                                    </h1>
+                                    ${learning.isOverdue ? `<span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shrink-0">Quá hạn</span>` : ''}
                                 </div>
-                                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                                    Chào mừng <span class="text-indigo-600">${this.escapeHtml(candidate.fullName)}</span> gia nhập Etron HCM! 🎉
-                                </h1>
-                                <div class="flex flex-wrap items-center gap-2 pt-0.5">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200/80">
-                                        <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-500"></i>
-                                        <span>${this.escapeHtml(candidate.role || 'Chuyên viên Kinh doanh')}</span>
-                                    </span>
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200/80">
-                                        <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                        <span>Bắt đầu: ${window.hrOnboardingStore.formatDateDisplay(candidate.startDate)}</span>
-                                    </span>
-                                    ${candidate.mentor ? `
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200/80">
-                                            <i data-lucide="user-check" class="w-3.5 h-3.5 text-amber-600"></i>
-                                            <span>Đồng hành: ${this.escapeHtml(candidate.mentor)}</span>
-                                        </span>
-                                    ` : ''}
-                                    ${candidate.targetDate ? `
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-200/80">
-                                            <i data-lucide="clock" class="w-3.5 h-3.5 text-violet-600"></i>
-                                            <span>Hạn chót: ${this.escapeHtml(candidate.targetDate)}</span>
-                                        </span>
-                                    ` : ''}
-                                    ${learning.isOverdue ? `
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold border border-rose-200">
-                                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600"></i>
-                                            <span>Quá hạn</span>
-                                        </span>
-                                    ` : ''}
-                                </div>
-                            ` : `
-                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/80 text-[11px] font-extrabold tracking-wide uppercase shadow-2xs">
-                                    <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                    <span>Cổng Đào Tạo Hội Nhập • Etron HCM</span>
-                                </div>
-                                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
-                                    Lộ Trình Onboard & Tài Liệu Đào Tạo Chuẩn
-                                </h1>
-                                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                                    Chào mừng bạn gia nhập đội ngũ Etron HCM! Dưới đây là kế hoạch học tập từng ngày và các tài liệu quan trọng giúp bạn nhanh chóng làm chủ giải pháp <strong>Adahub CRM</strong> & <strong>Callbot AI Ucall</strong>.
-                                </p>
-                            `}
-
-                            <!-- Thẻ Ưu tiên tiếp theo -->
-                            <div class="flex items-center gap-2.5 p-3 rounded-2xl bg-indigo-50/70 border border-indigo-100/90 text-xs mt-1">
-                                <div class="w-7 h-7 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                                    <i data-lucide="compass" class="w-4 h-4"></i>
-                                </div>
-                                <div class="min-w-0 flex flex-wrap items-center gap-1.5">
-                                    <span class="font-extrabold uppercase tracking-wider text-indigo-700 text-[11px]">Ưu tiên tiếp theo:</span>
-                                    <span class="font-semibold text-slate-800">${learning.nextDay ? this.escapeHtml(learning.nextDay.title) : 'Bạn đã xuất sắc hoàn thành tất cả các mục! 🌟'}</span>
+                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-slate-500">
+                                    <span>${this.escapeHtml(candidate?.role || 'Nhân viên Kinh doanh')}</span>
+                                    <span>•</span>
+                                    <span>Bắt đầu: <strong class="text-slate-700 font-semibold">${window.hrOnboardingStore.formatDateDisplay(candidate?.startDate)}</strong></span>
+                                    ${candidate?.mentor ? `<span>•</span><span>Đồng hành: <strong class="text-slate-700 font-semibold">${this.escapeHtml(candidate.mentor)}</strong></span>` : ''}
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Cột phải: Hộp tiến độ đào tạo -->
-                        <div class="bg-gradient-to-br from-slate-50 to-indigo-50/30 rounded-2xl p-5 border border-slate-200/90 shadow-2xs flex flex-col justify-between w-full lg:w-80 shrink-0">
-                            <div class="flex items-center justify-between gap-3 mb-3">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-2xs">
-                                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xs font-bold text-slate-900">Tiến độ Onboard</h3>
-                                        <p class="text-[10px] text-slate-500">Hoàn thành theo từng ngày</p>
-                                    </div>
+                        <!-- Right: Sleek Progress Bar -->
+                        <div class="flex items-center gap-2.5 self-stretch sm:self-center shrink-0 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200/70">
+                            <div class="w-full sm:w-36 space-y-1">
+                                <div class="flex items-center justify-between text-[10px] font-bold">
+                                    <span class="text-slate-500">Tiến độ</span>
+                                    <span class="text-indigo-600">${percent}% <span class="text-slate-400 font-normal">(${completedTasks}/${totalTasks})</span></span>
                                 </div>
-                                <span class="text-base font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200 shadow-2xs">${percent}%</span>
-                            </div>
-
-                            <!-- Thanh tiến độ -->
-                            <div class="w-full h-2.5 bg-slate-200/80 rounded-full overflow-hidden mb-3">
-                                <div class="h-full bg-gradient-to-r from-indigo-600 via-teal-500 to-emerald-500 rounded-full transition-all duration-500 shadow-2xs" style="width: ${percent}%"></div>
-                            </div>
-
-                            <!-- Thống kê mục -->
-                            <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
-                                <span class="text-slate-600 font-medium">Đã xong: <strong class="text-slate-900 font-bold">${completedTasks}/${totalTasks}</strong> mục</span>
-                                <span class="text-[11px] text-indigo-600 font-semibold flex items-center gap-1">
-                                    <i data-lucide="check-square" class="w-3 h-3"></i> Tích để lưu
-                                </span>
+                                <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full transition-all duration-300" style="width: ${percent}%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Thanh chọn Ngày học (Day Pills) -->
-                    <div class="flex items-center justify-between gap-2 pt-4 mt-6 border-t border-slate-100 flex-wrap sm:flex-nowrap">
-                        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 flex-1 min-w-0">
-                            <button type="button" onclick="window.onboardingViewer.setDayFilter('all')"
-                                class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 ${
-                                    this.activeDayFilter === 'all'
-                                        ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/20 border border-indigo-600'
-                                        : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
-                                }">
-                                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                                <span>Tất cả (${roadmap.length} ngày)</span>
+                    <!-- Next Priority Strip -->
+                    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-50/70 border border-indigo-100/90 text-[10px] mt-2">
+                        <i data-lucide="compass" class="w-3 h-3 text-indigo-600 shrink-0"></i>
+                        <span class="font-extrabold text-indigo-900 shrink-0">Ưu tiên:</span>
+                        <span class="text-slate-700 font-medium truncate">${learning.nextDay ? this.escapeHtml(learning.nextDay.title) : 'Bạn đã xuất sắc hoàn thành tất cả các mục! 🌟'}</span>
+                    </div>
+
+                    <!-- Day Filter Dropdown & Toggle All Button Toolbar -->
+                    <div class="flex items-center justify-between gap-2 pt-2 mt-2 border-t border-slate-100">
+                        <!-- Custom Day Filter Dropdown -->
+                        <div id="onboard-day-dropdown-container" class="relative flex-1 min-w-0">
+                            <button type="button" onclick="window.onboardingViewer.toggleDayDropdown(event)"
+                                class="w-full flex items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs text-xs font-bold text-slate-800 transition-all active:scale-[0.99] text-left">
+                                <div class="flex items-center gap-2 min-w-0 flex-1 truncate">
+                                    <i data-lucide="${this.activeDayFilter === 'all' ? 'layers' : 'calendar'}" class="w-4 h-4 text-indigo-600 shrink-0"></i>
+                                    <span class="truncate">${this.escapeHtml(selectedDayLabel)}</span>
+                                    ${isSelectedDayToday ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">Hôm nay</span>` : ''}
+                                </div>
+                                <i id="onboard-day-dropdown-arrow" data-lucide="chevron-down" class="w-4 h-4 text-slate-400 shrink-0 transition-transform ${this.isDayDropdownOpen ? 'rotate-180 text-indigo-600' : ''}"></i>
                             </button>
-                            ${roadmap.map(day => {
-                                const dayTasks = day.tasks || [];
-                                const dayDone = dayTasks.length > 0 && dayTasks.every(t => progress[t.id]);
-                                const isActive = this.activeDayFilter === day.id;
-                                const isToday = exactTodayDayId === day.id;
-                                return `
-                                    <button type="button" onclick="window.onboardingViewer.setDayFilter('${day.id}')"
-                                        data-day-id="${day.id}"
-                                        class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 ${
-                                            isActive
-                                                ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/20 border border-indigo-600'
-                                                : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
-                                        }">
-                                        <span>${this.escapeHtml(day.dayNumber)}</span>
-                                        ${isToday ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold ${isActive ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">Hôm nay</span>` : ''}
-                                        ${dayDone ? `<i data-lucide="check-circle" class="w-3.5 h-3.5 ${isActive ? 'text-emerald-300' : 'text-emerald-600'}"></i>` : ''}
-                                    </button>
-                                `;
-                            }).join('')}
+
+                            <!-- Dropdown Menu -->
+                            <div id="onboard-day-dropdown-menu" class="${this.isDayDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100 max-h-72 overflow-y-auto">
+                                <div onclick="window.onboardingViewer.setDayFilter('all')"
+                                    class="flex items-center justify-between gap-2 p-2 rounded-xl cursor-pointer transition-all ${this.activeDayFilter === 'all' ? 'bg-indigo-50 text-indigo-900 font-extrabold' : 'hover:bg-slate-50 text-slate-700 font-medium'}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <i data-lucide="layers" class="w-3.5 h-3.5 ${this.activeDayFilter === 'all' ? 'text-indigo-600' : 'text-slate-400'} shrink-0"></i>
+                                        <span class="text-xs truncate">Tất cả (${roadmap.length} ngày)</span>
+                                    </div>
+                                    ${this.activeDayFilter === 'all' ? `<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>` : ''}
+                                </div>
+
+                                ${roadmap.map(day => {
+                                    const dayTasks = day.tasks || [];
+                                    const dayDone = dayTasks.length > 0 && dayTasks.every(t => progress[t.id]);
+                                    const isSelected = this.activeDayFilter === day.id;
+                                    const isToday = exactTodayDayId === day.id;
+                                    return `
+                                        <div onclick="window.onboardingViewer.setDayFilter('${day.id}')"
+                                            class="flex items-center justify-between gap-2 p-2 rounded-xl cursor-pointer transition-all ${isSelected ? 'bg-indigo-50 text-indigo-900 font-extrabold' : 'hover:bg-slate-50 text-slate-700 font-medium'}">
+                                            <div class="flex items-center gap-2 min-w-0 flex-1 truncate">
+                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'} shrink-0">${this.escapeHtml(day.dayNumber)}</span>
+                                                <span class="text-xs truncate">${this.escapeHtml(this.cleanTaskTitle(day.title))}</span>
+                                                ${isToday ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-indigo-50 text-indigo-700 border border-indigo-200 shrink-0">Hôm nay</span>` : ''}
+                                            </div>
+                                            <div class="flex items-center gap-1.5 shrink-0">
+                                                ${dayDone ? `<i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>` : ''}
+                                                ${isSelected ? `<i data-lucide="check" class="w-3.5 h-3.5 text-indigo-600"></i>` : ''}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
                         </div>
-                        ${this.activeDayFilter === 'all' ? `
-                            <button type="button" onclick="window.onboardingViewer.toggleAllDays(${this.collapsedDays.size === 0})"
-                                class="px-3 py-2 rounded-xl text-xs font-bold text-slate-600 hover:text-indigo-600 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs whitespace-nowrap flex items-center gap-1.5 active:scale-95 transition-all shrink-0">
-                                <i data-lucide="${this.collapsedDays.size === 0 ? 'fold-vertical' : 'unfold-vertical'}" class="w-3.5 h-3.5"></i>
-                                <span>${this.collapsedDays.size === 0 ? 'Thu gọn tất cả' : 'Mở rộng tất cả'}</span>
-                            </button>
-                        ` : ''}
+
+                        <!-- Icon-only Toggle All Days Button -->
+                        <button type="button" onclick="window.onboardingViewer.toggleAllDays(${this.collapsedDays.size === 0})"
+                            class="p-2.5 rounded-xl border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-600 shadow-2xs transition-all active:scale-95 shrink-0 flex items-center justify-center"
+                            title="${this.collapsedDays.size === 0 ? 'Thu gọn tất cả các ngày' : 'Mở rộng tất cả các ngày'}"
+                            aria-label="${this.collapsedDays.size === 0 ? 'Thu gọn tất cả các ngày' : 'Mở rộng tất cả các ngày'}">
+                            <i data-lucide="${this.collapsedDays.size === 0 ? 'fold-vertical' : 'unfold-vertical'}" class="w-4 h-4"></i>
+                        </button>
                     </div>
                 </div>
 

@@ -294,6 +294,12 @@
                     <div id="hr-mobile-cand-dropdown-wrapper" class="relative">
                         <!-- Rendered by hrHub.renderMobileCandidateDropdown() -->
                     </div>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" placeholder="Tìm họ tên, SĐT, vị trí..."
+                            oninput="window.hrHub.candidateSearch = this.value; window.hrHub.renderCandidatesTab();"
+                            class="w-full text-xs pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 bg-slate-50/50">
+                    </div>
                 </div>
 
                 <!-- Cột Trái: Danh sách Nhân sự (Chỉ hiện trên máy tính Desktop / Màn hình lớn) -->
@@ -361,6 +367,12 @@
                         title="Xem trước giao diện Onboard mẫu" aria-label="Xem trước giao diện Onboard mẫu">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </a>
+                    <button type="button" onclick="window.hrHub.toggleAllRoadmapDays()"
+                        class="px-3 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold shadow-2xs flex items-center gap-1.5 transition-all active:scale-95"
+                        title="Thu gọn hoặc mở rộng toàn bộ các ngày học">
+                        <i data-lucide="fold-vertical" class="w-4 h-4 text-slate-600"></i>
+                        <span class="hidden sm:inline">Thu gọn / Mở rộng</span>
+                    </button>
                     <button type="button" onclick="window.hrHub.openRoadmapDayModal()"
                         class="px-3.5 sm:px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all active:scale-95">
                         <i data-lucide="plus" class="w-4 h-4"></i>
@@ -888,14 +900,14 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/sync-status.js?v=20261017_v80"></script>
+    <script src="js/sync-status.js?v=20261018_v81"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261017_v80"></script>
+    <script src="js/firebase-config.js?v=20261018_v81"></script>
 
     <!-- Scripts -->
-    <script src="js/store.js?v=20261017_v80"></script>
-    <script src="js/document-hub.js?v=20261017_v80"></script>
-    <script src="js/hr-onboarding-data.js?v=20261017_v80"></script>
+    <script src="js/store.js?v=20261018_v81"></script>
+    <script src="js/document-hub.js?v=20261018_v81"></script>
+    <script src="js/hr-onboarding-data.js?v=20261018_v81"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -905,7 +917,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261017_v80"></script>
-    <script src="js/hr-hub.js?v=20261017_v80"></script>
+    <script src="js/hr-auth.js?v=20261018_v81"></script>
+    <script src="js/hr-hub.js?v=20261018_v81"></script>
 </body>
 </html>

@@ -31,16 +31,70 @@ class HrHubApp {
         this.expandedModules = new Set();
         this.linkTargetDayId = null;
         this.linkTargetTaskId = null;
-        this.isCandInfoCollapsed = false;
+        this.expandedCandidateIds = new Set(); // Mặc định khi vào là toàn bộ ứng viên ở dạng thu gọn
+        this.collapsedRoadmapDays = new Set(); // Thu gọn ngày trong tab Lộ trình
         this.isMobileCandDropdownOpen = false;
         this.isTplCandDropdownOpen = false;
         this.isTplCatDropdownOpen = false;
         this.isQuickVarsExpanded = false;
     }
 
-    toggleCandidateInfo() {
-        this.isCandInfoCollapsed = !this.isCandInfoCollapsed;
-        this.renderCandidatesTab();
+    toggleCandidateAccordion(candId) {
+        if (this.expandedCandidateIds.has(candId)) {
+            this.expandedCandidateIds.delete(candId);
+        } else {
+            this.expandedCandidateIds.add(candId);
+            this.selectedCandidateId = candId;
+            const cand = window.hrOnboardingStore.getCandidates().find(c => c.id === candId);
+            if (cand) this.syncQuickVarsFromCandidate(cand);
+        }
+        const bodyEl = document.getElementById(`hr-cand-body-${candId}`);
+        const arrowEl = document.getElementById(`hr-cand-arrow-${candId}`);
+        if (bodyEl) {
+            const isExpanded = this.expandedCandidateIds.has(candId);
+            bodyEl.classList.toggle('hidden', !isExpanded);
+            if (arrowEl) {
+                arrowEl.classList.toggle('rotate-180', isExpanded);
+                arrowEl.classList.toggle('text-emerald-600', isExpanded);
+                arrowEl.classList.toggle('bg-emerald-50', isExpanded);
+            }
+            if (window.lucide) lucide.createIcons();
+        } else {
+            this.renderCandidatesTab();
+        }
+    }
+
+    toggleRoadmapDay(dayId) {
+        if (this.collapsedRoadmapDays.has(dayId)) {
+            this.collapsedRoadmapDays.delete(dayId);
+        } else {
+            this.collapsedRoadmapDays.add(dayId);
+        }
+        const bodyEl = document.getElementById(`hr-day-body-${dayId}`);
+        const chevronEl = document.getElementById(`hr-day-chevron-${dayId}`);
+        if (bodyEl) {
+            const isCollapsed = this.collapsedRoadmapDays.has(dayId);
+            bodyEl.classList.toggle('hidden', isCollapsed);
+            if (chevronEl) {
+                chevronEl.classList.toggle('rotate-180', !isCollapsed);
+                chevronEl.classList.toggle('text-indigo-600', !isCollapsed);
+            }
+            if (window.lucide) lucide.createIcons();
+        } else {
+            this.renderRoadmapTab();
+        }
+    }
+
+    toggleAllRoadmapDays(forceCollapse = null) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const shouldCollapse = forceCollapse !== null ? forceCollapse : (this.collapsedRoadmapDays.size === 0);
+        if (shouldCollapse) {
+            roadmap.forEach(d => this.collapsedRoadmapDays.add(d.id));
+        } else {
+            this.collapsedRoadmapDays.clear();
+        }
+        this.renderRoadmapTab();
+        if (window.lucide) lucide.createIcons();
     }
 
     toggleModule(taskId) {
@@ -93,8 +147,7 @@ class HrHubApp {
         this.setupModalScrollLock();
 
         const candidates = window.hrOnboardingStore.getCandidates();
-        if (candidates.length > 0 && !this.selectedCandidateId) {
-            this.selectedCandidateId = candidates[0].id;
+        if (candidates.length > 0) {
             this.syncQuickVarsFromCandidate(candidates[0]);
         }
 
@@ -229,13 +282,24 @@ class HrHubApp {
 
     selectCandidate(id) {
         this.selectedCandidateId = id;
-        const cand = window.hrOnboardingStore.getCandidates().find(c => c.id === id);
-        if (cand) {
-            this.syncQuickVarsFromCandidate(cand);
+        if (id) {
+            this.expandedCandidateIds.add(id);
+            const cand = window.hrOnboardingStore.getCandidates().find(c => c.id === id);
+            if (cand) {
+                this.syncQuickVarsFromCandidate(cand);
+            }
         }
         this.renderCandidatesTab();
         if (this.currentTab === 'templates') {
             this.renderTemplatesTab();
+        }
+        if (id) {
+            setTimeout(() => {
+                const cardEl = document.getElementById(`hr-cand-card-${id}`);
+                if (cardEl) {
+                    cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }, 100);
         }
         if (window.lucide) lucide.createIcons();
     }
@@ -352,7 +416,8 @@ class HrHubApp {
         if (!wrapper) return;
 
         const allCandidates = window.hrOnboardingStore.getCandidates();
-        const activeCand = allCandidates.find(c => c.id === this.selectedCandidateId) || allCandidates[0];
+        const activeCand = allCandidates.find(c => c.id === this.selectedCandidateId);
+        const isAll = !this.selectedCandidateId || !activeCand;
 
         if (allCandidates.length === 0) {
             wrapper.innerHTML = `
@@ -363,21 +428,21 @@ class HrHubApp {
             return;
         }
 
-        const activeStatusMeta = activeCand ? this.getStatusMeta(activeCand.status) : { label: 'Sắp Onboard', bg: 'bg-amber-100 text-amber-800' };
+        const activeStatusMeta = activeCand ? this.getStatusMeta(activeCand.status) : null;
 
         wrapper.innerHTML = `
             <button type="button" onclick="window.hrHub.toggleMobileCandDropdown(event)"
                 class="w-full flex items-center justify-between gap-2.5 px-3.5 py-2.5 bg-white hover:bg-slate-50 rounded-xl border border-slate-200/90 shadow-2xs transition-all active:scale-[0.99] text-left">
                 <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                    <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 font-extrabold text-xs">
-                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                    <div class="w-7 h-7 rounded-lg ${isAll ? 'bg-slate-100 text-slate-700' : 'bg-emerald-50 text-emerald-700'} flex items-center justify-center shrink-0 font-extrabold text-xs">
+                        <i data-lucide="${isAll ? 'users' : 'user'}" class="w-3.5 h-3.5"></i>
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs font-extrabold text-slate-900 truncate">${this.escapeHtml(activeCand ? activeCand.fullName : 'Chọn nhân sự')}</span>
+                            <span class="text-xs font-extrabold text-slate-900 truncate">${isAll ? `Tất cả hồ sơ nhân sự (${allCandidates.length} bạn)` : this.escapeHtml(activeCand.fullName)}</span>
                             ${activeCand ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${activeStatusMeta.bg}">${activeStatusMeta.label}</span>` : ''}
                         </div>
-                        <p class="text-[11px] text-slate-500 truncate">${this.escapeHtml(activeCand?.role || 'Nhân viên')} • Bắt đầu: ${this.escapeHtml(window.hrOnboardingStore.formatDateDisplay(activeCand?.startDate))}</p>
+                        <p class="text-[11px] text-slate-500 truncate">${isAll ? 'Hiển thị toàn bộ nhân sự ở dạng thu gọn' : `${this.escapeHtml(activeCand.role || 'Nhân viên')} • Bắt đầu: ${this.escapeHtml(window.hrOnboardingStore.formatDateDisplay(activeCand.startDate))}`}</p>
                     </div>
                 </div>
                 <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 shrink-0 transition-transform ${this.isMobileCandDropdownOpen ? 'rotate-180 text-emerald-600' : ''}"></i>
@@ -385,6 +450,23 @@ class HrHubApp {
 
             <!-- Dropdown Menu -->
             <div id="hr-mobile-cand-dropdown-menu" class="${this.isMobileCandDropdownOpen ? '' : 'hidden'} absolute left-0 right-0 top-full mt-1.5 z-50 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200/90 p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100 max-h-72 overflow-y-auto">
+                <!-- Option 1: Tất cả -->
+                <div onclick="window.hrHub.selectCandidate(null); window.hrHub.toggleMobileCandDropdown(null, false);"
+                    class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl cursor-pointer transition-all ${
+                        isAll ? 'bg-emerald-50 text-emerald-900 font-bold' : 'hover:bg-slate-50 text-slate-700'
+                    }">
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-7 h-7 rounded-lg ${isAll ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'} flex items-center justify-center shrink-0 font-bold text-xs">
+                            <i data-lucide="users" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs font-extrabold truncate ${isAll ? 'text-emerald-900' : 'text-slate-900'}">Tất cả hồ sơ nhân sự</p>
+                            <p class="text-[10px] text-slate-500 truncate">${allCandidates.length} bạn nhân sự trong hệ thống</p>
+                        </div>
+                    </div>
+                    ${isAll ? `<i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i>` : ''}
+                </div>
+
                 ${allCandidates.map(c => {
                     const isSelected = c.id === this.selectedCandidateId;
                     const statusMeta = this.getStatusMeta(c.status);
@@ -439,10 +521,6 @@ class HrHubApp {
             }
             return true;
         });
-
-        if (!this.selectedCandidateId && allCandidates.length > 0) {
-            this.selectedCandidateId = allCandidates[0].id;
-        }
 
         // Render Mobile Dropdown Selector (Đồng bộ chuẩn hệ thống)
         this.renderMobileCandidateDropdown();
@@ -516,16 +594,15 @@ class HrHubApp {
             }).join('');
         }
 
-        // Render Right Detail Panel
-        const activeCand = allCandidates.find(c => c.id === this.selectedCandidateId);
-        if (!activeCand) {
+        // Render Right Detail Panel (Tất cả ứng viên dạng Accordion có thể thu gọn / mở rộng)
+        if (filtered.length === 0) {
             detailEl.innerHTML = `
                 <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-3">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center">
                         <i data-lucide="user-plus" class="w-6 h-6"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-800">Chọn một hồ sơ nhân sự hoặc Thêm nhân sự mới</h3>
-                    <p class="text-xs text-slate-500 max-w-md mx-auto">Quản lý trọn vẹn hồ sơ, giấy tờ hành chính, bàn giao tài khoản và tiến độ thử việc cho từng bạn nhân sự mới.</p>
+                    <h3 class="text-sm font-bold text-slate-800">Không tìm thấy hồ sơ nhân sự phù hợp</h3>
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">Thử tìm kiếm với từ khóa khác hoặc bấm nút thêm hồ sơ nhân sự mới.</p>
                     <button type="button" onclick="window.hrHub.openCandidateModal()"
                         class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
                         <i data-lucide="plus" class="w-4 h-4"></i>
@@ -533,23 +610,9 @@ class HrHubApp {
                     </button>
                 </div>
             `;
+            if (window.lucide) lucide.createIcons();
             return;
         }
-
-        const statusMeta = this.getStatusMeta(activeCand.status);
-        const checklist = activeCand.checklist || [];
-        const doneCount = checklist.filter(i => i.done).length;
-        const pct = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
-
-        // Tiến độ tự học riêng của nhân sự này trên Cổng Onboard
-        const candLearnProgress = activeCand.taskProgress || {};
-        let totalLearn = 0;
-        let doneLearn = 0;
-        roadmap.forEach(d => (d.tasks || []).forEach(t => {
-            totalLearn++;
-            if (candLearnProgress[t.id]) doneLearn++;
-        }));
-        const learnPct = totalLearn > 0 ? Math.round((doneLearn / totalLearn) * 100) : 0;
 
         const stages = [
             { id: 'preboard', title: '1. Chuẩn bị trước ngày Onboard (Pre-boarding)', icon: 'calendar-check', color: 'amber' },
@@ -558,305 +621,313 @@ class HrHubApp {
             { id: 'evaluation', title: '4. Theo dõi & Đánh giá quá trình Onboard / Thử việc', icon: 'award', color: 'emerald' }
         ];
 
-        // Format ngày bắt đầu & ngày sinh
-        const displayStartDate = window.hrOnboardingStore.formatDateDisplay(activeCand.startDate);
-        const activeBdayInfo = upcomingBirthdays.find(u => u.candidate.id === activeCand.id);
-        let dobDisplay = 'Chưa cập nhật';
-        if (activeCand.dob && /^\d{4}-\d{2}-\d{2}$/.test(activeCand.dob)) {
-            const [bYear, bMonth, bDay] = activeCand.dob.split('-');
-            const age = new Date().getFullYear() - Number(bYear);
-            dobDisplay = `${bDay}/${bMonth}/${bYear} (${age} tuổi)`;
-            if (activeBdayInfo) {
-                if (activeBdayInfo.daysLeft === 0) {
-                    dobDisplay += ` • <span class="text-rose-600 font-extrabold">🎉 Sinh nhật hôm nay!</span>`;
-                } else {
-                    dobDisplay += ` • <span class="text-amber-600 font-bold">(còn ${activeBdayInfo.daysLeft} ngày)</span>`;
-                }
-            }
-        }
-
-        const candOnboardUrl = this.getPublicOnboardUrl(activeCand.id);
-        const learningSummary = window.hrOnboardingStore.getLearningSummary(activeCand);
-
         detailEl.innerHTML = `
-            <div class="space-y-5">
-                <!-- Thẻ Thông Tin Hồ Sơ Nhân Sự -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                        <!-- Thông tin nhân sự bên trái: rộng rãi, không bị gãy dòng -->
-                        <div class="min-w-0 flex-1 space-y-1.5">
-                            <div class="flex items-center gap-2.5 flex-wrap">
-                                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug">${this.escapeHtml(activeCand.fullName)}</h2>
-                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border shrink-0 ${statusMeta.bg}">
-                                    ${statusMeta.label}
-                                </span>
-                                ${learningSummary.isOverdue ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Quá hạn học</span>` : ''}
-                                <button type="button" onclick="window.hrHub.toggleCandidateInfo()"
-                                    class="ml-auto sm:ml-2 px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold inline-flex items-center gap-1.5 transition-all shadow-2xs border border-slate-200/80 active:scale-95"
-                                    title="${this.isCandInfoCollapsed ? 'Xem chi tiết thông tin hồ sơ' : 'Thu gọn bớt thông tin hồ sơ'}">
-                                    <i data-lucide="${this.isCandInfoCollapsed ? 'chevron-down' : 'chevron-up'}" class="w-3.5 h-3.5 text-slate-500"></i>
-                                    <span>${this.isCandInfoCollapsed ? 'Xem chi tiết hồ sơ' : 'Thu gọn hồ sơ'}</span>
-                                </button>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
-                                <span class="font-semibold text-emerald-700 flex items-center gap-1.5">
-                                    <i data-lucide="briefcase" class="w-3.5 h-3.5"></i>
-                                    <span>${this.escapeHtml(activeCand.role || 'Chuyên viên Kinh doanh')} • ${this.escapeHtml(activeCand.department || 'Etron HCM')}</span>
-                                </span>
-                                <span class="text-slate-300 hidden sm:inline">•</span>
-                                <span class="flex items-center gap-1 text-slate-500">
-                                    <span>Phụ trách:</span> <strong class="text-slate-700 font-bold">${this.escapeHtml(activeCand.mentor || 'Quản lý / HR')}</strong>
-                                </span>
-                                ${activeCand.targetDate ? `
-                                    <span class="text-slate-300 hidden sm:inline">•</span>
-                                    <span class="flex items-center gap-1 text-slate-500">
-                                        <span>Hạn học:</span> <strong class="${learningSummary.isOverdue ? 'text-rose-600 font-bold' : 'text-slate-700 font-medium'}">${this.escapeHtml(window.hrOnboardingStore.formatDateDisplay(activeCand.targetDate))}</strong>
+            <div class="space-y-4">
+                ${filtered.map(cand => {
+                    const isExpanded = this.expandedCandidateIds.has(cand.id);
+                    const statusMeta = this.getStatusMeta(cand.status);
+                    const checklist = cand.checklist || [];
+                    const doneCount = checklist.filter(i => i.done).length;
+                    const pct = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
+
+                    // Tiến độ học riêng của bạn này
+                    const candLearnProgress = cand.taskProgress || {};
+                    let totalLearn = 0;
+                    let doneLearn = 0;
+                    roadmap.forEach(d => (d.tasks || []).forEach(t => {
+                        totalLearn++;
+                        if (candLearnProgress[t.id]) doneLearn++;
+                    }));
+                    const learnPct = totalLearn > 0 ? Math.round((doneLearn / totalLearn) * 100) : 0;
+
+                    const displayStartDate = window.hrOnboardingStore.formatDateDisplay(cand.startDate);
+                    const activeBdayInfo = upcomingBirthdays.find(u => u.candidate.id === cand.id);
+                    let dobDisplay = 'Chưa cập nhật';
+                    if (cand.dob && /^\d{4}-\d{2}-\d{2}$/.test(cand.dob)) {
+                        const [bYear, bMonth, bDay] = cand.dob.split('-');
+                        const age = new Date().getFullYear() - Number(bYear);
+                        dobDisplay = `${bDay}/${bMonth}/${bYear} (${age} tuổi)`;
+                        if (activeBdayInfo) {
+                            if (activeBdayInfo.daysLeft === 0) {
+                                dobDisplay += ` • <span class="text-rose-600 font-extrabold">🎉 Sinh nhật hôm nay!</span>`;
+                            } else {
+                                dobDisplay += ` • <span class="text-amber-600 font-bold">(còn ${activeBdayInfo.daysLeft} ngày)</span>`;
+                            }
+                        }
+                    }
+
+                    const learningSummary = window.hrOnboardingStore.getLearningSummary(cand);
+
+                    return `
+                        <div id="hr-cand-card-${cand.id}" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden transition-all hover:border-slate-300">
+                            <!-- Candidate Card Header (Accordion Clickable) -->
+                            <div onclick="window.hrHub.toggleCandidateAccordion('${cand.id}')"
+                                class="p-4 sm:p-5 flex items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-slate-50/80 transition-colors">
+                                <div class="flex items-center gap-3 min-w-0 flex-1">
+                                    <div class="w-10 h-10 rounded-xl ${isExpanded ? 'bg-emerald-600 text-white shadow-xs' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'} flex items-center justify-center shrink-0 font-black text-sm">
+                                        ${this.escapeHtml((cand.fullName || 'U').charAt(0).toUpperCase())}
+                                    </div>
+                                    <div class="min-w-0 space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <h3 class="text-sm sm:text-base font-extrabold text-slate-900 truncate">${this.escapeHtml(cand.fullName)}</h3>
+                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${statusMeta.bg}">${statusMeta.label}</span>
+                                            ${learningSummary.isOverdue ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3 h-3"></i> Quá hạn</span>` : ''}
+                                        </div>
+                                        <p class="text-xs text-slate-500 truncate">
+                                            ${this.escapeHtml(cand.role || 'Chuyên viên Kinh doanh')} • Bắt đầu: ${this.escapeHtml(displayStartDate)} • Phụ trách: <strong class="text-slate-700 font-semibold">${this.escapeHtml(cand.mentor || 'Quản lý / HR')}</strong>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <!-- Mini Badge Tiến độ khi thu gọn -->
+                                    <span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-xl text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200/80">
+                                        Checklist: ${doneCount}/${checklist.length} • Học: ${learnPct}%
                                     </span>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        <!-- Cụm icon thao tác bên phải: gọn gàng, tinh tế, không chèn ép tiêu đề -->
-                        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0 bg-slate-50 p-1.5 rounded-2xl border border-slate-200/90 shadow-2xs self-start sm:self-center">
-                            <!-- 1. Cập nhật & Copy Link Onboard -->
-                            <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
-                                aria-label="Cập nhật / Copy Link"
-                                class="p-2 sm:p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all flex items-center justify-center"
-                                title="Cập nhật & Copy Link Cổng Onboard riêng">
-                                <i data-lucide="link" class="w-4 h-4"></i>
-                            </button>
-
-                            <!-- 2. Mở Cổng Onboard -->
-                            <button type="button" onclick="window.hrHub.openCandidateOnboard('${activeCand.id}')"
-                                aria-label="Mở Cổng Bạn Ấy"
-                                class="p-2 sm:p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 transition-all flex items-center justify-center"
-                                title="Mở xem Cổng Onboard của bạn ấy">
-                                <i data-lucide="external-link" class="w-4 h-4"></i>
-                            </button>
-
-                            <!-- 3. Mẫu Tin Nhắn / Email -->
-                            <button type="button" onclick="window.hrHub.jumpToTemplatesForCandidate('${activeCand.id}')"
-                                aria-label="Mẫu tin"
-                                class="p-2 sm:p-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center justify-center"
-                                title="Soạn Email / Tin nhắn Zalo cho nhân sự này">
-                                <i data-lucide="mail-plus" class="w-4 h-4"></i>
-                            </button>
-
-                            <!-- 4. Chỉnh sửa hồ sơ -->
-                            <button type="button" onclick="window.hrHub.openCandidateModal('${activeCand.id}')"
-                                aria-label="Sửa"
-                                class="p-2 sm:p-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center justify-center"
-                                title="Chỉnh sửa hồ sơ nhân sự">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-
-                            <!-- 5. Thu hồi liên kết (chỉ hiển thị icon khi đã có token) -->
-                            ${activeCand.onboardToken ? `
-                                <button type="button" onclick="window.hrHub.revokeOnboardLink('${activeCand.id}')"
-                                    aria-label="Thu hồi link"
-                                    class="p-2 sm:p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 transition-all flex items-center justify-center"
-                                    title="Thu hồi liên kết Onboard hiện tại">
-                                    <i data-lucide="link-2-off" class="w-4 h-4"></i>
-                                </button>
-                            ` : ''}
-
-                            <div class="w-px h-5 bg-slate-200 mx-0.5"></div>
-
-                            <!-- 6. Xóa hồ sơ -->
-                            <button type="button" onclick="window.hrHub.deleteCandidate('${activeCand.id}')"
-                                aria-label="Xóa hồ sơ"
-                                class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center"
-                                title="Xóa hồ sơ nhân sự này">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Lưới thông tin chi tiết (Có thể thu gọn / mở rộng) -->
-                    <div id="hr-cand-info-collapsible" class="${this.isCandInfoCollapsed ? 'hidden' : ''}">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4 text-xs">
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span class="text-[11px] text-slate-400 block mb-0.5">Ngày bắt đầu Onboard</span>
-                                <strong class="text-slate-800 font-bold flex items-center gap-1.5">
-                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                    <span>${this.escapeHtml(displayStartDate)}</span>
-                                </strong>
-                            </div>
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span class="text-[11px] text-slate-400 block mb-0.5">Ngày sinh nhật</span>
-                                <strong class="text-slate-800 font-bold flex items-center gap-1.5">
-                                    <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
-                                    <span>${dobDisplay}</span>
-                                </strong>
-                            </div>
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span class="text-[11px] text-slate-400 block mb-0.5">Số điện thoại / Zalo</span>
-                                <strong class="text-slate-800 font-bold flex items-center gap-1.5">
-                                    <i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                    <span>${this.escapeHtml(activeCand.phone || 'Chưa cập nhật')}</span>
-                                </strong>
-                            </div>
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span class="text-[11px] text-slate-400 block mb-0.5">Email cá nhân</span>
-                                <strong class="text-slate-800 font-bold truncate block">
-                                    ${this.escapeHtml(activeCand.email || 'Chưa cập nhật')}
-                                </strong>
-                            </div>
-                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
-                                <span class="text-[11px] text-slate-400 block mb-0.5">Người hướng dẫn (Mentor)</span>
-                                <strong class="text-slate-800 font-bold truncate block">
-                                    ${this.escapeHtml(activeCand.mentor || 'Quản lý / HR')}
-                                </strong>
-                            </div>
-                            <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between">
-                                <div class="min-w-0 pr-2">
-                                    <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
-                                    <span class="text-[10px] text-slate-500 font-mono truncate block">${activeCand.fullName} (?id=${activeCand.id})</span>
-                                </div>
-                                <button type="button" onclick="window.hrHub.copyCandidateOnboardLink('${activeCand.id}')"
-                                    class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs" title="Copy link">
-                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Thông tin Tài khoản & Ghi chú Lương/Chính sách (Chỉ HR thấy) -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3 text-xs">
-                            <div class="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-2.5">
-                                <i data-lucide="key-round" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
-                                <div class="min-w-0 flex-1">
-                                    <span class="text-[11px] font-bold text-indigo-900 block">Trạng thái Tài khoản (CRM / Callbot / Email):</span>
-                                    <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(activeCand.accountsInfo || 'Chưa ghi chú tài khoản')}</p>
+                                    <button type="button" aria-label="Xổ xuống xem hồ sơ" id="hr-cand-arrow-${cand.id}"
+                                        class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-all ${isExpanded ? 'rotate-180 text-emerald-600 bg-emerald-50' : ''}">
+                                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="p-3 rounded-xl bg-amber-50/50 border border-amber-100 flex items-start gap-2.5">
-                                <i data-lucide="shield-lock" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
-                                <div class="min-w-0 flex-1">
-                                    <span class="text-[11px] font-bold text-amber-900 block">Chính sách / Thỏa thuận riêng (Chỉ HR thấy):</span>
-                                    <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(activeCand.salaryNote || 'Chưa có ghi chú thỏa thuận')}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Thanh Tiến độ Checklist HR & Tiến độ tự học của Nhân sự -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 pt-4 border-t border-slate-100">
-                        <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80">
-                            <div class="flex items-center justify-between text-xs mb-1.5">
-                                <span class="font-bold text-emerald-950 flex items-center gap-1.5">
-                                    <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600"></i>
-                                    Tiến độ Checklist HR chuẩn bị
-                                </span>
-                                <span class="font-extrabold text-emerald-700">${doneCount}/${checklist.length} (${pct}%)</span>
-                            </div>
-                            <div class="w-full h-2 bg-emerald-200/70 rounded-full overflow-hidden">
-                                <div class="h-full bg-emerald-600 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
-                            </div>
-                        </div>
-
-                        <div class="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80">
-                            <div class="flex items-center justify-between text-xs mb-1.5">
-                                <span class="font-bold text-indigo-950 flex items-center gap-1.5">
-                                    <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
-                                    Tiến độ bạn ấy học trên Cổng Onboard
-                                </span>
-                                <span class="font-extrabold text-indigo-700">${doneLearn}/${totalLearn} (${learnPct}%)</span>
-                            </div>
-                            <div class="w-full h-2 bg-indigo-200/70 rounded-full overflow-hidden">
-                                <div class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: ${learnPct}%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Checklist Công Việc Onboard Của HR (4 Giai Đoạn) -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-5">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                        <div>
-                            <h3 class="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
-                                <i data-lucide="list-todo" class="w-5 h-5 text-emerald-600"></i>
-                                <span>Checklist Quy Trình Onboard & Theo Dõi Nhân Sự (Dành riêng cho HR)</span>
-                            </h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Tích chọn từng hạng mục khi bạn đã hoàn tất cho nhân sự này. Có thể thêm đầu việc riêng ở từng giai đoạn.</p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-5">
-                        ${stages.map(stage => {
-                            const stageItems = checklist.filter(i => i.stage === stage.id);
-                            const stageDone = stageItems.filter(i => i.done).length;
-                            return `
-                                <div class="border border-slate-200/90 rounded-2xl overflow-hidden">
-                                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200/80 flex items-center justify-between gap-2">
-                                        <div class="flex items-center gap-2">
-                                            <i data-lucide="${stage.icon}" class="w-4 h-4 text-emerald-600"></i>
-                                            <h4 class="text-xs sm:text-sm font-extrabold text-slate-800">${stage.title}</h4>
-                                        </div>
-                                        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
-                                            stageDone === stageItems.length && stageItems.length > 0
-                                                ? 'bg-emerald-100 text-emerald-800'
-                                                : 'bg-white text-slate-600 border border-slate-200'
-                                        }">
-                                            ${stageDone}/${stageItems.length} hoàn thành
-                                        </span>
-                                    </div>
-
-                                    <div class="divide-y divide-slate-100 bg-white">
-                                        ${stageItems.map(item => `
-                                            <div class="flex items-center justify-between gap-2 p-3 hover:bg-slate-50/80 transition-colors group">
-                                                <label class="flex items-start gap-3 flex-1 min-w-0 cursor-pointer select-none">
-                                                    <input type="checkbox" ${item.done ? 'checked' : ''}
-                                                        onchange="window.hrHub.toggleCandidateChecklistItem('${activeCand.id}', '${item.id}')"
-                                                        class="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0">
-                                                    <span class="text-xs sm:text-sm leading-relaxed ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">
-                                                        ${this.escapeHtml(item.title)}
-                                                    </span>
-                                                </label>
-                                                <button type="button" onclick="window.hrHub.deleteCandidateChecklistItem('${activeCand.id}', '${item.id}')"
-                                                    class="opacity-70 sm:opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all shrink-0"
-                                                    title="Xóa mục này">
-                                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                                                </button>
-                                            </div>
-                                        `).join('')}
-
-                                        <!-- Thêm nhanh đầu việc vào giai đoạn -->
-                                        <div class="p-2.5 bg-slate-50/50 flex items-center gap-2">
-                                            <input type="text" id="new-chk-${stage.id}"
-                                                placeholder="+ Thêm mục kiểm tra mới cho giai đoạn này..."
-                                                onkeydown="if(event.key==='Enter'){event.preventDefault();window.hrHub.addCandidateChecklistItem('${activeCand.id}', '${stage.id}');}"
-                                                class="flex-1 min-w-0 text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500">
-                                            <button type="button" onclick="window.hrHub.addCandidateChecklistItem('${activeCand.id}', '${stage.id}')"
-                                                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
-                                                Thêm
+                            <!-- Candidate Card Body (Collapsible) -->
+                            <div id="hr-cand-body-${cand.id}" class="${isExpanded ? '' : 'hidden'} border-t border-slate-100 p-4 sm:p-6 space-y-5 bg-slate-50/20">
+                                <!-- Thanh Thao Tác (Action Icons with Full Lucide Support) -->
+                                <div class="flex flex-wrap items-center justify-between gap-2 pb-2">
+                                    <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                                        <button type="button" onclick="event.stopPropagation(); window.hrHub.copyCandidateOnboardLink('${cand.id}')"
+                                            aria-label="Cập nhật / Copy Link"
+                                            class="p-2 sm:p-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-all flex items-center justify-center active:scale-95"
+                                            title="Cập nhật & Copy Link Cổng Onboard riêng">
+                                            <i data-lucide="link" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" onclick="event.stopPropagation(); window.hrHub.openCandidateOnboard('${cand.id}')"
+                                            aria-label="Mở Cổng Onboard"
+                                            class="p-2 sm:p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 transition-all flex items-center justify-center active:scale-95"
+                                            title="Mở xem Cổng Onboard của bạn ấy">
+                                            <i data-lucide="external-link" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" onclick="event.stopPropagation(); window.hrHub.jumpToTemplatesForCandidate('${cand.id}')"
+                                            aria-label="Mẫu tin"
+                                            class="p-2 sm:p-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center justify-center active:scale-95 shadow-2xs"
+                                            title="Soạn Email / Tin nhắn Zalo cho nhân sự này">
+                                            <i data-lucide="mail-plus" class="w-4 h-4"></i>
+                                        </button>
+                                        <button type="button" onclick="event.stopPropagation(); window.hrHub.openCandidateModal('${cand.id}')"
+                                            aria-label="Sửa hồ sơ"
+                                            class="p-2 sm:p-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition-all flex items-center justify-center active:scale-95 shadow-2xs"
+                                            title="Chỉnh sửa hồ sơ nhân sự">
+                                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                        </button>
+                                        ${cand.onboardToken ? `
+                                            <button type="button" onclick="event.stopPropagation(); window.hrHub.revokeOnboardLink('${cand.id}')"
+                                                aria-label="Thu hồi link"
+                                                class="p-2 sm:p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 transition-all flex items-center justify-center active:scale-95"
+                                                title="Thu hồi liên kết Onboard hiện tại">
+                                                <i data-lucide="link-2-off" class="w-4 h-4"></i>
                                             </button>
+                                        ` : ''}
+                                    </div>
+                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.deleteCandidate('${cand.id}')"
+                                        aria-label="Xóa hồ sơ"
+                                        class="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all flex items-center justify-center active:scale-95 ml-auto"
+                                        title="Xóa hồ sơ nhân sự này">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Lưới thông tin chi tiết -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                                    <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                        <span class="text-[11px] text-slate-400 block mb-0.5">Ngày bắt đầu Onboard</span>
+                                        <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                            <span>${this.escapeHtml(displayStartDate)}</span>
+                                        </strong>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                        <span class="text-[11px] text-slate-400 block mb-0.5">Ngày sinh nhật</span>
+                                        <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                            <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
+                                            <span>${dobDisplay}</span>
+                                        </strong>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                        <span class="text-[11px] text-slate-400 block mb-0.5">Số điện thoại / Zalo</span>
+                                        <strong class="text-slate-800 font-bold flex items-center gap-1.5">
+                                            <i data-lucide="phone" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                            <span>${this.escapeHtml(cand.phone || 'Chưa cập nhật')}</span>
+                                        </strong>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                        <span class="text-[11px] text-slate-400 block mb-0.5">Email cá nhân</span>
+                                        <strong class="text-slate-800 font-bold truncate block">
+                                            ${this.escapeHtml(cand.email || 'Chưa cập nhật')}
+                                        </strong>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                        <span class="text-[11px] text-slate-400 block mb-0.5">Người hướng dẫn (Mentor)</span>
+                                        <strong class="text-slate-800 font-bold truncate block">
+                                            ${this.escapeHtml(cand.mentor || 'Quản lý / HR')}
+                                        </strong>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-center justify-between shadow-2xs">
+                                        <div class="min-w-0 pr-2">
+                                            <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
+                                            <span class="text-[10px] text-slate-500 font-mono truncate block">${cand.fullName} (?id=${cand.id})</span>
+                                        </div>
+                                        <button type="button" onclick="event.stopPropagation(); window.hrHub.copyCandidateOnboardLink('${cand.id}')"
+                                            class="p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 shadow-2xs" title="Copy link">
+                                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Ghi chú Tài khoản & Lương/Chính sách -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                                    <div class="p-3 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-start gap-2.5">
+                                        <i data-lucide="key-round" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-[11px] font-bold text-indigo-900 block">Trạng thái Tài khoản (CRM / Callbot / Email):</span>
+                                            <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(cand.accountsInfo || 'Chưa ghi chú tài khoản')}</p>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-amber-50/50 border border-amber-100 flex items-start gap-2.5">
+                                        <i data-lucide="shield-lock" class="w-4 h-4 text-amber-600 shrink-0 mt-0.5"></i>
+                                        <div class="min-w-0 flex-1">
+                                            <span class="text-[11px] font-bold text-amber-900 block">Chính sách / Thỏa thuận riêng (Chỉ HR thấy):</span>
+                                            <p class="text-slate-700 mt-0.5 break-words">${this.escapeHtml(cand.salaryNote || 'Chưa có ghi chú thỏa thuận')}</p>
                                         </div>
                                     </div>
                                 </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
 
-                <!-- Sổ Ghi Chú & Đánh Giá Mật Của HR Cho Nhân Sự Này -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5 sm:p-6 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                            <i data-lucide="file-lock-2" class="w-4 h-4 text-amber-600"></i>
-                            <span>Ghi Chú Đánh Giá Nội Bộ Của HR (Chỉ mình bạn xem)</span>
-                        </h3>
-                        <button type="button" onclick="window.hrHub.saveCandidatePrivateNote('${activeCand.id}')"
-                            class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs flex items-center gap-1.5">
-                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
-                            <span>Lưu ghi chú</span>
-                        </button>
-                    </div>
-                    <textarea id="hr-cand-private-note" rows="4"
-                        placeholder="Ghi chú thái độ làm việc, tiến độ tiếp thu sản phẩm Adahub/Callbot, điểm mạnh/yếu hoặc các lưu ý riêng trong thời gian thử việc..."
-                        class="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-slate-200 bg-amber-50/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 leading-relaxed">${this.escapeHtml(activeCand.privateNote || '')}</textarea>
-                </div>
+                                <!-- Thanh Tiến độ -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                                    <div class="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200/80">
+                                        <div class="flex items-center justify-between text-xs mb-1.5">
+                                            <span class="font-bold text-emerald-950 flex items-center gap-1.5">
+                                                <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-600"></i>
+                                                Tiến độ Checklist HR
+                                            </span>
+                                            <span class="font-extrabold text-emerald-700">${doneCount}/${checklist.length} (${pct}%)</span>
+                                        </div>
+                                        <div class="w-full h-2 bg-emerald-200/70 rounded-full overflow-hidden">
+                                            <div class="h-full bg-emerald-600 rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-3.5 rounded-xl bg-indigo-50/60 border border-indigo-200/80">
+                                        <div class="flex items-center justify-between text-xs mb-1.5">
+                                            <span class="font-bold text-indigo-950 flex items-center gap-1.5">
+                                                <i data-lucide="graduation-cap" class="w-4 h-4 text-indigo-600"></i>
+                                                Tiến độ tự học của bạn ấy
+                                            </span>
+                                            <span class="font-extrabold text-indigo-700">${doneLearn}/${totalLearn} (${learnPct}%)</span>
+                                        </div>
+                                        <div class="w-full h-2 bg-indigo-200/70 rounded-full overflow-hidden">
+                                            <div class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: ${learnPct}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4 Giai đoạn Checklist HR -->
+                                <div class="space-y-4 pt-2">
+                                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                                        <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                            <i data-lucide="list-todo" class="w-4 h-4 text-emerald-600"></i>
+                                            <span>Checklist Quy Trình Onboard (Dành riêng cho HR)</span>
+                                        </h4>
+                                    </div>
+
+                                    <div class="space-y-3">
+                                        ${stages.map(stage => {
+                                            const stageItems = checklist.filter(i => i.stage === stage.id);
+                                            const stageDone = stageItems.filter(i => i.done).length;
+                                            return `
+                                                <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
+                                                    <div class="px-4 py-2.5 bg-slate-50/90 border-b border-slate-200/80 flex items-center justify-between gap-2">
+                                                        <div class="flex items-center gap-2">
+                                                            <i data-lucide="${stage.icon}" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                            <h5 class="text-xs font-extrabold text-slate-800">${stage.title}</h5>
+                                                        </div>
+                                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                            stageDone === stageItems.length && stageItems.length > 0
+                                                                ? 'bg-emerald-100 text-emerald-800'
+                                                                : 'bg-white text-slate-600 border border-slate-200'
+                                                        }">
+                                                            ${stageDone}/${stageItems.length} xong
+                                                        </span>
+                                                    </div>
+
+                                                    <div class="divide-y divide-slate-100 bg-white">
+                                                        ${stageItems.map(item => `
+                                                            <div class="flex items-center justify-between gap-2 p-2.5 sm:p-3 hover:bg-slate-50/80 transition-colors group">
+                                                                <label class="flex items-start gap-2.5 flex-1 min-w-0 cursor-pointer select-none">
+                                                                    <input type="checkbox" ${item.done ? 'checked' : ''}
+                                                                        onchange="window.hrHub.toggleCandidateChecklistItem('${cand.id}', '${item.id}')"
+                                                                        class="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0">
+                                                                    <span class="text-xs sm:text-sm leading-relaxed ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">
+                                                                        ${this.escapeHtml(item.title)}
+                                                                    </span>
+                                                                </label>
+                                                                <button type="button" onclick="window.hrHub.deleteCandidateChecklistItem('${cand.id}', '${item.id}')"
+                                                                    class="opacity-70 sm:opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all shrink-0"
+                                                                    title="Xóa mục này">
+                                                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                                                </button>
+                                                            </div>
+                                                        `).join('')}
+
+                                                        <!-- Thêm nhanh đầu việc -->
+                                                        <div class="p-2 bg-slate-50/50 flex items-center gap-2">
+                                                            <input type="text" id="new-chk-${cand.id}-${stage.id}"
+                                                                placeholder="+ Thêm mục kiểm tra cho giai đoạn này..."
+                                                                onkeydown="if(event.key==='Enter'){event.preventDefault();window.hrHub.addCandidateChecklistItem('${cand.id}', '${stage.id}');}"
+                                                                class="flex-1 min-w-0 text-xs px-3 py-1.5 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500">
+                                                            <button type="button" onclick="window.hrHub.addCandidateChecklistItem('${cand.id}', '${stage.id}')"
+                                                                class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+                                                                Thêm
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+
+                                <!-- Ghi Chú Đánh Giá Nội Bộ Của HR -->
+                                <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-4 sm:p-5 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                                            <i data-lucide="file-lock-2" class="w-4 h-4 text-amber-600"></i>
+                                            <span>Ghi Chú Đánh Giá Nội Bộ Của HR (Chỉ mình bạn xem)</span>
+                                        </h4>
+                                        <button type="button" onclick="window.hrHub.saveCandidatePrivateNote('${cand.id}')"
+                                            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs flex items-center gap-1.5">
+                                            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+                                            <span>Lưu ghi chú</span>
+                                        </button>
+                                    </div>
+                                    <textarea id="hr-cand-private-note-${cand.id}" rows="3"
+                                        placeholder="Ghi chú thái độ làm việc, tiến độ tiếp thu sản phẩm Adahub/Callbot, điểm mạnh/yếu hoặc các lưu ý riêng trong thời gian thử việc..."
+                                        class="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-slate-200 bg-amber-50/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 leading-relaxed">${this.escapeHtml(cand.privateNote || '')}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
         `;
+
+        if (window.lucide) lucide.createIcons();
+    }
+
+    toggleCandidateInfo() {
+        if (this.selectedCandidateId) {
+            this.toggleCandidateAccordion(this.selectedCandidateId);
+        }
     }
 
     toggleCandidateChecklistItem(candId, itemId) {
@@ -868,11 +939,12 @@ class HrHubApp {
             item.done = !item.done;
             cand.updatedAt = Date.now();
             window.hrOnboardingStore.saveCandidates(list);
+            this.renderCandidatesTab();
         }
     }
 
     addCandidateChecklistItem(candId, stageId) {
-        const input = document.getElementById(`new-chk-${stageId}`);
+        const input = document.getElementById(`new-chk-${candId}-${stageId}`) || document.getElementById(`new-chk-${stageId}`);
         if (!input || !input.value.trim()) return;
         const title = input.value.trim();
 
@@ -890,6 +962,7 @@ class HrHubApp {
         cand.updatedAt = Date.now();
         input.value = '';
         window.hrOnboardingStore.saveCandidates(list);
+        this.renderCandidatesTab();
     }
 
     deleteCandidateChecklistItem(candId, itemId) {
@@ -899,10 +972,11 @@ class HrHubApp {
         cand.checklist = cand.checklist.filter(i => i.id !== itemId);
         cand.updatedAt = Date.now();
         window.hrOnboardingStore.saveCandidates(list);
+        this.renderCandidatesTab();
     }
 
     saveCandidatePrivateNote(candId) {
-        const noteEl = document.getElementById('hr-cand-private-note');
+        const noteEl = document.getElementById(`hr-cand-private-note-${candId}`) || document.getElementById('hr-cand-private-note');
         if (!noteEl) return;
         const list = window.hrOnboardingStore.getCandidates();
         const cand = list.find(c => c.id === candId);
@@ -914,6 +988,10 @@ class HrHubApp {
     }
 
     openCandidateModal(candId = null) {
+        if (candId) {
+            this.selectedCandidateId = candId;
+            this.expandedCandidateIds.add(candId);
+        }
         const modal = document.getElementById('hr-candidate-modal');
         if (!modal) return;
 
@@ -1022,6 +1100,7 @@ class HrHubApp {
         }
 
         this.selectedCandidateId = target.id;
+        this.expandedCandidateIds.add(target.id);
         this.syncQuickVarsFromCandidate(target);
         window.hrOnboardingStore.saveCandidates(list);
         this.closeCandidateModal();
@@ -1060,9 +1139,10 @@ class HrHubApp {
                 .filter(Boolean);
             const tasks = day.tasks || [];
             const customLinks = day.customLinks || [];
+            const isDayCollapsed = this.collapsedRoadmapDays.has(day.id);
 
             return `
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div id="hr-day-card-${day.id}" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                     <!-- Day Header -->
                     <div class="p-4 sm:p-5 bg-slate-50/80 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="space-y-1">
@@ -1123,11 +1203,17 @@ class HrHubApp {
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             ` : ''}
+                            <button type="button" onclick="window.hrHub.toggleRoadmapDay('${day.id}')"
+                                id="hr-day-btn-${day.id}"
+                                class="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-all shadow-2xs"
+                                title="${isDayCollapsed ? 'Mở rộng ngày này' : 'Thu gọn ngày này'}">
+                                <i id="hr-day-chevron-${day.id}" data-lucide="chevron-down" class="w-4 h-4 transition-transform ${isDayCollapsed ? '' : 'rotate-180 text-indigo-600'}"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Day Body -->
-                    <div class="p-4 sm:p-5 space-y-4">
+                    <!-- Day Body (Collapsible) -->
+                    <div id="hr-day-body-${day.id}" class="${isDayCollapsed ? 'hidden' : ''} p-4 sm:p-5 space-y-4">
                         <!-- Modules List (Accordion) -->
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
@@ -1318,6 +1404,7 @@ class HrHubApp {
                 </div>
             `;
         }).join('');
+        if (window.lucide) lucide.createIcons();
     }
 
     openRoadmapDayModal(dayId = null) {
