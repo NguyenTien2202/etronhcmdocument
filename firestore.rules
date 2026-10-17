@@ -1,0 +1,56 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isHr() {
+      return request.auth != null && request.auth.uid == 'TmtCY7Bgb2OSPRZXhsK1qRnoI8g1';
+    }
+    function validToken(token) { return token.matches('^[a-f0-9]{64}$'); }
+    function activeLink(token) {
+      return validToken(token) && exists(/databases/$(database)/documents/onboarding_links/$(token));
+    }
+
+    // SalesHub remains public. Document deletion uses a recoverable deletedAt flag.
+    match /documents/{id} {
+      allow read, create, update: if true;
+      allow delete: if false;
+    }
+    match /document_files/{id} { allow read, write: if true; }
+    match /callbot_templates/{id} { allow read, write: if true; }
+    match /callbot_media/{id} { allow read, write: if true; }
+    match /config/{id} {
+      allow read, write: if id in ['products', 'categories', 'callbot_keywords'];
+    }
+
+    match /hr_config/onboarding_roadmap {
+      allow read: if true;
+      allow write: if isHr();
+    }
+    match /hr_config/{id} {
+      allow read, write: if isHr();
+    }
+    // A random link is a bearer credential. It contains only learning information.
+    match /onboarding_links/{token} {
+      allow get: if validToken(token);
+      allow list, delete: if isHr();
+      allow create, update: if isHr() && validToken(token)
+        && request.resource.data.keys().hasOnly(['fullName', 'role', 'startDate', 'mentor', 'targetDate', 'customRoadmap'])
+        && request.resource.data.fullName is string
+        && request.resource.data.role is string
+        && request.resource.data.startDate is string
+        && request.resource.data.mentor is string
+        && request.resource.data.targetDate is string
+        && request.resource.data.customRoadmap is list;
+    }
+    match /onboarding_progress/{token} {
+      allow get: if isHr() || activeLink(token);
+      allow list, delete: if isHr();
+      allow create, update: if (isHr() || activeLink(token))
+        && request.resource.data.keys().hasOnly(['completedTasks'])
+        && request.resource.data.completedTasks is map
+        && request.resource.data.completedTasks.size() <= 300
+        && request.resource.data.completedTasks.values().hasOnly([true, false]);
+    }
+    // Deny all other collections, including legacy/private HR data.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

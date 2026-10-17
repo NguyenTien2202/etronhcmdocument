@@ -12,19 +12,20 @@ class OnboardingViewer {
     }
 
     init() {
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const cid = params.get('id');
-            if (cid) {
-                this.candidateId = cid;
-            }
-        } catch (e) {}
+        const token = new URLSearchParams(window.location.hash.slice(1)).get('key');
+        const legacyId = new URLSearchParams(window.location.search).get('id');
+        this.candidateId = token || null;
+        this.legacyLink = !!legacyId && !token;
 
         if (window.hrOnboardingStore) {
             window.hrOnboardingStore.setupCloudSync();
             window.hrOnboardingStore.onChange(() => {
                 this.render();
             });
+        }
+        if (token) {
+            try { window.hrOnboardingStore.openPersonalLink(token); }
+            catch (_) { window.hrOnboardingStore.personalUnavailable = true; }
         }
         this.render();
     }
@@ -39,14 +40,15 @@ class OnboardingViewer {
         this.render();
     }
 
-    toggleTask(taskId) {
+    async toggleTask(taskId) {
         if (!window.hrOnboardingStore) return;
-        window.hrOnboardingStore.toggleTaskProgress(taskId, this.candidateId);
+        try { await window.hrOnboardingStore.toggleTaskProgress(taskId, this.candidateId); }
+        catch (_) { window.salesApp?.showNotification('Chưa lưu được tiến độ. Hãy thử lại.', 'error'); }
         this.render();
     }
 
     handleCustomLink(url, type) {
-        if (!url) return;
+        if (!url || /^(?:javascript|data|vbscript):/i.test(url.trim())) return;
         // Nếu đang ở trên trang index.html (SalesHub) và link trỏ tới tab nội bộ
         if (url.startsWith('index.html?tab=') && window.salesApp && typeof window.salesApp.switchTab === 'function') {
             const tabId = url.split('tab=')[1];
@@ -124,12 +126,18 @@ class OnboardingViewer {
         const container = document.getElementById('onboarding-roadmap-viewer-root');
         if (!container || !window.hrOnboardingStore) return;
 
+        if (this.legacyLink || (this.candidateId && !window.hrOnboardingStore.publicCandidate)) {
+            container.textContent = this.legacyLink ? 'Liên kết cũ đã ngừng dùng. Vui lòng nhờ HR gửi liên kết cá nhân mới.' :
+                (window.hrOnboardingStore.personalUnavailable ? 'Liên kết không hợp lệ hoặc đã được thu hồi. Vui lòng liên hệ HR.' : 'Đang tải lộ trình cá nhân…');
+            return;
+        }
         const candidate = this.candidateId ? window.hrOnboardingStore.getCandidateById(this.candidateId) : null;
         const roadmap = (candidate && Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length > 0)
             ? candidate.customRoadmap
             : window.hrOnboardingStore.getRoadmap();
 
         const progress = window.hrOnboardingStore.getTaskProgress(this.candidateId);
+        const learning = window.hrOnboardingStore.getLearningSummary(candidate);
         const allDocs = (window.salesStore && typeof window.salesStore.getDocuments === 'function')
             ? window.salesStore.getDocuments()
             : [];
@@ -167,6 +175,8 @@ class OnboardingViewer {
                                     Vị trí: <strong>${this.escapeHtml(candidate.role || 'Chuyên viên Kinh doanh')}</strong> • 
                                     Ngày nhận việc: <strong>${window.hrOnboardingStore.formatDateDisplay(candidate.startDate)}</strong>
                                     ${candidate.mentor ? ` • Đồng hành: <strong>${this.escapeHtml(candidate.mentor)}</strong>` : ''}
+                                    ${candidate.targetDate ? ` • Hạn hoàn thành: <strong>${this.escapeHtml(candidate.targetDate)}</strong>` : ''}
+                                    ${learning.isOverdue ? '<strong class="text-rose-700"> • Đã quá hạn</strong>' : ''}
                                 </p>
                             ` : `
                                 <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-bold">
@@ -182,6 +192,7 @@ class OnboardingViewer {
                             `}
                         </div>
 
+                        <p class="text-xs text-indigo-700">${learning.nextDay ? 'Ưu tiên tiếp theo: ' + this.escapeHtml(learning.nextDay.title) : 'Bạn đã hoàn thành lộ trình hiện tại.'}</p>
                         <!-- Khung Tiến độ hoàn thành -->
                         <div class="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 sm:min-w-[270px] shrink-0">
                             <div class="flex items-center justify-between mb-1.5">

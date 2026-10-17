@@ -245,14 +245,14 @@ class DocumentHub {
                         <div class="flex items-center justify-between gap-2 mb-2.5 sm:mb-3">
                             <div class="flex items-center gap-2">
                                 <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-md shadow-indigo-100 shrink-0">
-                                    <i data-lucide="${cat.icon || 'folders'}" class="w-5 h-5"></i>
+                                    <i data-lucide="${this.escapeHtml(cat.icon || 'folders')}" class="w-5 h-5"></i>
                                 </div>
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">
                                     Thư mục ghim
                                 </span>
                             </div>
                             <div class="flex items-center gap-1 z-10">
-                                <button onclick="window.documentHub.toggleCategoryPin('${cat.id}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim danh mục khỏi Truy cập nhanh">
+                                <button onclick="window.documentHub.toggleCategoryPin('${this.escapeHtml(this.escapeJs(cat.id))}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim danh mục khỏi Truy cập nhanh">
                                     <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-500"></i>
                                 </button>
                             </div>
@@ -260,7 +260,7 @@ class DocumentHub {
 
                         <!-- Tiêu đề & Thông tin danh mục -->
                         <h4 class="font-extrabold text-slate-800 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
-                            onclick="window.documentHub.openCategoryFromQuickAccess('${cat.id}')" title="${this.escapeHtml(cat.name)}">
+                            onclick="window.documentHub.openCategoryFromQuickAccess('${this.escapeHtml(this.escapeJs(cat.id))}')" title="${this.escapeHtml(cat.name)}">
                             ${this.escapeHtml(cat.name)}
                         </h4>
                         <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
@@ -275,7 +275,7 @@ class DocumentHub {
                             <span>${catDocs.length} tài liệu</span>
                         </span>
                         
-                        <button onclick="window.documentHub.openCategoryFromQuickAccess('${cat.id}')"
+                        <button onclick="window.documentHub.openCategoryFromQuickAccess('${this.escapeHtml(this.escapeJs(cat.id))}')"
                             class="px-2.5 sm:px-3 py-1 rounded-lg bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-all flex items-center gap-1 shadow-xs">
                             <span>Mở thư mục</span>
                             <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
@@ -307,10 +307,10 @@ class DocumentHub {
                                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge.bg} ${badge.color} truncate max-w-[110px]">
                                     ${this.escapeHtml(doc.category)}
                                 </span>
-                                <button onclick="window.documentHub.openEditModal('${doc.id}')" class="text-slate-300 hover:text-indigo-600 p-1 transition-colors" title="Chỉnh sửa tài liệu">
+                                <button onclick="window.documentHub.openEditModal('${this.escapeHtml(this.escapeJs(doc.id))}')" class="text-slate-300 hover:text-indigo-600 p-1 transition-colors" title="Chỉnh sửa tài liệu">
                                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                 </button>
-                                <button onclick="window.documentHub.togglePin('${doc.id}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim khỏi mục Truy cập nhanh">
+                                <button onclick="window.documentHub.togglePin('${this.escapeHtml(this.escapeJs(doc.id))}')" class="text-amber-500 hover:text-amber-600 p-1 transition-colors" title="Bỏ ghim khỏi mục Truy cập nhanh">
                                     <i data-lucide="star" class="w-4 h-4 fill-amber-400 text-amber-500"></i>
                                 </button>
                             </div>
@@ -318,7 +318,7 @@ class DocumentHub {
 
                         <!-- Tiêu đề & Mô tả -->
                         <h4 class="font-bold text-slate-800 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
-                            onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
+                            onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')" title="${this.escapeHtml(doc.title)}">
                             ${this.escapeHtml(doc.title)}
                         </h4>
                         <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
@@ -333,24 +333,24 @@ class DocumentHub {
                         </span>
                         
                         <div class="flex items-center gap-1.5">
-                            <button onclick="window.documentHub.openDocument('${doc.id}')"
+                            <button onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                 class="px-2.5 sm:px-3 py-1 rounded-lg ${badge.bg} ${badge.color} font-bold text-xs hover:opacity-90 transition-all flex items-center gap-1">
                                 <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : (isNote ? 'book-open' : 'external-link'))}" class="w-3.5 h-3.5"></i>
                                 <span>${isImage ? 'Xem ảnh' : (isVideo ? 'Phát' : (isNote ? 'Đọc tin' : 'Mở'))}</span>
                             </button>
 
                             ${isNote ? `
-                                <button onclick="window.documentHub.copyNoteContent('${doc.id}')"
+                                <button onclick="window.documentHub.copyNoteContent('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                     class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Sao chép nội dung thông báo">
                                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 </button>
                             ` : (doc.fileUrl ? `
-                                <button onclick="window.documentHub.copyDocLink('${doc.id}')"
+                                <button onclick="window.documentHub.copyDocLink('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                     class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 </button>
                             ` : `
-                                <button onclick="window.documentHub.downloadDocument('${doc.id}')"
+                                <button onclick="window.documentHub.downloadDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                     class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                     <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                 </button>
@@ -403,14 +403,14 @@ class DocumentHub {
         const categories = this.getCategories();
         container.innerHTML = `
             ${categories.map(cat => `
-                <button onclick="window.documentHub.setCategory('${cat.id}')"
+                <button onclick="window.documentHub.setCategory('${this.escapeHtml(this.escapeJs(cat.id))}')"
                     class="px-3 py-1 rounded-full text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 ${
                         this.selectedCategory === cat.id 
                         ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200' 
                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                     }">
-                    <i data-lucide="${cat.icon || 'tag'}" class="w-3.5 h-3.5"></i>
-                    <span>${cat.name}</span>
+                    <i data-lucide="${this.escapeHtml(cat.icon || 'tag')}" class="w-3.5 h-3.5"></i>
+                    <span>${this.escapeHtml(cat.name)}</span>
                     ${cat.pinned ? `<span class="text-amber-400 text-[10px]" title="Đã ghim ở mục Truy cập nhanh">⭐</span>` : ''}
                 </button>
             `).join('')}
@@ -681,7 +681,7 @@ class DocumentHub {
 
                                 return `
                                     <tr class="hover:bg-indigo-50/40 transition-colors group">
-                                        <td class="py-2.5 sm:py-3 px-3 sm:px-4 max-w-[200px] sm:max-w-md cursor-pointer" onclick="window.documentHub.openDocument('${doc.id}')">
+                                        <td class="py-2.5 sm:py-3 px-3 sm:px-4 max-w-[200px] sm:max-w-md cursor-pointer" onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')">
                                             <div class="flex items-start gap-2.5 sm:gap-3">
                                                 <div class="w-8 h-8 rounded-lg ${badge.bg} ${badge.color} flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
                                                     ${badge.label}
@@ -725,12 +725,12 @@ class DocumentHub {
                                         </td>
 
                                         <td class="py-3 px-2 sm:px-3 text-slate-400 text-[11px] hidden sm:table-cell">
-                                            ${doc.updatedAt || 'Hôm nay'}
+                                            ${this.escapeHtml(doc.updatedAt || 'Hôm nay')}
                                         </td>
 
                                         <td class="py-2.5 sm:py-3 px-3 sm:px-4 text-right">
                                             <div class="flex items-center justify-end gap-1">
-                                                <button onclick="window.documentHub.openDocument('${doc.id}')"
+                                                <button onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                     class="px-2 sm:px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-bold transition-colors flex items-center gap-1"
                                                     title="${isNote ? 'Đọc nội dung thông báo' : 'Mở tài liệu'}">
                                                     <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : (isNote ? 'book-open' : 'external-link'))}" class="w-3.5 h-3.5"></i>
@@ -738,34 +738,34 @@ class DocumentHub {
                                                 </button>
 
                                                 ${isNote ? `
-                                                    <button onclick="window.documentHub.copyNoteContent('${doc.id}')"
+                                                    <button onclick="window.documentHub.copyNoteContent('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                         class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Sao chép toàn bộ nội dung thông báo">
                                                         <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                 ` : (doc.fileUrl ? `
-                                                    <button onclick="window.documentHub.copyDocLink('${doc.id}')"
+                                                    <button onclick="window.documentHub.copyDocLink('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                         class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                                         <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                 ` : `
-                                                    <button onclick="window.documentHub.downloadDocument('${doc.id}')"
+                                                    <button onclick="window.documentHub.downloadDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                         class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                                         <i data-lucide="download" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                 `)}
 
-                                                <button onclick="window.documentHub.openEditModal('${doc.id}')"
+                                                <button onclick="window.documentHub.openEditModal('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                     class="p-1 sm:p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa tài liệu">
                                                     <i data-lucide="edit-3" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
                                                 </button>
 
-                                                <button onclick="window.documentHub.togglePin('${doc.id}')"
+                                                <button onclick="window.documentHub.togglePin('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                     class="p-1 sm:p-1.5 rounded-lg ${doc.pinned ? 'text-amber-500 hover:text-amber-600' : 'text-slate-300 hover:text-amber-500'} hover:bg-amber-50 transition-colors"
                                                     title="${doc.pinned ? 'Bỏ ghim' : 'Ghim lên đầu'}">
                                                     <i data-lucide="star" class="w-4 h-4 ${doc.pinned ? 'fill-amber-400 text-amber-500' : ''}"></i>
                                                 </button>
 
-                                                <button onclick="window.documentHub.deleteDocument('${doc.id}')"
+                                                <button onclick="window.documentHub.deleteDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                     class="p-1 sm:p-1.5 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
                                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                                 </button>
@@ -802,7 +802,7 @@ class DocumentHub {
                                         <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 truncate max-w-[140px]">
                                             ${this.escapeHtml(doc.category)}
                                         </span>
-                                        <button onclick="window.documentHub.togglePin('${doc.id}')"
+                                        <button onclick="window.documentHub.togglePin('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                             class="p-1 rounded ${doc.pinned ? 'text-amber-500' : 'text-slate-300 hover:text-amber-500'} transition-colors"
                                             title="${doc.pinned ? 'Bỏ ghim' : 'Ghim lên đầu'}">
                                             <i data-lucide="star" class="w-3.5 h-3.5 ${doc.pinned ? 'fill-amber-400 text-amber-500' : ''}"></i>
@@ -813,7 +813,7 @@ class DocumentHub {
                                 <!-- Hình ảnh xem trước (nếu có) -->
                                 ${isImage && (doc.thumbnail || doc.fileUrl) ? `
                                     <div class="w-full h-32 mb-3 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center cursor-pointer group-hover:opacity-95"
-                                        onclick="window.documentHub.openDocument('${doc.id}')">
+                                        onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')">
                                         <img src="${doc.thumbnail || doc.fileUrl}" alt="${this.escapeHtml(doc.title)}" class="w-full h-full object-cover">
                                     </div>
                                 ` : ''}
@@ -821,7 +821,7 @@ class DocumentHub {
                                 <!-- Video banner (nếu là video) -->
                                 ${isVideo ? `
                                     <div class="w-full h-24 mb-3 rounded-lg overflow-hidden bg-gradient-to-r from-rose-900 to-indigo-900 text-white flex items-center justify-center cursor-pointer relative"
-                                        onclick="window.documentHub.openDocument('${doc.id}')">
+                                        onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')">
                                         <div class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-lg">
                                             <i data-lucide="play" class="w-5 h-5 fill-white ml-0.5"></i>
                                         </div>
@@ -832,14 +832,14 @@ class DocumentHub {
                                 <!-- Trích đoạn thông báo / ghi chú (nếu là note) -->
                                 ${isNote && doc.content ? `
                                     <div class="w-full mb-3 rounded-lg bg-amber-50/70 border border-amber-200/80 p-2.5 text-[11px] text-slate-700 line-clamp-3 whitespace-pre-line leading-relaxed cursor-pointer hover:bg-amber-100/50 transition-colors"
-                                        onclick="window.documentHub.openDocument('${doc.id}')" title="Bấm để đọc toàn bộ nội dung thông báo">
+                                        onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')" title="Bấm để đọc toàn bộ nội dung thông báo">
                                         ${this.escapeHtml(doc.content)}
                                     </div>
                                 ` : ''}
 
                                 <!-- Tiêu đề & Mô tả -->
                                 <h4 class="font-bold text-slate-900 text-xs sm:text-sm group-hover:text-indigo-600 transition-colors line-clamp-2 leading-snug cursor-pointer"
-                                    onclick="window.documentHub.openDocument('${doc.id}')" title="${this.escapeHtml(doc.title)}">
+                                    onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')" title="${this.escapeHtml(doc.title)}">
                                     ${this.escapeHtml(doc.title)}
                                 </h4>
                                 <p class="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
@@ -860,11 +860,11 @@ class DocumentHub {
                             <div class="pt-3 sm:pt-4 mt-3 sm:mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
                                 <span class="flex items-center gap-1 text-[11px]">
                                     <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-                                    ${doc.updatedAt || 'Hôm nay'}
+                                    ${this.escapeHtml(doc.updatedAt || 'Hôm nay')}
                                 </span>
 
                                 <div class="flex items-center gap-1.5">
-                                    <button onclick="window.documentHub.openDocument('${doc.id}')" 
+                                    <button onclick="window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                         class="px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 font-semibold text-xs transition-colors flex items-center gap-1"
                                         title="${isNote ? 'Đọc nội dung thông báo' : 'Mở / Xem tài liệu'}">
                                         <i data-lucide="${isImage ? 'eye' : (isVideo ? 'play' : (isNote ? 'book-open' : 'external-link'))}" class="w-3.5 h-3.5"></i>
@@ -872,28 +872,28 @@ class DocumentHub {
                                     </button>
 
                                     ${isNote ? `
-                                        <button onclick="window.documentHub.copyNoteContent('${doc.id}')"
+                                        <button onclick="window.documentHub.copyNoteContent('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                             class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-colors" title="Sao chép toàn bộ nội dung thông báo">
                                             <i data-lucide="copy" class="w-4 h-4"></i>
                                         </button>
                                     ` : (doc.fileUrl ? `
-                                        <button onclick="window.documentHub.copyDocLink('${doc.id}')"
+                                        <button onclick="window.documentHub.copyDocLink('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                             class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors" title="Sao chép liên kết">
                                             <i data-lucide="copy" class="w-4 h-4"></i>
                                         </button>
                                     ` : `
-                                        <button onclick="window.documentHub.downloadDocument('${doc.id}')"
+                                        <button onclick="window.documentHub.downloadDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                             class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors" title="Tải về máy">
                                             <i data-lucide="download" class="w-4 h-4"></i>
                                         </button>
                                     `)}
 
-                                    <button onclick="window.documentHub.openEditModal('${doc.id}')"
+                                    <button onclick="window.documentHub.openEditModal('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                         class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa tài liệu">
                                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                                     </button>
 
-                                    <button onclick="window.documentHub.deleteDocument('${doc.id}')"
+                                    <button onclick="window.documentHub.deleteDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                         class="p-1 sm:p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa tài liệu">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
@@ -943,6 +943,10 @@ class DocumentHub {
         const doc = docs.find(d => d.id === id);
         if (!doc) return;
 
+        if (doc.fileUrl && !this.isSafeResourceUrl(doc.fileUrl)) {
+            window.salesApp.showNotification('Liên kết tài liệu không hợp lệ.', 'error');
+            return;
+        }
         // Nếu là Thông báo / Ghi chú văn bản (Note)
         if (doc.type === 'note' || doc.fileType === 'note') {
             this.openNotePreview(doc);
@@ -1105,20 +1109,41 @@ class DocumentHub {
     }
 
     async deleteDocument(id) {
-        if (confirm('Bạn có chắc chắn muốn xóa tài liệu này khỏi kho?')) {
-            const docs = window.salesStore.getDocuments();
-            const doc = docs.find(d => d.id === id);
-            const chunkCount = doc && doc.cloudChunkCount ? doc.cloudChunkCount : 0;
-
-            window.salesStore.deleteDocument(id);
-            await this.fileStore.deleteFile(id);
-            this.deleteCloudFileChunks(id, chunkCount);
-
-            this.renderStats();
-            this.renderQuickAccess();
-            this.renderDocumentsList();
-            window.salesApp.showNotification('Đã xóa tài liệu khỏi kho', 'info');
+        if (!confirm('Chuyển tài liệu vào thùng rác? Bạn có thể khôi phục sau.')) return;
+        try {
+            await window.salesStore.deleteDocument(id);
+            this.renderStats(); this.renderQuickAccess(); this.renderDocumentsList();
+            window.salesApp.showNotification('Đã chuyển vào thùng rác; tệp đính kèm được giữ lại.', 'info');
+        } catch (_) { window.salesApp.showNotification('Chưa chuyển được vào thùng rác. Hãy thử lại.', 'error'); }
+    }
+    showTrash() {
+        let dialog = document.getElementById('document-trash-dialog');
+        if (!dialog) {
+            dialog = document.createElement('dialog');
+            dialog.id = 'document-trash-dialog';
+            dialog.className = 'rounded-2xl p-5 w-full max-w-xl';
+            document.body.append(dialog);
         }
+        dialog.replaceChildren();
+        const title = document.createElement('h2'); title.textContent = 'Thùng rác tài liệu';
+        const close = document.createElement('button'); close.textContent = 'Đóng'; close.onclick = () => dialog.close();
+        dialog.append(title, close);
+        const docs = window.salesStore.getTrashedDocuments();
+        if (!docs.length) { const empty = document.createElement('p'); empty.textContent = 'Thùng rác trống.'; dialog.append(empty); }
+        for (const doc of docs) {
+            const row = document.createElement('div'); row.className = 'flex justify-between gap-3 py-3 border-b';
+            const name = document.createElement('span'); name.textContent = doc.title || 'Tài liệu';
+            const restore = document.createElement('button'); restore.textContent = 'Khôi phục';
+            restore.onclick = async () => {
+                restore.disabled = true;
+                try {
+                    await window.salesStore.restoreDocument(doc.id);
+                    this.renderStats(); this.renderQuickAccess(); this.renderDocumentsList(); this.showTrash();
+                } catch (_) { restore.disabled = false; window.salesApp.showNotification('Chưa khôi phục được. Hãy thử lại.', 'error'); }
+            };
+            row.append(name, restore); dialog.append(row);
+        }
+        if (!dialog.open) dialog.showModal();
     }
 
     // ==========================================
@@ -1487,11 +1512,11 @@ class DocumentHub {
         const cat = categories.find(c => c.id === catId);
         if (!cat) return;
 
-        if (titleEl) titleEl.textContent = `Đổi biểu tượng: ${cat.name}`;
+        if (titleEl) titleEl.textContent = `Đổi biểu tượng: ${this.escapeHtml(cat.name)}`;
 
         const icons = this.getCuratedCategoryIcons();
         grid.innerHTML = icons.map(ic => `
-            <button type="button" onclick="window.documentHub.applyIconToCategory('${cat.id}', '${ic.id}')"
+            <button type="button" onclick="window.documentHub.applyIconToCategory('${this.escapeHtml(this.escapeJs(cat.id))}', '${ic.id}')"
                 class="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-indigo-50 hover:border-indigo-400 text-slate-700 hover:text-indigo-600 flex flex-col items-center justify-center gap-1.5 transition-all group ${cat.icon === ic.id ? 'ring-2 ring-indigo-500 bg-indigo-50 text-indigo-700 font-bold border-indigo-400' : ''}"
                 title="${ic.name}">
                 <i data-lucide="${ic.id}" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
@@ -1522,7 +1547,7 @@ class DocumentHub {
         this.renderQuickAccess();
         this.closeCategoryIconPicker();
 
-        window.salesApp.showNotification(`Đã cập nhật biểu tượng mới cho "${cat.name}"!`, 'success');
+        window.salesApp.showNotification(`Đã cập nhật biểu tượng mới cho "${this.escapeHtml(cat.name)}"!`, 'success');
     }
 
     randomizeCategoryIcon() {
@@ -1553,7 +1578,7 @@ class DocumentHub {
             return `
                 <div class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs hover:border-indigo-200 transition-all group">
                     <div class="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
-                        <button type="button" onclick="window.documentHub.openIconPickerForCategory('${cat.id}')"
+                        <button type="button" onclick="window.documentHub.openIconPickerForCategory('${this.escapeHtml(this.escapeJs(cat.id))}')"
                             class="w-8 h-8 rounded-lg ${isPinned ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' : 'bg-indigo-50 text-indigo-600 hover:bg-indigo-100'} hover:ring-2 hover:ring-indigo-300 hover:scale-105 flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-2xs"
                             title="Bấm để đổi biểu tượng cho danh mục này">
                             <i data-lucide="${cat.icon || 'folder'}" class="w-4 h-4"></i>
@@ -1567,16 +1592,16 @@ class DocumentHub {
                         </div>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
-                        <button type="button" onclick="window.documentHub.toggleCategoryPin('${cat.id}')"
+                        <button type="button" onclick="window.documentHub.toggleCategoryPin('${this.escapeHtml(this.escapeJs(cat.id))}')"
                             class="p-1.5 rounded-lg transition-colors ${isPinned ? 'text-amber-500 hover:text-amber-600 bg-amber-50' : 'text-slate-300 hover:text-amber-500 hover:bg-slate-100'}"
                             title="${isPinned ? 'Bỏ ghim khỏi mục Truy cập nhanh' : 'Ghim danh mục lên mục Truy cập nhanh'}">
                             <i data-lucide="star" class="w-4 h-4 ${isPinned ? 'fill-amber-400 text-amber-500' : ''}"></i>
                         </button>
-                        <button type="button" onclick="window.documentHub.editCategoryInManager('${cat.id}')"
+                        <button type="button" onclick="window.documentHub.editCategoryInManager('${this.escapeHtml(this.escapeJs(cat.id))}')"
                             class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa danh mục">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                         </button>
-                        <button type="button" onclick="window.documentHub.deleteCategory('${cat.id}')"
+                        <button type="button" onclick="window.documentHub.deleteCategory('${this.escapeHtml(this.escapeJs(cat.id))}')"
                             class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa danh mục">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
@@ -1623,7 +1648,7 @@ class DocumentHub {
         this.userPickedAddIcon = true;
         this.updateAddIconPreview(this.selectedNewCategoryIcon);
 
-        if (formTitle) formTitle.textContent = `Chỉnh sửa: ${cat.name}`;
+        if (formTitle) formTitle.textContent = `Chỉnh sửa: ${this.escapeHtml(cat.name)}`;
         if (submitBtn) {
             submitBtn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i><span>Cập nhật</span>`;
         }
@@ -1755,7 +1780,7 @@ class DocumentHub {
 
         if (affectedDocs.length > 0) {
             const confirmed = confirm(
-                `Danh mục "${cat.name}" hiện đang có ${affectedDocs.length} tài liệu.\n` +
+                `Danh mục "${this.escapeHtml(cat.name)}" hiện đang có ${affectedDocs.length} tài liệu.\n` +
                 `Nếu bạn xóa, các tài liệu này sẽ tự động chuyển về danh mục "Chung / Khác".\n\n` +
                 `Bạn có chắc chắn muốn xóa không?`
             );
@@ -1767,7 +1792,7 @@ class DocumentHub {
                 window.salesStore.saveDocument(d);
             });
         } else {
-            const confirmed = confirm(`Bạn có chắc muốn xóa danh mục "${cat.name}" khỏi hệ thống?`);
+            const confirmed = confirm(`Bạn có chắc muốn xóa danh mục "${this.escapeHtml(cat.name)}" khỏi hệ thống?`);
             if (!confirmed) return;
         }
 
@@ -1784,7 +1809,7 @@ class DocumentHub {
         this.renderDocumentsList();
         this.renderQuickAccess();
 
-        window.salesApp.showNotification(`Đã xóa danh mục "${cat.name}"!`, 'info');
+        window.salesApp.showNotification(`Đã xóa danh mục "${this.escapeHtml(cat.name)}"!`, 'info');
     }
 
     openAddModal(defaultTab = null) {
@@ -2218,7 +2243,7 @@ class DocumentHub {
 
             if (window.firebaseDb) {
                 try {
-                    const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_0`).get();
+                    const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${this.escapeHtml(this.escapeJs(doc.id))}_chunk_0`).get();
                     if (firstChunkSnap && firstChunkSnap.exists) {
                         firstChunk = firstChunkSnap.data();
                     }
@@ -2245,7 +2270,7 @@ class DocumentHub {
                     promises.push((async (idx) => {
                         if (window.firebaseDb) {
                             try {
-                                const snap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_${idx}`).get();
+                                const snap = await window.firebaseDb.collection('document_files').doc(`${this.escapeHtml(this.escapeJs(doc.id))}_chunk_${idx}`).get();
                                 if (snap && snap.exists) return snap.data().data || '';
                             } catch (e) {}
                         }
@@ -2533,7 +2558,7 @@ class DocumentHub {
                         </span>
                     </div>
                     ${document.getElementById('document-add-modal') ? `
-                        <button type="button" onclick="window.documentHub.closeMediaPreview(); window.documentHub.openEditModal('${doc.id}')"
+                        <button type="button" onclick="window.documentHub.closeMediaPreview(); window.documentHub.openEditModal('${this.escapeHtml(this.escapeJs(doc.id))}')"
                             class="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-colors flex items-center gap-1">
                             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                             <span>Chỉnh sửa</span>
@@ -2585,7 +2610,7 @@ class DocumentHub {
         container.scrollTop = 0;
         container.innerHTML = `
             <div class="w-full flex items-center justify-center p-2">
-                <img src="${src}" alt="${this.escapeHtml(title)}" class="max-h-[75vh] max-w-full object-contain rounded-xl shadow-lg border border-slate-200 bg-white">
+                <img src="${this.escapeHtml(src)}" alt="${this.escapeHtml(title)}" class="max-h-[75vh] max-w-full object-contain rounded-xl shadow-lg border border-slate-200 bg-white">
             </div>
         `;
 
@@ -2628,7 +2653,7 @@ class DocumentHub {
             const embedUrl = `https://www.youtube.com/embed/${ytMatch[2]}?autoplay=1`;
             container.innerHTML = `
                 <div class="w-full max-w-4xl mx-auto aspect-video rounded-xl overflow-hidden shadow-xl bg-black">
-                    <iframe src="${embedUrl}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe src="${this.escapeHtml(embedUrl)}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                 </div>
             `;
             if (downloadBtn) downloadBtn.classList.add('hidden');
@@ -2636,7 +2661,7 @@ class DocumentHub {
             // HTML5 Video Player
             container.innerHTML = `
                 <div class="w-full max-w-4xl mx-auto aspect-video rounded-xl overflow-hidden shadow-xl bg-black flex items-center justify-center">
-                    <video src="${src}" controls autoplay class="w-full h-full object-contain"></video>
+                    <video src="${this.escapeHtml(src)}" controls autoplay class="w-full h-full object-contain"></video>
                 </div>
             `;
             if (downloadBtn) {
@@ -2667,6 +2692,12 @@ class DocumentHub {
         if (container) container.innerHTML = ''; // Dừng phát video
     }
 
+    isSafeResourceUrl(value) {
+        try {
+            const url = new URL(value, window.location.href);
+            return ['http:', 'https:', 'blob:'].includes(url.protocol) || /^data:image\/(png|jpeg|gif|webp);base64,/i.test(value);
+        } catch (_) { return false; }
+    }
     escapeHtml(str) {
         if (!str) return '';
         return String(str)

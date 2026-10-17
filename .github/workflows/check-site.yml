@@ -21,5 +21,38 @@ jobs:
           node-version: '22'
       - name: Check syntax, assets and quotation calculations
         run: node scripts/check-site.cjs
+      - name: Check application access and sync behavior
+        run: npm test
       - name: Check whitespace
-        run: git diff --check
+        run: git show --format= --check HEAD
+
+  firestore-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test access rules against isolated Firestore emulator
+        run: npm run test:rules
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Test website with isolated Firebase fixtures
+        run: npm run test:browser

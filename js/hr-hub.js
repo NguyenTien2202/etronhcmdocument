@@ -1,7 +1,7 @@
 /**
  * Etron HrHub Controller (js/hr-hub.js)
  * Hệ thống Quản trị Nhân sự, Hồ sơ & Checklist Onboard, Thiết kế Lộ trình Onboard & Kho Mẫu Mail/Tin nhắn HR
- * Dành riêng cho HR (Có khóa bảo mật PIN, tách biệt hoàn toàn với trang SalesHub của nhân viên kinh doanh)
+ * Dành riêng cho HR (Đăng nhập Firebase Authentication, tách biệt hoàn toàn với trang SalesHub của nhân viên kinh doanh)
  */
 
 class HrHubApp {
@@ -28,24 +28,23 @@ class HrHubApp {
         this.editingDayId = null;
         this.attachingDayId = null;
         this.docPickerSearch = '';
-        this.enteredPin = '';
     }
 
     getPublicOnboardUrl(candidateId = null) {
         try {
             const url = new URL('onboard.html', window.location.href);
             if (candidateId) {
-                url.searchParams.set('id', candidateId);
+                const token = window.hrOnboardingStore.getCandidates().find(c => c.id === candidateId)?.onboardToken;
+                if (token) url.hash = 'key=' + token;
             }
             return url.href;
         } catch (e) {
-            return candidateId
-                ? `https://nguyentien2202.github.io/etronhcmdocument/onboard.html?id=${encodeURIComponent(candidateId)}`
-                : 'https://nguyentien2202.github.io/etronhcmdocument/onboard.html';
+            return 'https://nguyentien2202.github.io/etronhcmdocument/onboard.html';
         }
     }
 
     init() {
+        if (!window.hrAuth?.isHr()) return;
         if (window.salesStore) {
             window.salesStore.setupCloudSync();
         }
@@ -77,106 +76,11 @@ class HrHubApp {
         if (window.lucide) lucide.createIcons();
     }
 
-    // ==========================================
-    // 1. PIN SECURITY LOCK SCREEN
-    // ==========================================
-    checkLockState() {
-        const unlocked = sessionStorage.getItem('etron_hr_unlocked') === 'true';
-        const lockScreen = document.getElementById('hr-pin-lock-screen');
-        if (!lockScreen) return;
-        if (unlocked) {
-            lockScreen.classList.add('hidden');
-        } else {
-            lockScreen.classList.remove('hidden');
-            this.enteredPin = '';
-            this.updatePinDots();
-        }
-    }
-
-    pressPinDigit(digit) {
-        if (this.enteredPin.length >= 6) return;
-        this.enteredPin += String(digit);
-        this.updatePinDots();
-
-        const targetPin = window.hrOnboardingStore.getPinCode();
-        if (this.enteredPin === targetPin) {
-            this.unlockHrHub();
-        } else if (this.enteredPin.length >= targetPin.length) {
-            const errEl = document.getElementById('hr-pin-error');
-            if (errEl) {
-                errEl.textContent = 'Mã PIN chưa đúng, vui lòng thử lại!';
-                errEl.classList.remove('hidden');
-            }
-            setTimeout(() => {
-                this.enteredPin = '';
-                this.updatePinDots();
-            }, 450);
-        }
-    }
-
-    clearPinDigit() {
-        this.enteredPin = this.enteredPin.slice(0, -1);
-        const errEl = document.getElementById('hr-pin-error');
-        if (errEl) errEl.classList.add('hidden');
-        this.updatePinDots();
-    }
-
-    handlePinFormSubmit(e) {
-        if (e) e.preventDefault();
-        const input = document.getElementById('hr-pin-direct-input');
-        const val = input ? input.value.trim() : this.enteredPin;
-        const targetPin = window.hrOnboardingStore.getPinCode();
-        if (val === targetPin) {
-            if (input) input.value = '';
-            this.unlockHrHub();
-        } else {
-            const errEl = document.getElementById('hr-pin-error');
-            if (errEl) {
-                errEl.textContent = 'Mã PIN chưa chính xác!';
-                errEl.classList.remove('hidden');
-            }
-        }
-    }
-
-    updatePinDots() {
-        const targetLen = (window.hrOnboardingStore.getPinCode() || '2202').length;
-        const dotsContainer = document.getElementById('hr-pin-dots');
-        if (!dotsContainer) return;
-
-        let html = '';
-        for (let i = 0; i < targetLen; i++) {
-            const filled = i < this.enteredPin.length;
-            html += `<div class="w-3.5 h-3.5 rounded-full transition-all duration-150 ${
-                filled ? 'bg-emerald-500 scale-110 shadow-sm shadow-emerald-500/50' : 'bg-slate-200 border border-slate-300'
-            }"></div>`;
-        }
-        dotsContainer.innerHTML = html;
-    }
-
-    unlockHrHub() {
-        sessionStorage.setItem('etron_hr_unlocked', 'true');
-        const lockScreen = document.getElementById('hr-pin-lock-screen');
-        if (lockScreen) lockScreen.classList.add('hidden');
-        this.enteredPin = '';
-        this.renderAll();
-    }
-
-    lockHrHub() {
-        sessionStorage.removeItem('etron_hr_unlocked');
-        this.checkLockState();
-    }
-
+    checkLockState() { return window.hrAuth?.isHr(); }
+    lockHrHub() { return window.hrAuth.logout(); }
     openChangePinModal() {
-        const currentPin = window.hrOnboardingStore.getPinCode();
-        const newPin = prompt('Nhập Mã PIN mới cho trang Etron HrHub (từ 4 đến 6 chữ số):', currentPin);
-        if (newPin === null) return;
-        const clean = newPin.trim();
-        if (!/^\d{4,6}$/.test(clean)) {
-            alert('Vui lòng nhập mã PIN gồm 4 đến 6 chữ số!');
-            return;
-        }
-        window.hrOnboardingStore.setPinCode(clean);
-        this.showToast(`Đã cập nhật Mã PIN bảo mật HR thành công!`, 'success');
+        document.querySelector('#hr-login-form [name="email"]').value = firebase.auth().currentUser?.email || '';
+        return window.hrAuth.resetPassword();
     }
 
     // ==========================================
@@ -204,6 +108,7 @@ class HrHubApp {
     }
 
     renderAll() {
+        if (!window.hrAuth?.isHr()) return;
         this.renderHeaderStats();
         this.renderCandidatesTab();
         this.renderRoadmapTab();
@@ -235,19 +140,29 @@ class HrHubApp {
         });
     }
 
-    copyCandidateOnboardLink(candidateId) {
-        const cand = window.hrOnboardingStore.getCandidates().find(c => c.id === candidateId);
-        const link = this.getPublicOnboardUrl(candidateId);
-        navigator.clipboard.writeText(link).then(() => {
-            this.showToast(`Đã copy link Onboard riêng cho ${cand ? cand.fullName : 'nhân sự'}!`, 'success');
-        }).catch(() => {
-            prompt(`Copy link Onboard riêng cho ${cand ? cand.fullName : 'nhân sự'}:`, link);
-        });
+    async openCandidateOnboard(candId) {
+        const candidate = window.hrOnboardingStore.getCandidates().find(c => c.id === candId);
+        if (!candidate?.onboardToken) {
+            this.showToast('Hãy dùng Cập nhật / Copy Link trước để tạo liên kết cá nhân.', 'info');
+            return;
+        }
+        window.open(this.getPublicOnboardUrl(candId), '_blank', 'noopener,noreferrer');
+    }
+    async copyCandidateOnboardLink(candId) {
+        try {
+            await window.hrOnboardingStore.publishCandidate(candId);
+            const url = this.getPublicOnboardUrl(candId);
+            await navigator.clipboard.writeText(url);
+            this.renderAll();
+            this.showToast('Đã cập nhật và copy liên kết cá nhân. Chỉ gửi cho đúng người nhận.', 'success');
+        } catch (_) { this.showToast('Chưa tạo/copy được liên kết. Kiểm tra kết nối hoặc quyền và thử lại.', 'error'); }
+    }
+    async revokeOnboardLink(candId) {
+        if (!confirm('Thu hồi liên kết onboarding hiện tại? Liên kết cũ sẽ ngừng hoạt động.')) return;
+        try { await window.hrOnboardingStore.revokeCandidateLink(candId); this.renderAll(); }
+        catch (_) { this.showToast('Chưa thu hồi được liên kết. Hãy thử lại.', 'error'); }
     }
 
-    // ==========================================
-    // 3. TAB 1: HỒ SƠ & CHECKLIST NHÂN SỰ MỚI
-    // ==========================================
     getStatusMeta(status) {
         const map = {
             preparing: { label: 'Sắp Onboard', bg: 'bg-amber-100 text-amber-800 border-amber-200' },
@@ -277,7 +192,7 @@ class HrHubApp {
         if (cand.mentor) {
             this.quickVars.nguoi_lien_he = cand.mentor;
         }
-        this.quickVars.link_onboard = this.getPublicOnboardUrl(cand.id);
+        this.quickVars.link_onboard = cand.onboardToken ? this.getPublicOnboardUrl(cand.id) : '[HR cần tạo liên kết cá nhân bằng Cập nhật / Copy Link]';
     }
 
     jumpToTemplatesForCandidate(candId) {
@@ -435,7 +350,7 @@ class HrHubApp {
                                 : 'bg-white hover:bg-slate-50 border-slate-200/80'
                         }">
                         <div class="flex items-start justify-between gap-2 mb-1">
-                            <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${this.escapeHtml(c.fullName)}</h4>
+                            <h4 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${this.escapeHtml(c.fullName)} ${window.hrOnboardingStore.getLearningSummary(c).isOverdue ? '<span class="text-rose-700">• Quá hạn học</span>' : ''}</h4>
                             <div class="flex items-center gap-1 shrink-0">
                                 ${bdayBadge}
                                 <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusMeta.bg}">
@@ -527,6 +442,7 @@ class HrHubApp {
                         <div class="space-y-1.5">
                             <div class="flex flex-wrap items-center gap-2">
                                 <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">${this.escapeHtml(activeCand.fullName)}</h2>
+                                <p class="text-xs text-slate-600">Hạn học: ${this.escapeHtml(activeCand.targetDate || 'Chưa đặt')} • Phụ trách: ${this.escapeHtml(activeCand.mentor || 'Chưa đặt')} ${window.hrOnboardingStore.getLearningSummary(activeCand).isOverdue ? '<strong class="text-rose-700">• Quá hạn</strong>' : ''}</p>
                                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusMeta.bg}">
                                     ${statusMeta.label}
                                 </span>
@@ -542,14 +458,15 @@ class HrHubApp {
                                 class="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all flex items-center gap-1.5 shadow-2xs"
                                 title="Copy link Cổng Onboard riêng của nhân sự này để gửi cho bạn ấy">
                                 <i data-lucide="link" class="w-3.5 h-3.5"></i>
-                                <span>Copy Link Onboard</span>
+                                <span>Cập nhật / Copy Link</span>
                             </button>
-                            <a href="${candOnboardUrl}" target="_blank"
+                            <button type="button" class="px-3 py-2 rounded-xl text-xs text-rose-700 bg-rose-50" onclick="window.hrHub.revokeOnboardLink('${activeCand.id}')">Thu hồi link</button>
+                            <button type="button" onclick="window.hrHub.openCandidateOnboard('${activeCand.id}')"
                                 class="px-3 py-2 rounded-xl text-xs font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition-all flex items-center gap-1.5"
                                 title="Mở xem Cổng Onboard với tư cách nhân sự này">
                                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                                 <span class="hidden sm:inline">Mở Cổng Bạn Ấy</span>
-                            </a>
+                            </button>
                             <button type="button" onclick="window.hrHub.jumpToTemplatesForCandidate('${activeCand.id}')"
                                 class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center gap-1.5"
                                 title="Soạn email hoặc tin nhắn Zalo gửi nhân sự này">
@@ -834,6 +751,7 @@ class HrHubApp {
             defaultStart = `${y}-${m}-${d}`;
         }
         document.getElementById('hr-cand-start').value = defaultStart;
+        document.getElementById('hr-cand-deadline').value = cand?.targetDate || '';
         document.getElementById('hr-cand-dob').value = (cand && cand.dob) ? cand.dob : '';
         document.getElementById('hr-cand-phone').value = cand ? (cand.phone || '') : '';
         document.getElementById('hr-cand-email').value = cand ? (cand.email || '') : '';
@@ -862,6 +780,8 @@ class HrHubApp {
 
         const startDate = document.getElementById('hr-cand-start').value.trim();
         const dob = document.getElementById('hr-cand-dob').value.trim();
+        const targetDate = document.getElementById('hr-cand-deadline').value;
+        if (targetDate && targetDate < startDate) { alert('Hạn hoàn thành không được trước ngày bắt đầu.'); return; }
         if (!startDate) {
             alert('Vui lòng chọn Ngày bắt đầu Onboard!');
             return;
@@ -874,6 +794,7 @@ class HrHubApp {
             target.fullName = fullName;
             target.role = document.getElementById('hr-cand-role').value.trim();
             target.startDate = startDate;
+            target.targetDate = targetDate;
             target.dob = dob;
             target.phone = document.getElementById('hr-cand-phone').value.trim();
             target.email = document.getElementById('hr-cand-email').value.trim();
@@ -890,6 +811,7 @@ class HrHubApp {
                 role: document.getElementById('hr-cand-role').value.trim(),
                 department: 'Kinh doanh - Etron HCM',
                 startDate: startDate,
+                targetDate: targetDate,
                 dob: dob,
                 phone: document.getElementById('hr-cand-phone').value.trim(),
                 email: document.getElementById('hr-cand-email').value.trim(),
@@ -912,12 +834,14 @@ class HrHubApp {
         this.showToast(`Đã lưu hồ sơ nhân sự "${fullName}"!`, 'success');
     }
 
-    deleteCandidate(candId) {
+    async deleteCandidate(candId) {
         const list = window.hrOnboardingStore.getCandidates();
         const target = list.find(c => c.id === candId);
         if (!target) return;
         if (!confirm(`Bạn có chắc muốn xóa hồ sơ nhân sự "${target.fullName}" không?`)) return;
 
+        try { await window.hrOnboardingStore.revokeCandidateLink(candId); }
+        catch (_) { this.showToast('Không thể thu hồi liên kết, chưa xóa hồ sơ.', 'error'); return; }
         const nextList = list.filter(c => c.id !== candId);
         this.selectedCandidateId = nextList[0] ? nextList[0].id : null;
         window.hrOnboardingStore.saveCandidates(nextList);
@@ -1019,7 +943,7 @@ class HrHubApp {
                                         const badge = window.documentHub ? window.documentHub.getFileBadge(doc.fileType, doc.type) : { bg: 'bg-indigo-50', color: 'text-indigo-700', label: 'DOC' };
                                         return `
                                             <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-indigo-50/40 border border-indigo-200/80">
-                                                <div onclick="window.documentHub && window.documentHub.openDocument('${doc.id}')"
+                                                <div onclick="window.documentHub && window.documentHub.openDocument('${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                     class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer group">
                                                     <div class="w-8 h-8 rounded-lg ${badge.bg} ${badge.color} font-bold text-[11px] flex items-center justify-center shrink-0">
                                                         ${badge.label}
@@ -1029,7 +953,7 @@ class HrHubApp {
                                                         <p class="text-[10px] text-slate-500 truncate">${this.escapeHtml(doc.category || '')} • Bấm để xem thử</p>
                                                     </div>
                                                 </div>
-                                                <button type="button" onclick="window.hrHub.toggleAttachDocToDay('${day.id}', '${doc.id}')"
+                                                <button type="button" onclick="window.hrHub.toggleAttachDocToDay('${day.id}', '${this.escapeHtml(this.escapeJs(doc.id))}')"
                                                     class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 shrink-0" title="Gỡ tài liệu khỏi ngày này">
                                                     <i data-lucide="x" class="w-3.5 h-3.5"></i>
                                                 </button>
@@ -1206,7 +1130,7 @@ class HrHubApp {
             const badge = window.documentHub ? window.documentHub.getFileBadge(doc.fileType, doc.type) : { bg: 'bg-indigo-50', color: 'text-indigo-700', label: 'DOC' };
 
             return `
-                <div onclick="window.hrHub.toggleAttachDocToDay('${day.id}', '${doc.id}')"
+                <div onclick="window.hrHub.toggleAttachDocToDay('${day.id}', '${this.escapeHtml(this.escapeJs(doc.id))}')"
                     class="flex items-center justify-between gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
                         isAttached
                             ? 'bg-indigo-50/80 border-indigo-300 shadow-2xs'
@@ -1660,6 +1584,9 @@ class HrHubApp {
         }, 2800);
     }
 
+    escapeJs(str) {
+        return JSON.stringify(String(str || '')).slice(1, -1).replace(/'/g, "\\'");
+    }
     escapeHtml(str) {
         if (!str) return '';
         return String(str)
@@ -1673,5 +1600,5 @@ class HrHubApp {
 
 window.hrHub = new HrHubApp();
 document.addEventListener('DOMContentLoaded', () => {
-    window.hrHub.init();
+    // Authentication initializes HrHub after role verification.
 });

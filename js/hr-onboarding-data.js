@@ -5,15 +5,6 @@
  * - Tuyệt đối tách biệt với dữ liệu của Sales, không ghi đè dữ liệu cũ
  */
 
-const HR_STORAGE_KEYS = {
-    PIN: 'etron_hr_pin_code',
-    ROADMAP: 'etron_onboarding_roadmap_v1',
-    CANDIDATES: 'etron_hr_candidates_v1',
-    TEMPLATES: 'etron_hr_templates_v1',
-    NOTES: 'etron_hr_notes_v1',
-    NEW_HIRE_PROGRESS: 'etron_onboard_user_progress_v1'
-};
-
 const DEFAULT_ONBOARDING_ROADMAP = [
     {
         id: 'day-1',
@@ -154,28 +145,6 @@ function createDefaultChecklistItems() {
     ];
 }
 
-const DEFAULT_HR_CANDIDATES = [
-    {
-        id: 'cand-default-monday',
-        fullName: 'Nhân sự Sales mới (Onboard Thứ 2)',
-        role: 'Chuyên viên Kinh doanh (Sales Executive)',
-        department: 'Kinh doanh - Etron HCM',
-        startDate: '2026-10-19',
-        dob: '1998-10-22',
-        phone: '',
-        email: '',
-        mentor: 'Quản lý / HR Etron HCM',
-        status: 'preparing', // preparing | onboarding | probation | official | paused
-        salaryNote: '',
-        accountsInfo: 'Adahub CRM: Chưa cấp | Callbot Ucall: Chưa cấp',
-        privateNote: 'Hồ sơ chuẩn bị đón bạn nhân sự mới vào sáng Thứ 2. Bấm "Sửa hồ sơ" để cập nhật họ tên và SĐT thực tế của bạn ấy.',
-        checklist: createDefaultChecklistItems(),
-        taskProgress: {},
-        customRoadmap: null,
-        updatedAt: Date.now()
-    }
-];
-
 const DEFAULT_HR_TEMPLATES = [
     {
         id: 'tpl-hr-preboard-zalo',
@@ -300,184 +269,186 @@ Có bất kỳ điều gì cần hỗ trợ thêm, {{ten_ung_vien}} cứ chia s�
     }
 ];
 
-const DEFAULT_HR_NOTES = [
-    {
-        id: 'hr-note-default-1',
-        title: 'Checklist nhanh cần chuẩn bị trước sáng Thứ 2 đón nhân sự mới',
-        category: 'Quy trình Onboard',
-        content: `1. Kiểm tra lại Lộ trình Onboard 6 ngày bên tab "Kế Hoạch & Tài Liệu Onboard" xem đã gắn đủ các tài liệu cần thiết chưa.
-2. Nhắn tin Zalo dặn dò ứng viên chiều Thứ 7 hoặc Chủ Nhật (dùng mẫu trong tab Mẫu Email & Tin Nhắn HR).
-3. Sáng Thứ 2:
-   - Đón ứng viên, giới thiệu chỗ ngồi & team.
-   - Gửi link Cổng Onboard (onboard.html) để bạn đọc lộ trình Ngày 1.
-   - Thu thập CCCD, STK ngân hàng và tạo tài khoản Adahub CRM / Callbot Demo.`,
-        isPinned: true,
-        updatedAt: Date.now()
-    },
-    {
-        id: 'hr-note-default-2',
-        title: 'Khung tiêu chí đánh giá nhân sự Sales sau tuần đầu Onboard',
-        category: 'Tiêu chí đánh giá',
-        content: `• Thái độ & Tác phong (30%): Đúng giờ, chủ động đặt câu hỏi, hòa đồng với team, hoàn thành đầy đủ các mục trong Lộ trình Onboard.
-• Kiến thức Sản phẩm (40%):
-  - Phân biệt rõ 3 gói Adahub CRM (Cơ bản, Nâng cao, Toàn diện) & quy trình đăng ký Brandname.
-  - Hiểu rõ cơ chế Callbot AI Ucall (CB2, CB3, CB4) và lợi ích cho doanh nghiệp.
-• Kỹ năng Thực hành (30%):
-  - Tự tạo được báo giá PDF chuẩn trên Etron SalesHub trong 2 phút.
-  - Thực hiện cuộc gọi tư vấn giả định (Role-play) trôi chảy, xử lý được ít nhất 3 tình huống từ chối cơ bản.`,
-        isPinned: false,
-        updatedAt: Date.now()
-    }
-];
 
 class HrOnboardingStore {
     constructor() {
         this._listeners = [];
+        this._unsubscribers = [];
         this._cloudInitialized = false;
-        this.ensureDefaults();
+        this.privateData = { candidates: [], templates: DEFAULT_HR_TEMPLATES, notes: [] };
+        this.roadmap = JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
+        this.publicCandidate = null;
+        this.personalProgress = {};
+        this.ready = new Set();
+        this._progressListeners = new Map();
     }
-
-    ensureDefaults() {
-        if (!localStorage.getItem(HR_STORAGE_KEYS.PIN)) {
-            localStorage.setItem(HR_STORAGE_KEYS.PIN, '2202');
-        }
-        if (!localStorage.getItem(HR_STORAGE_KEYS.ROADMAP)) {
-            localStorage.setItem(HR_STORAGE_KEYS.ROADMAP, JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
-        }
-        if (!localStorage.getItem(HR_STORAGE_KEYS.CANDIDATES)) {
-            localStorage.setItem(HR_STORAGE_KEYS.CANDIDATES, JSON.stringify(DEFAULT_HR_CANDIDATES));
-        }
-        if (!localStorage.getItem(HR_STORAGE_KEYS.TEMPLATES)) {
-            localStorage.setItem(HR_STORAGE_KEYS.TEMPLATES, JSON.stringify(DEFAULT_HR_TEMPLATES));
-        }
-        if (!localStorage.getItem(HR_STORAGE_KEYS.NOTES)) {
-            localStorage.setItem(HR_STORAGE_KEYS.NOTES, JSON.stringify(DEFAULT_HR_NOTES));
-        }
-        if (!localStorage.getItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS)) {
-            localStorage.setItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS, JSON.stringify({}));
-        }
+    isHr() { return window.hrAuth?.isHr() === true; }
+    onChange(cb) { if (typeof cb === 'function') this._listeners.push(cb); }
+    notifyChange(source = 'local') { this._listeners.forEach(cb => cb(source)); }
+    requireHr(key) {
+        if (!this.isHr() || !this.ready.has(key)) throw new Error('Dữ liệu HR chưa sẵn sàng. Hãy chờ đồng bộ trước khi lưu.');
     }
-
-    onChange(cb) {
-        if (typeof cb === 'function') {
-            this._listeners.push(cb);
-        }
-    }
-
-    notifyChange(source = 'local') {
-        this._listeners.forEach(cb => {
-            try { cb(source); } catch (e) { console.warn(e); }
-        });
-    }
-
-    // ==================== PIN SECURITY ====================
-    getPinCode() {
-        return localStorage.getItem(HR_STORAGE_KEYS.PIN) || '2202';
-    }
-
-    setPinCode(newPin) {
-        const cleanPin = String(newPin || '').trim();
-        if (!cleanPin) return false;
-        localStorage.setItem(HR_STORAGE_KEYS.PIN, cleanPin);
-        if (window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('security').set({
-                pinCode: cleanPin,
-                updatedAt: Date.now()
-            }, { merge: true }).catch(err => console.warn('Cloud sync PIN error:', err));
-        }
-        return true;
-    }
-
-    // ==================== ONBOARDING ROADMAP ====================
-    getRoadmap() {
-        try {
-            const raw = localStorage.getItem(HR_STORAGE_KEYS.ROADMAP);
-            const parsed = raw ? JSON.parse(raw) : null;
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        } catch (e) {}
-        return JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
-    }
-
-    saveRoadmap(roadmapList, syncToCloud = true) {
-        localStorage.setItem(HR_STORAGE_KEYS.ROADMAP, JSON.stringify(roadmapList));
-        if (syncToCloud && window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({
-                days: roadmapList,
-                updatedAt: Date.now()
-            }).catch(err => console.warn('Cloud sync roadmap error:', err));
-        }
+    getRoadmap() { return this.roadmap; }
+    saveRoadmap(list) {
+        this.requireHr('roadmap');
+        this.roadmap = list;
+        window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({ days: list, updatedAt: Date.now() }).catch(() => {});
         this.notifyChange('roadmap');
     }
-
-    // ==================== NEW HIRE TASK PROGRESS ====================
-    getTaskProgress(candidateId = null) {
-        if (candidateId) {
-            const cand = this.getCandidateById(candidateId);
-            if (cand && cand.taskProgress) {
-                return cand.taskProgress;
-            }
-        }
-        try {
-            const raw = localStorage.getItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS);
-            return raw ? JSON.parse(raw) : {};
-        } catch (e) {
-            return {};
-        }
-    }
-
-    toggleTaskProgress(taskId, candidateId = null) {
-        if (candidateId) {
-            const list = this.getCandidates();
-            const cand = list.find(c => c.id === candidateId);
-            if (cand) {
-                if (!cand.taskProgress) cand.taskProgress = {};
-                cand.taskProgress[taskId] = !cand.taskProgress[taskId];
-                cand.updatedAt = Date.now();
-                this.saveCandidates(list);
-                this.notifyChange('progress');
-                return !!cand.taskProgress[taskId];
-            }
-        }
-
-        const progress = this.getTaskProgress();
-        progress[taskId] = !progress[taskId];
-        localStorage.setItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS, JSON.stringify(progress));
-        if (window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('new_hire_progress').set({
-                completedTasks: progress,
-                updatedAt: Date.now()
-            }, { merge: true }).catch(err => console.warn('Cloud sync progress error:', err));
-        }
-        this.notifyChange('progress');
-        return !!progress[taskId];
-    }
-
-    // ==================== HR CANDIDATES & CHECKLISTS ====================
-    getCandidates() {
-        try {
-            const raw = localStorage.getItem(HR_STORAGE_KEYS.CANDIDATES);
-            const parsed = raw ? JSON.parse(raw) : null;
-            if (Array.isArray(parsed)) return parsed;
-        } catch (e) {}
-        return JSON.parse(JSON.stringify(DEFAULT_HR_CANDIDATES));
-    }
-
+    getCandidates() { return this.isHr() ? this.privateData.candidates : []; }
     getCandidateById(id) {
-        if (!id) return null;
-        return this.getCandidates().find(c => c.id === id) || null;
+        return this.isHr() ? this.getCandidates().find(c => c.id === id) : this.publicCandidate;
     }
-
-    saveCandidates(list, syncToCloud = true) {
-        localStorage.setItem(HR_STORAGE_KEYS.CANDIDATES, JSON.stringify(list));
-        if (syncToCloud && window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('candidates_data').set({
-                items: list,
-                updatedAt: Date.now()
-            }).catch(err => console.warn('Cloud sync candidates error:', err));
-        }
+    saveCandidates(list) {
+        this.requireHr('candidates');
+        this.privateData.candidates = list;
+        this.watchProgress(list);
+        window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: list, updatedAt: Date.now() }).catch(() => {});
         this.notifyChange('candidates');
     }
-
+    getTemplates() { return this.isHr() ? this.privateData.templates : []; }
+    saveTemplates(list) { this.savePrivate('templates', 'templates_data', list); }
+    getNotes() { return this.isHr() ? this.privateData.notes : []; }
+    saveNotes(list) { this.savePrivate('notes', 'notes_data', list); }
+    savePrivate(key, doc, list) {
+        this.requireHr(key);
+        this.privateData[key] = list;
+        window.firebaseDb.collection('hr_config').doc(doc).set({ items: list, updatedAt: Date.now() }).catch(() => {});
+        this.notifyChange(key);
+    }
+    getTaskProgress(candidateId = null) {
+        if (this.isHr() && candidateId) return this.getCandidateById(candidateId)?.taskProgress || {};
+        return this.personalProgress;
+    }
+    async toggleTaskProgress(taskId, candidateId = null) {
+        if (this.isHr() && candidateId) {
+            const candidate = this.getCandidateById(candidateId);
+            candidate.taskProgress ||= {};
+            candidate.taskProgress[taskId] = !candidate.taskProgress[taskId];
+            this.saveCandidates(this.getCandidates());
+            return;
+        }
+        if (!this.token) {
+            // Public learning checklist is local only; it never writes HR data.
+            this.personalProgress[taskId] = !this.personalProgress[taskId];
+            localStorage.setItem('etron_public_learning_progress', JSON.stringify(this.personalProgress));
+        } else {
+            if (!this.personalProgressReady || !this.publicCandidate) throw new Error('Chưa tải được tiến độ.');
+            const next = { ...this.personalProgress, [taskId]: !this.personalProgress[taskId] };
+            await window.firebaseDb.collection('onboarding_progress').doc(this.token).update(new firebase.firestore.FieldPath('completedTasks', taskId), next[taskId]);
+            this.personalProgress = next;
+        }
+        this.notifyChange('progress');
+    }
+    setupCloudSync() {
+        if (this._cloudInitialized || !window.firebaseDb) return;
+        this._cloudInitialized = true;
+        const db = window.firebaseDb;
+        const listen = (ref, cb) => this._unsubscribers.push(ref.onSnapshot(cb, () => this.notifyChange('sync_error')));
+        listen(db.collection('hr_config').doc('onboarding_roadmap'), doc => {
+            if (doc.exists && Array.isArray(doc.data().days)) this.roadmap = doc.data().days;
+            if (!doc.metadata?.fromCache) this.ready.add('roadmap');
+            this.notifyChange('roadmap');
+        });
+        if (!this.isHr()) {
+            try { this.personalProgress = JSON.parse(localStorage.getItem('etron_public_learning_progress')) || {}; } catch (_) {}
+            return;
+        }
+        for (const [key, name] of [['candidates', 'candidates_data'], ['templates', 'templates_data'], ['notes', 'notes_data']]) {
+            listen(db.collection('hr_config').doc(name), doc => {
+                if (doc.exists && Array.isArray(doc.data().items)) this.privateData[key] = doc.data().items;
+                // Never seed/overwrite cloud data automatically on an empty snapshot.
+                if (!doc.metadata?.fromCache) this.ready.add(key);
+                if (key === 'candidates') this.watchProgress(this.privateData.candidates);
+                this.notifyChange(key);
+            });
+        }
+    }
+    watchProgress(candidates) {
+        const active = new Set(candidates.map(c => c.onboardToken).filter(Boolean));
+        for (const [token, unsubscribe] of this._progressListeners) {
+            if (!active.has(token)) { unsubscribe(); this._progressListeners.delete(token); }
+        }
+        for (const candidate of candidates) {
+            const token = candidate.onboardToken;
+            if (!token || this._progressListeners.has(token)) continue;
+            const unsubscribe = window.firebaseDb.collection('onboarding_progress').doc(token).onSnapshot(doc => {
+                const current = this.getCandidates().find(c => c.onboardToken === token);
+                if (current && doc.exists) current.taskProgress = doc.data().completedTasks || {};
+                this.notifyChange('progress');
+            }, () => this.notifyChange('sync_error'));
+            this._progressListeners.set(token, unsubscribe);
+        }
+    }
+    stopPrivateSync() {
+        this._unsubscribers.forEach(unsubscribe => unsubscribe());
+        this._unsubscribers = [];
+        this._cloudInitialized = false;
+        this.ready.clear();
+        this._progressListeners.forEach(unsubscribe => unsubscribe());
+        this._progressListeners.clear();
+        this.privateData = { candidates: [], templates: DEFAULT_HR_TEMPLATES, notes: [] };
+        this.notifyChange('logout');
+    }
+    async publishCandidate(candidateId) {
+        this.requireHr('candidates');
+        const candidate = this.getCandidates().find(c => c.id === candidateId);
+        if (!candidate) throw new Error('Không tìm thấy hồ sơ.');
+        const token = candidate.onboardToken || Array.from(crypto.getRandomValues(new Uint8Array(32)), n => n.toString(16).padStart(2, '0')).join('');
+        const publicData = {
+            fullName: candidate.fullName || '', role: candidate.role || '',
+            startDate: candidate.startDate || '', mentor: candidate.mentor || '', targetDate: candidate.targetDate || '',
+            customRoadmap: candidate.customRoadmap?.length ? candidate.customRoadmap : this.getRoadmap(),
+        };
+        const ref = window.firebaseDb.collection('onboarding_links').doc(token);
+        await ref.set(publicData);
+        const progressRef = window.firebaseDb.collection('onboarding_progress').doc(token);
+        const existing = await progressRef.get();
+        if (!existing.exists) await progressRef.set({ completedTasks: candidate.taskProgress || {} });
+        if (!candidate.onboardToken) {
+            candidate.onboardToken = token;
+            await window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: this.getCandidates(), updatedAt: Date.now() });
+        }
+        this.watchProgress(this.getCandidates());
+        return token;
+    }
+    async revokeCandidateLink(id) {
+        this.requireHr('candidates');
+        const candidate = this.getCandidates().find(c => c.id === id);
+        if (!candidate?.onboardToken) return;
+        await window.firebaseDb.collection('onboarding_links').doc(candidate.onboardToken).delete();
+        delete candidate.onboardToken;
+        this.saveCandidates(this.getCandidates());
+    }
+    openPersonalLink(token) {
+        if (!/^[a-f0-9]{64}$/.test(token)) throw new Error('Liên kết không hợp lệ.');
+        this.token = token;
+        this.personalProgressReady = false;
+        const ref = window.firebaseDb.collection('onboarding_links').doc(token);
+        this._unsubscribers.push(ref.onSnapshot(doc => {
+            this.publicCandidate = doc.exists ? doc.data() : null;
+            this.personalUnavailable = !doc.exists;
+            this.notifyChange('personal');
+        }, () => { this.personalUnavailable = true; this.publicCandidate = null; this.notifyChange('personal'); }));
+        this._unsubscribers.push(window.firebaseDb.collection('onboarding_progress').doc(token).onSnapshot(doc => {
+            this.personalProgress = doc.exists ? doc.data().completedTasks || {} : {};
+            this.personalProgressReady = !doc.metadata?.fromCache;
+            this.notifyChange('progress');
+        }, () => this.notifyChange('sync_error')));
+    }
+    getLearningSummary(candidate, now = new Date()) {
+        const roadmap = candidate?.customRoadmap?.length ? candidate.customRoadmap : this.getRoadmap();
+        const progress = candidate?.taskProgress || this.personalProgress;
+        const tasks = roadmap.flatMap(day => day.tasks || []);
+        const completed = tasks.filter(task => !!progress[task.id]).length;
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now).map(part => [part.type, part.value]));
+        const today = `${parts.year}-${parts.month}-${parts.day}`;
+        return {
+            isOverdue: !!candidate?.targetDate && candidate.targetDate < today && completed < tasks.length,
+            nextDay: roadmap.find(day => (day.tasks || []).some(task => !progress[task.id])),
+            completed, total: tasks.length,
+        };
+    }
     formatDateDisplay(dateStr) {
         if (!dateStr) return 'Chưa cập nhật';
         const clean = String(dateStr).trim();
@@ -541,127 +512,5 @@ class HrOnboardingStore {
         return createDefaultChecklistItems();
     }
 
-    // ==================== HR EMAIL & ZALO TEMPLATES ====================
-    getTemplates() {
-        try {
-            const raw = localStorage.getItem(HR_STORAGE_KEYS.TEMPLATES);
-            const parsed = raw ? JSON.parse(raw) : null;
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-        } catch (e) {}
-        return JSON.parse(JSON.stringify(DEFAULT_HR_TEMPLATES));
-    }
-
-    saveTemplates(list, syncToCloud = true) {
-        localStorage.setItem(HR_STORAGE_KEYS.TEMPLATES, JSON.stringify(list));
-        if (syncToCloud && window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('templates_data').set({
-                items: list,
-                updatedAt: Date.now()
-            }).catch(err => console.warn('Cloud sync templates error:', err));
-        }
-        this.notifyChange('templates');
-    }
-
-    // ==================== HR PRIVATE NOTES ====================
-    getNotes() {
-        try {
-            const raw = localStorage.getItem(HR_STORAGE_KEYS.NOTES);
-            const parsed = raw ? JSON.parse(raw) : null;
-            if (Array.isArray(parsed)) return parsed;
-        } catch (e) {}
-        return JSON.parse(JSON.stringify(DEFAULT_HR_NOTES));
-    }
-
-    saveNotes(list, syncToCloud = true) {
-        localStorage.setItem(HR_STORAGE_KEYS.NOTES, JSON.stringify(list));
-        if (syncToCloud && window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('notes_data').set({
-                items: list,
-                updatedAt: Date.now()
-            }).catch(err => console.warn('Cloud sync notes error:', err));
-        }
-        this.notifyChange('notes');
-    }
-
-    // ==================== CLOUD REAL-TIME SYNC ====================
-    setupCloudSync() {
-        if (this._cloudInitialized || !window.firebaseDb) return;
-        this._cloudInitialized = true;
-
-        const db = window.firebaseDb;
-
-        // 1. Sync PIN
-        db.collection('hr_config').doc('security').onSnapshot(doc => {
-            if (doc.exists && doc.data().pinCode) {
-                localStorage.setItem(HR_STORAGE_KEYS.PIN, String(doc.data().pinCode));
-            } else {
-                db.collection('hr_config').doc('security').set({
-                    pinCode: this.getPinCode(),
-                    updatedAt: Date.now()
-                }, { merge: true }).catch(() => {});
-            }
-        }, err => console.warn('HR security listener:', err));
-
-        // 2. Sync Onboarding Roadmap
-        db.collection('hr_config').doc('onboarding_roadmap').onSnapshot(doc => {
-            if (doc.exists && Array.isArray(doc.data().days) && doc.data().days.length > 0) {
-                localStorage.setItem(HR_STORAGE_KEYS.ROADMAP, JSON.stringify(doc.data().days));
-                this.notifyChange('cloud_roadmap');
-            } else {
-                db.collection('hr_config').doc('onboarding_roadmap').set({
-                    days: this.getRoadmap(),
-                    updatedAt: Date.now()
-                }).catch(() => {});
-            }
-        }, err => console.warn('Roadmap listener:', err));
-
-        // 3. Sync New Hire Progress
-        db.collection('hr_config').doc('new_hire_progress').onSnapshot(doc => {
-            if (doc.exists && doc.data().completedTasks) {
-                localStorage.setItem(HR_STORAGE_KEYS.NEW_HIRE_PROGRESS, JSON.stringify(doc.data().completedTasks));
-                this.notifyChange('cloud_progress');
-            }
-        }, err => console.warn('Progress listener:', err));
-
-        // 4. Sync HR Candidates
-        db.collection('hr_config').doc('candidates_data').onSnapshot(doc => {
-            if (doc.exists && Array.isArray(doc.data().items)) {
-                localStorage.setItem(HR_STORAGE_KEYS.CANDIDATES, JSON.stringify(doc.data().items));
-                this.notifyChange('cloud_candidates');
-            } else {
-                db.collection('hr_config').doc('candidates_data').set({
-                    items: this.getCandidates(),
-                    updatedAt: Date.now()
-                }).catch(() => {});
-            }
-        }, err => console.warn('Candidates listener:', err));
-
-        // 5. Sync HR Templates
-        db.collection('hr_config').doc('templates_data').onSnapshot(doc => {
-            if (doc.exists && Array.isArray(doc.data().items) && doc.data().items.length > 0) {
-                localStorage.setItem(HR_STORAGE_KEYS.TEMPLATES, JSON.stringify(doc.data().items));
-                this.notifyChange('cloud_templates');
-            } else {
-                db.collection('hr_config').doc('templates_data').set({
-                    items: this.getTemplates(),
-                    updatedAt: Date.now()
-                }).catch(() => {});
-            }
-        }, err => console.warn('Templates listener:', err));
-
-        // 6. Sync HR Private Notes
-        db.collection('hr_config').doc('notes_data').onSnapshot(doc => {
-            if (doc.exists && Array.isArray(doc.data().items)) {
-                localStorage.setItem(HR_STORAGE_KEYS.NOTES, JSON.stringify(doc.data().items));
-                this.notifyChange('cloud_notes');
-            } else {
-                db.collection('hr_config').doc('notes_data').set({
-                    items: this.getNotes(),
-                    updatedAt: Date.now()
-                }).catch(() => {});
-            }
-        }, err => console.warn('Notes listener:', err));
-    }
 }
-
 window.hrOnboardingStore = new HrOnboardingStore();

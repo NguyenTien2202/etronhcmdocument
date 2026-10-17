@@ -21,10 +21,10 @@ try {
             firebase.initializeApp(firebaseConfig);
         }
         firebaseDb = firebase.firestore();
-        console.log('✅ Đã kết nối Firebase Firestore thành công (etron-sales-hub)!');
+        console.log('✅ Đã khởi tạo Firebase Firestore (etron-sales-hub)!');
     }
 } catch (e) {
     console.warn('⚠️ Không thể khởi tạo Firebase, đang sử dụng bộ nhớ cục bộ:', e);
 }
 
-window.firebaseDb = firebaseDb;
+window.firebaseDb = firebaseDb && window.syncStatus ? window.syncStatus.wrap(firebaseDb) : firebaseDb;

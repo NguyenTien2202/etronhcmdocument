@@ -1,0 +1,19 @@
+{
+  "name": "etron-saleshub-checks",
+  "private": true,
+  "scripts": {
+    "check": "node scripts/check-site.cjs",
+    "test": "node --test tests/access-and-sync.test.cjs",
+    "test:browser": "node tests/browser-smoke.cjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-saleshub \"node --test tests/firestore.rules.cjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "3.0.4",
+    "firebase": "10.8.0",
+    "firebase-tools": "13.35.1",
+    "playwright": "1.56.1"
+  },
+  "overrides": {
+    "universal-analytics": "0.5.3"
+  }
+}

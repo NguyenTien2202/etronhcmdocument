@@ -10,3 +10,10 @@ _*.html
 _*.txt
 _*.png
 _*.ps1
+
+# Local validation dependencies and emulator output
+node_modules/
+*-debug.log
+.firebase/
+playwright-report/
+test-results/

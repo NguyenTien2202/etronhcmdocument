@@ -802,7 +802,7 @@ class SalesStore {
     }
 
     // Documents
-    getDocuments() {
+    getAllDocuments() {
         try {
             return JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];
         } catch {
@@ -810,8 +810,11 @@ class SalesStore {
         }
     }
 
+    getDocuments() { return this.getAllDocuments().filter(doc => !doc.deletedAt); }
+    getTrashedDocuments() { return this.getAllDocuments().filter(doc => !!doc.deletedAt); }
+
     saveDocument(doc) {
-        const docs = this.getDocuments();
+        const docs = this.getAllDocuments();
         let targetDoc = null;
         const nowTs = Date.now();
         const todayStr = new Date().toISOString().split('T')[0];
@@ -860,19 +863,17 @@ class SalesStore {
         return targetDoc;
     }
 
-    deleteDocument(id) {
-        const docs = this.getDocuments().filter(d => d.id !== id);
-        localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
-
-        // Xóa trên Firebase Firestore
-        if (window.firebaseDb && id) {
-            try {
-                window.firebaseDb.collection('documents').doc(id).delete()
-                    .catch(err => console.warn('Lỗi xóa Firestore:', err));
-            } catch (err) {
-                console.warn('Lỗi xóa Firebase:', err);
-            }
-        }
+    async deleteDocument(id) { return this.setDocumentTrashState(id, Date.now()); }
+    async restoreDocument(id) { return this.setDocumentTrashState(id, null); }
+    async setDocumentTrashState(id, deletedAt) {
+        const docs = this.getAllDocuments();
+        const doc = docs.find(item => item.id === id);
+        if (!doc) throw new Error('Không tìm thấy tài liệu.');
+        if (window.firebaseDb) await window.firebaseDb.collection('documents').doc(id).update({ deletedAt });
+        const latest = this.getAllDocuments();
+        const current = latest.find(item => item.id === id);
+        if (current) current.deletedAt = deletedAt;
+        localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(latest));
     }
 
     // ==========================================
@@ -1259,7 +1260,7 @@ class SalesStore {
         const data = {
             company: this.getCompany(),
             products: this.getProducts(),
-            documents: this.getDocuments(),
+            documents: this.getAllDocuments(),
             quotes: this.getQuotes(),
             exportedAt: new Date().toISOString(),
             version: '2026-etron-salekit'
