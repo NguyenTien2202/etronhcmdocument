@@ -1191,8 +1191,8 @@ class DocumentHub {
         const sectionLink = document.getElementById('modal-section-link');
         const sectionNote = document.getElementById('modal-section-note');
 
-        const activeClass = "flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5";
-        const inactiveClass = "flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5";
+        const activeClass = "px-2 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap";
+        const inactiveClass = "px-2 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap";
 
         if (tabUpload) tabUpload.className = tab === 'upload' ? activeClass : inactiveClass;
         if (tabLink) tabLink.className = tab === 'link' ? activeClass : inactiveClass;

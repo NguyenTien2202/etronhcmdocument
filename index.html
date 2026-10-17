@@ -30,7 +30,7 @@
     <!-- html2pdf.js (Local) -->
     <script src="js/html2pdf.bundle.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261017_v64">
+    <link rel="stylesheet" href="css/styles.css?v=20261017_v65">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -430,12 +430,6 @@
                 </div>
 
                 <div class="flex items-center justify-center sm:justify-end gap-2 w-full sm:w-auto shrink-0">
-                    <button onclick="window.documentHub.openAddModal('note')"
-                        class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"
-                        title="Dán nhanh văn bản thông báo hoặc tin nhắn từ Zalo/Telegram">
-                        <i data-lucide="message-square-text" class="w-4 h-4 text-amber-600"></i>
-                        <span>Dán thông báo</span>
-                    </button>
                     <button onclick="window.documentHub.openAddModal()"
                         class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs active:scale-95"
                         title="Thêm tài liệu hoặc liên kết mới">
@@ -1012,27 +1006,26 @@
                 <input type="hidden" id="editing-doc-id" value="">
                 
                 <!-- Phương thức nhập (Tab switcher) -->
-                <div class="bg-slate-100 p-1 rounded-xl flex items-center gap-1">
+                <div class="bg-slate-100 p-1 rounded-xl grid grid-cols-3 gap-1">
                     <button type="button" id="modal-tab-upload" onclick="window.documentHub.switchModalTab('upload')"
-                        class="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5"
+                        class="px-2 py-2 text-xs font-bold rounded-lg bg-white text-indigo-600 shadow-sm border border-slate-200 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
                         title="Tải tệp lên từ máy tính">
                         <i data-lucide="upload-cloud" class="w-3.5 h-3.5 shrink-0"></i>
                         <span class="hidden sm:inline">Tải Tệp Lên</span>
                         <span class="sm:hidden">Tải Tệp</span>
                     </button>
                     <button type="button" id="modal-tab-link" onclick="window.documentHub.switchModalTab('link')"
-                        class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5"
+                        class="px-2 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
                         title="Dán liên kết trực tuyến">
                         <i data-lucide="link-2" class="w-3.5 h-3.5 shrink-0"></i>
                         <span class="hidden sm:inline">Dán Liên Kết</span>
                         <span class="sm:hidden">Liên Kết</span>
                     </button>
                     <button type="button" id="modal-tab-note" onclick="window.documentHub.switchModalTab('note')"
-                        class="flex-1 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5"
+                        class="px-2 py-2 text-xs font-semibold rounded-lg text-slate-500 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
                         title="Dán văn bản thông báo hoặc tin nhắn">
                         <i data-lucide="message-square-text" class="w-3.5 h-3.5 shrink-0"></i>
-                        <span class="hidden sm:inline">Dán Thông Báo / Note</span>
-                        <span class="sm:hidden">Thông Báo</span>
+                        <span>Dán Note</span>
                     </button>
                 </div>
 
@@ -1651,18 +1644,18 @@
     <!-- Firebase Cloud Real-Time Database SDKs (Compat v10) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js?v=20261017_v64"></script>
+    <script src="js/firebase-config.js?v=20261017_v65"></script>
 
     <!-- Core App Scripts in proper order -->
-    <script src="js/logo-data.js?v=20261017_v64"></script>
-    <script src="js/callbot-data.js?v=20261017_v64"></script>
-    <script src="js/number-to-words.js?v=20261017_v64"></script>
-    <script src="js/store.js?v=20261017_v64"></script>
-    <script src="js/quote-builder.js?v=20261017_v64"></script>
-    <script src="js/document-hub.js?v=20261017_v64"></script>
-    <script src="js/callbot-hub.js?v=20261017_v64"></script>
-    <script src="js/product-catalog.js?v=20261017_v64"></script>
-    <script src="js/pdf-export.js?v=20261017_v64"></script>
-    <script src="js/app.js?v=20261017_v64"></script>
+    <script src="js/logo-data.js?v=20261017_v65"></script>
+    <script src="js/callbot-data.js?v=20261017_v65"></script>
+    <script src="js/number-to-words.js?v=20261017_v65"></script>
+    <script src="js/store.js?v=20261017_v65"></script>
+    <script src="js/quote-builder.js?v=20261017_v65"></script>
+    <script src="js/document-hub.js?v=20261017_v65"></script>
+    <script src="js/callbot-hub.js?v=20261017_v65"></script>
+    <script src="js/product-catalog.js?v=20261017_v65"></script>
+    <script src="js/pdf-export.js?v=20261017_v65"></script>
+    <script src="js/app.js?v=20261017_v65"></script>
 </body>
 </html>
