@@ -175,6 +175,7 @@ function fakeFirebase() {
         // Check duration chip is removed from day 1 card
         const day1CardText = await day1Card.innerText();
         assert.ok(!day1CardText.includes('17:30') && !day1CardText.includes('18:00'), 'Day duration chip should be removed from HrHub roadmap');
+        assert.ok((await day1Card.getAttribute('class')).includes('bg-gradient-to-br'), 'HrHub Day 1 card should have pastel gradient class');
 
         // Click day collapse button
         await page.locator('#hr-day-btn-day-1').click();
@@ -208,6 +209,10 @@ function fakeFirebase() {
         const addTplText = await addTplBtn.innerText();
         assert.equal(addTplText.trim(), '', 'Add template button should be icon-only');
 
+        // Check template card pastel gradient
+        const tplCard = page.locator('#hr-templates-list > div').first();
+        assert.ok((await tplCard.getAttribute('class')).includes('bg-gradient-to-br'), 'Template card should have pastel gradient class');
+
         // Test toggling vars form
         const varsForm = page.locator('#hr-quick-vars-form');
         assert.equal(await varsForm.evaluate(el => el.classList.contains('hidden')), true, 'Vars form should default to hidden');
@@ -223,6 +228,10 @@ function fakeFirebase() {
         await page.setViewportSize({ width: 390, height: 844 });
         await page.goto(base + '/onboard.html#key=' + 'b'.repeat(64));
         await page.waitForFunction(() => document.getElementById('onboard-day-dropdown-container') !== null);
+
+        // Check Onboard Day card pastel gradient
+        const onboardDayCard = page.locator('#day-body-day-1').locator('..');
+        assert.ok((await onboardDayCard.getAttribute('class')).includes('bg-gradient-to-br'), 'Onboard viewer day card should have pastel gradient class');
 
         // Check header title exists with comfortable size
         const headerTitle = page.locator('h1').first();

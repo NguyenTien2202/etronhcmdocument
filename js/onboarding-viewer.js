@@ -250,6 +250,100 @@ class OnboardingViewer {
         return map[colorName] || map.indigo;
     }
 
+    getPastelTheme(index) {
+        const themes = [
+            {
+                name: 'indigo',
+                cardBg: 'bg-gradient-to-br from-indigo-50/80 via-blue-50/30 to-white',
+                headerBg: 'bg-indigo-50/50',
+                border: 'border-indigo-200/90 hover:border-indigo-400',
+                glow: 'hover:shadow-md hover:shadow-indigo-100/60',
+                pill: 'bg-indigo-600 text-white',
+                tagBg: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80',
+                icon: 'text-indigo-600',
+                kwText: 'text-indigo-900'
+            },
+            {
+                name: 'emerald',
+                cardBg: 'bg-gradient-to-br from-emerald-50/80 via-teal-50/30 to-white',
+                headerBg: 'bg-emerald-50/50',
+                border: 'border-emerald-200/90 hover:border-emerald-400',
+                glow: 'hover:shadow-md hover:shadow-emerald-100/60',
+                pill: 'bg-emerald-600 text-white',
+                tagBg: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
+                icon: 'text-emerald-600',
+                kwText: 'text-emerald-900'
+            },
+            {
+                name: 'purple',
+                cardBg: 'bg-gradient-to-br from-purple-50/80 via-fuchsia-50/30 to-white',
+                headerBg: 'bg-purple-50/50',
+                border: 'border-purple-200/90 hover:border-purple-400',
+                glow: 'hover:shadow-md hover:shadow-purple-100/60',
+                pill: 'bg-purple-600 text-white',
+                tagBg: 'bg-purple-50 text-purple-700 border border-purple-200/80',
+                icon: 'text-purple-600',
+                kwText: 'text-purple-900'
+            },
+            {
+                name: 'amber',
+                cardBg: 'bg-gradient-to-br from-amber-50/80 via-orange-50/30 to-white',
+                headerBg: 'bg-amber-50/50',
+                border: 'border-amber-200/90 hover:border-amber-400',
+                glow: 'hover:shadow-md hover:shadow-amber-100/60',
+                pill: 'bg-amber-600 text-white',
+                tagBg: 'bg-amber-50 text-amber-800 border border-amber-200/80',
+                icon: 'text-amber-600',
+                kwText: 'text-amber-900'
+            },
+            {
+                name: 'rose',
+                cardBg: 'bg-gradient-to-br from-rose-50/80 via-pink-50/30 to-white',
+                headerBg: 'bg-rose-50/50',
+                border: 'border-rose-200/90 hover:border-rose-400',
+                glow: 'hover:shadow-md hover:shadow-rose-100/60',
+                pill: 'bg-rose-600 text-white',
+                tagBg: 'bg-rose-50 text-rose-700 border border-rose-200/80',
+                icon: 'text-rose-600',
+                kwText: 'text-rose-900'
+            },
+            {
+                name: 'sky',
+                cardBg: 'bg-gradient-to-br from-sky-50/80 via-cyan-50/30 to-white',
+                headerBg: 'bg-sky-50/50',
+                border: 'border-sky-200/90 hover:border-sky-400',
+                glow: 'hover:shadow-md hover:shadow-sky-100/60',
+                pill: 'bg-sky-600 text-white',
+                tagBg: 'bg-sky-50 text-sky-700 border border-sky-200/80',
+                icon: 'text-sky-600',
+                kwText: 'text-sky-900'
+            },
+            {
+                name: 'teal',
+                cardBg: 'bg-gradient-to-br from-teal-50/80 via-emerald-50/30 to-white',
+                headerBg: 'bg-teal-50/50',
+                border: 'border-teal-200/90 hover:border-teal-400',
+                glow: 'hover:shadow-md hover:shadow-teal-100/60',
+                pill: 'bg-teal-600 text-white',
+                tagBg: 'bg-teal-50 text-teal-700 border border-teal-200/80',
+                icon: 'text-teal-600',
+                kwText: 'text-teal-900'
+            },
+            {
+                name: 'blue',
+                cardBg: 'bg-gradient-to-br from-blue-50/80 via-indigo-50/30 to-white',
+                headerBg: 'bg-blue-50/50',
+                border: 'border-blue-200/90 hover:border-blue-400',
+                glow: 'hover:shadow-md hover:shadow-blue-100/60',
+                pill: 'bg-blue-600 text-white',
+                tagBg: 'bg-blue-50 text-blue-700 border border-blue-200/80',
+                icon: 'text-blue-600',
+                kwText: 'text-blue-900'
+            }
+        ];
+        return themes[Math.abs(index) % themes.length];
+    }
+
     getTaskTypeBadge(type) {
         if (type === 'practice') {
             return `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">Thực hành</span>`;
@@ -462,63 +556,63 @@ class OnboardingViewer {
                 <!-- Danh sách Chi tiết từng Ngày Onboard -->
                 <div class="space-y-5">
                     ${visibleDays.map((day, dIdx) => {
-                        const theme = this.getBadgeColors(day.badgeColor);
+                        const originalDayIndex = roadmap.findIndex(d => d.id === day.id);
+                        const theme = this.getPastelTheme(originalDayIndex >= 0 ? originalDayIndex : dIdx);
                         const dayTasks = day.tasks || [];
                         const doneCount = dayTasks.filter(t => progress[t.id]).length;
                         const attachedDocs = (day.attachedDocIds || [])
                             .map(id => allDocs.find(d => d.id === id))
                             .filter(Boolean);
                         const customLinks = day.customLinks || [];
-                        const originalDayIndex = roadmap.findIndex(d => d.id === day.id);
                         const formattedDayDate = this.getFormattedDayDate(day, originalDayIndex >= 0 ? originalDayIndex : dIdx, candidate);
                         const isCollapsed = this.collapsedDays.has(day.id);
 
                         return `
-                            <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all hover:border-indigo-200">
+                            <div class="${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xs ${theme.glow} overflow-hidden transition-all duration-200">
                                 <!-- Header của Ngày (Click để xổ xuống / thu gọn) -->
-                                <div class="p-4 sm:p-5 bg-gradient-to-r ${theme.softHeader} border-b border-slate-100 flex items-center justify-between gap-3 cursor-pointer select-none"
+                                <div class="p-4 sm:p-5 ${theme.headerBg} border-b border-slate-200/70 flex items-center justify-between gap-3 cursor-pointer select-none"
                                     onclick="window.onboardingViewer.toggleDay('${day.id}')">
                                     <div class="space-y-1 min-w-0 flex-1">
                                         <div class="flex flex-wrap items-center gap-2">
-                                            <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${theme.pill} shadow-2xs">
+                                            <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${theme.pill} shadow-xs">
                                                 ${this.escapeHtml(day.dayNumber)}
                                             </span>
                                             ${formattedDayDate ? `
-                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white text-indigo-700 border border-indigo-200 flex items-center gap-1 shadow-2xs">
-                                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${theme.tagBg} flex items-center gap-1 shadow-2xs">
+                                                    <i data-lucide="calendar" class="w-3.5 h-3.5 ${theme.icon}"></i>
                                                     <span>${formattedDayDate}</span>
                                                 </span>
                                             ` : ''}
                                             ${day.trainer ? `
-                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-white text-indigo-700 border border-indigo-200 flex items-center gap-1 shadow-2xs">
-                                                    <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>
+                                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${theme.tagBg} flex items-center gap-1 shadow-2xs">
+                                                    <i data-lucide="user-check" class="w-3 h-3 ${theme.icon}"></i>
                                                     <span>Phụ trách: ${this.escapeHtml(day.trainer)}</span>
                                                 </span>
                                             ` : ''}
-                                            <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${doneCount === dayTasks.length && dayTasks.length > 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                                            <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${doneCount === dayTasks.length && dayTasks.length > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-white/80 text-slate-600 border border-slate-200'}">
                                                 Hoàn thành ${doneCount}/${dayTasks.length}
                                             </span>
                                         </div>
-                                        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 pt-0.5 truncate sm:whitespace-normal">
+                                        <h3 class="text-base sm:text-lg font-extrabold text-slate-900 pt-0.5 truncate sm:whitespace-normal group-hover:${theme.kwText} transition-colors">
                                             ${this.escapeHtml(this.cleanTaskTitle(day.title))}
                                         </h3>
                                         ${day.goal ? `
                                             <p class="text-xs text-slate-600 flex items-start gap-1.5 pt-0.5">
-                                                <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600 shrink-0 mt-0.5"></i>
+                                                <i data-lucide="target" class="w-3.5 h-3.5 ${theme.icon} shrink-0 mt-0.5"></i>
                                                 <span><strong>Mục tiêu cần đạt:</strong> ${this.escapeHtml(day.goal)}</span>
                                             </p>
                                         ` : ''}
                                     </div>
                                     <div class="flex items-center gap-1.5 shrink-0 pl-2">
                                         <button type="button" aria-label="Thu gọn hoặc mở rộng ngày" id="day-icon-${day.id}"
-                                            class="p-2 rounded-xl bg-white/80 hover:bg-white text-slate-500 hover:text-indigo-600 transition-transform duration-200 shadow-2xs border border-slate-200/80 ${isCollapsed ? '' : 'rotate-180'}">
+                                            class="p-2 rounded-xl bg-white/90 hover:bg-white text-slate-500 hover:text-indigo-600 transition-transform duration-200 shadow-2xs border border-slate-200/80 ${isCollapsed ? '' : 'rotate-180'}">
                                             <i data-lucide="chevron-down" class="w-4 h-4"></i>
                                         </button>
                                     </div>
                                 </div>
 
                                 <!-- Nội dung chính của Ngày: Collapsible -->
-                                <div id="day-body-${day.id}" class="${isCollapsed ? 'hidden' : ''} p-4 sm:p-5 space-y-4">
+                                <div id="day-body-${day.id}" class="${isCollapsed ? 'hidden' : ''} p-4 sm:p-5 space-y-4 bg-white/60">
                                     <!-- Danh sách nội dung đào tạo (Click để xổ xuống xem chi tiết & link) -->
                                     <div class="space-y-2.5">
                                         <div class="flex items-center justify-between">

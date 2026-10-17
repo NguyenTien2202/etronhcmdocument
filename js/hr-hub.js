@@ -1122,6 +1122,144 @@ class HrHubApp {
     }
 
     // ==========================================
+    // BỘ MÀU PASTEL GRADIENT ĐỒNG BỘ TOÀN HỆ THỐNG
+    // Tương thích với Kho từ khóa & Media Callbot Hub
+    // ==========================================
+    getPastelTheme(index) {
+        const themes = [
+            {
+                name: 'indigo',
+                cardBg: 'bg-gradient-to-br from-indigo-50/80 via-blue-50/30 to-white',
+                headerBg: 'bg-indigo-50/50',
+                border: 'border-indigo-200/90 hover:border-indigo-400',
+                glow: 'hover:shadow-md hover:shadow-indigo-100/60',
+                iconBg: 'bg-indigo-100 text-indigo-700',
+                badgeBg: 'bg-indigo-100/90 text-indigo-700 border border-indigo-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-indigo-100/70',
+                kwText: 'text-indigo-800',
+                kwLabel: 'text-indigo-500',
+                pill: 'bg-indigo-600 text-white',
+                btnBg: 'bg-indigo-600 hover:bg-indigo-700 text-white',
+                tagBg: 'bg-indigo-50 text-indigo-700 border border-indigo-200/80',
+                icon: 'text-indigo-600'
+            },
+            {
+                name: 'emerald',
+                cardBg: 'bg-gradient-to-br from-emerald-50/80 via-teal-50/30 to-white',
+                headerBg: 'bg-emerald-50/50',
+                border: 'border-emerald-200/90 hover:border-emerald-400',
+                glow: 'hover:shadow-md hover:shadow-emerald-100/60',
+                iconBg: 'bg-emerald-100 text-emerald-700',
+                badgeBg: 'bg-emerald-100/90 text-emerald-700 border border-emerald-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-emerald-100/70',
+                kwText: 'text-emerald-800',
+                kwLabel: 'text-emerald-500',
+                pill: 'bg-emerald-600 text-white',
+                btnBg: 'bg-emerald-600 hover:bg-emerald-700 text-white',
+                tagBg: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
+                icon: 'text-emerald-600'
+            },
+            {
+                name: 'purple',
+                cardBg: 'bg-gradient-to-br from-purple-50/80 via-fuchsia-50/30 to-white',
+                headerBg: 'bg-purple-50/50',
+                border: 'border-purple-200/90 hover:border-purple-400',
+                glow: 'hover:shadow-md hover:shadow-purple-100/60',
+                iconBg: 'bg-purple-100 text-purple-700',
+                badgeBg: 'bg-purple-100/90 text-purple-700 border border-purple-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-purple-100/70',
+                kwText: 'text-purple-800',
+                kwLabel: 'text-purple-500',
+                pill: 'bg-purple-600 text-white',
+                btnBg: 'bg-purple-600 hover:bg-purple-700 text-white',
+                tagBg: 'bg-purple-50 text-purple-700 border border-purple-200/80',
+                icon: 'text-purple-600'
+            },
+            {
+                name: 'amber',
+                cardBg: 'bg-gradient-to-br from-amber-50/80 via-orange-50/30 to-white',
+                headerBg: 'bg-amber-50/50',
+                border: 'border-amber-200/90 hover:border-amber-400',
+                glow: 'hover:shadow-md hover:shadow-amber-100/60',
+                iconBg: 'bg-amber-100 text-amber-700',
+                badgeBg: 'bg-amber-100/90 text-amber-700 border border-amber-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-amber-100/70',
+                kwText: 'text-amber-800',
+                kwLabel: 'text-amber-500',
+                pill: 'bg-amber-600 text-white',
+                btnBg: 'bg-amber-600 hover:bg-amber-700 text-white',
+                tagBg: 'bg-amber-50 text-amber-800 border border-amber-200/80',
+                icon: 'text-amber-600'
+            },
+            {
+                name: 'rose',
+                cardBg: 'bg-gradient-to-br from-rose-50/80 via-pink-50/30 to-white',
+                headerBg: 'bg-rose-50/50',
+                border: 'border-rose-200/90 hover:border-rose-400',
+                glow: 'hover:shadow-md hover:shadow-rose-100/60',
+                iconBg: 'bg-rose-100 text-rose-700',
+                badgeBg: 'bg-rose-100/90 text-rose-700 border border-rose-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-rose-100/70',
+                kwText: 'text-rose-800',
+                kwLabel: 'text-rose-500',
+                pill: 'bg-rose-600 text-white',
+                btnBg: 'bg-rose-600 hover:bg-rose-700 text-white',
+                tagBg: 'bg-rose-50 text-rose-700 border border-rose-200/80',
+                icon: 'text-rose-600'
+            },
+            {
+                name: 'sky',
+                cardBg: 'bg-gradient-to-br from-sky-50/80 via-cyan-50/30 to-white',
+                headerBg: 'bg-sky-50/50',
+                border: 'border-sky-200/90 hover:border-sky-400',
+                glow: 'hover:shadow-md hover:shadow-sky-100/60',
+                iconBg: 'bg-sky-100 text-sky-700',
+                badgeBg: 'bg-sky-100/90 text-sky-700 border border-sky-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-sky-100/70',
+                kwText: 'text-sky-800',
+                kwLabel: 'text-sky-500',
+                pill: 'bg-sky-600 text-white',
+                btnBg: 'bg-sky-600 hover:bg-sky-700 text-white',
+                tagBg: 'bg-sky-50 text-sky-700 border border-sky-200/80',
+                icon: 'text-sky-600'
+            },
+            {
+                name: 'teal',
+                cardBg: 'bg-gradient-to-br from-teal-50/80 via-emerald-50/30 to-white',
+                headerBg: 'bg-teal-50/50',
+                border: 'border-teal-200/90 hover:border-teal-400',
+                glow: 'hover:shadow-md hover:shadow-teal-100/60',
+                iconBg: 'bg-teal-100 text-teal-700',
+                badgeBg: 'bg-teal-100/90 text-teal-700 border border-teal-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-teal-100/70',
+                kwText: 'text-teal-800',
+                kwLabel: 'text-teal-500',
+                pill: 'bg-teal-600 text-white',
+                btnBg: 'bg-teal-600 hover:bg-teal-700 text-white',
+                tagBg: 'bg-teal-50 text-teal-700 border border-teal-200/80',
+                icon: 'text-teal-600'
+            },
+            {
+                name: 'blue',
+                cardBg: 'bg-gradient-to-br from-blue-50/80 via-indigo-50/30 to-white',
+                headerBg: 'bg-blue-50/50',
+                border: 'border-blue-200/90 hover:border-blue-400',
+                glow: 'hover:shadow-md hover:shadow-blue-100/60',
+                iconBg: 'bg-blue-100 text-blue-700',
+                badgeBg: 'bg-blue-100/90 text-blue-700 border border-blue-200/60',
+                rowBg: 'bg-white/90 hover:bg-white border-blue-100/70',
+                kwText: 'text-blue-800',
+                kwLabel: 'text-blue-500',
+                pill: 'bg-blue-600 text-white',
+                btnBg: 'bg-blue-600 hover:bg-blue-700 text-white',
+                tagBg: 'bg-blue-50 text-blue-700 border border-blue-200/80',
+                icon: 'text-blue-600'
+            }
+        ];
+        return themes[Math.abs(index) % themes.length];
+    }
+
+    // ==========================================
     // 4. TAB 2: QUẢN LÝ KẾ HOẠCH & TÀI LIỆU ONBOARD
     // ==========================================
     renderRoadmapTab() {
@@ -1140,56 +1278,57 @@ class HrHubApp {
             const tasks = day.tasks || [];
             const customLinks = day.customLinks || [];
             const isDayCollapsed = this.collapsedRoadmapDays.has(day.id);
+            const theme = this.getPastelTheme(idx);
 
             return `
-                <div id="hr-day-card-${day.id}" class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                <div id="hr-day-card-${day.id}" class="${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xs ${theme.glow} overflow-hidden transition-all duration-200">
                     <!-- Day Header -->
-                    <div class="p-4 sm:p-5 bg-slate-50/80 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="p-4 sm:p-5 ${theme.headerBg} border-b border-slate-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div class="space-y-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-indigo-600 text-white">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${theme.pill} shadow-xs">
                                     ${this.escapeHtml(day.dayNumber)}
                                 </span>
-                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-xs hover:border-indigo-400 transition-colors shadow-2xs"
+                                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-200/90 bg-white/90 text-xs hover:border-indigo-400 transition-colors shadow-2xs"
                                     title="Chọn ngày đào tạo thực tế từ lịch cho ngày này">
-                                    <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5 ${theme.icon} shrink-0"></i>
                                     <span class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Ngày:</span>
                                     <input type="date" value="${day.date || ''}"
                                         onchange="window.hrHub.handleQuickDayDateChange('${day.id}', this.value)"
                                         class="text-xs font-bold text-slate-800 bg-transparent border-0 p-0 focus:outline-none cursor-pointer"
                                         aria-label="Chọn ngày trên lịch">
-                                    ${day.date ? `<span class="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">${this.formatDayDate(day.date)}</span>` : ''}
+                                    ${day.date ? `<span class="text-[11px] font-bold ${theme.tagBg} px-1.5 py-0.5 rounded shadow-2xs">${this.formatDayDate(day.date)}</span>` : ''}
                                 </div>
-                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center gap-1">
-                                    <i data-lucide="user-check" class="w-3 h-3 text-indigo-600"></i>
+                                <span class="px-2.5 py-0.5 rounded-lg text-[11px] font-bold ${theme.tagBg} flex items-center gap-1 shadow-2xs">
+                                    <i data-lucide="user-check" class="w-3 h-3 ${theme.icon}"></i>
                                     <span>Phụ trách: ${this.escapeHtml(day.trainer || 'Nguyễn Thủy Tiên')}</span>
                                 </span>
                                 <span class="text-[11px] font-semibold text-slate-500">
                                     • ${tasks.length} nội dung đào tạo
                                 </span>
                             </div>
-                            <h3 class="text-base font-extrabold text-slate-900 pt-0.5">${this.escapeHtml(this.cleanTaskTitle(day.title))}</h3>
+                            <h3 class="text-base font-extrabold text-slate-900 pt-0.5 group-hover:${theme.kwText} transition-colors">${this.escapeHtml(this.cleanTaskTitle(day.title))}</h3>
                             ${day.goal ? `<p class="text-xs text-slate-600"><strong>Mục tiêu:</strong> ${this.escapeHtml(day.goal)}</p>` : ''}
                         </div>
 
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}')"
-                                class="relative w-8 h-8 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs"
+                                class="relative w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-indigo-700 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs"
                                 title="Kho Tài Liệu SalesHub (${attachedDocs.length} tài liệu)">
                                 <i data-lucide="folder-plus" class="w-4 h-4"></i>
                                 ${attachedDocs.length > 0 ? `
-                                    <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center leading-none shadow-xs">
+                                    <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full ${theme.pill} text-[10px] font-bold flex items-center justify-center leading-none shadow-xs">
                                         ${attachedDocs.length}
                                     </span>
                                 ` : ''}
                             </button>
                             <button type="button" onclick="window.hrHub.openAddLinkModal('${day.id}')"
-                                class="w-8 h-8 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center justify-center transition-all shadow-2xs"
+                                class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-emerald-800 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs"
                                 title="Thêm link ngoài (Drive, Docs, Sheets, Canva)">
                                 <i data-lucide="link" class="w-4 h-4"></i>
                             </button>
                             <button type="button" onclick="window.hrHub.openRoadmapDayModal('${day.id}')"
-                                class="w-8 h-8 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs"
+                                class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-700 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs"
                                 title="Sửa thông tin ngày" aria-label="Sửa thông tin ngày">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
@@ -1201,7 +1340,7 @@ class HrHubApp {
                             ` : ''}
                             <button type="button" onclick="window.hrHub.toggleRoadmapDay('${day.id}')"
                                 id="hr-day-btn-${day.id}"
-                                class="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 border border-slate-200 transition-all shadow-2xs"
+                                class="p-1.5 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-white/90 border border-slate-200/90 transition-all shadow-2xs"
                                 title="${isDayCollapsed ? 'Mở rộng ngày này' : 'Thu gọn ngày này'}">
                                 <i id="hr-day-chevron-${day.id}" data-lucide="chevron-down" class="w-4 h-4 transition-transform ${isDayCollapsed ? '' : 'rotate-180 text-indigo-600'}"></i>
                             </button>
@@ -1209,7 +1348,7 @@ class HrHubApp {
                     </div>
 
                     <!-- Day Body (Collapsible) -->
-                    <div id="hr-day-body-${day.id}" class="${isDayCollapsed ? 'hidden' : ''} p-4 sm:p-5 space-y-4">
+                    <div id="hr-day-body-${day.id}" class="${isDayCollapsed ? 'hidden' : ''} p-4 sm:p-5 space-y-4 bg-white/60">
                         <!-- Modules List (Accordion) -->
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
@@ -2045,60 +2184,61 @@ class HrHubApp {
             reject: { bg: 'bg-rose-50 text-rose-800 border-rose-200/80', icon: 'x-circle' }
         };
 
-        listEl.innerHTML = filtered.map(tpl => {
+        listEl.innerHTML = filtered.map((tpl, tIdx) => {
             const resolvedSubject = this.applyVariables(tpl.subject || tpl.title);
             const resolvedContent = this.applyVariables(tpl.content || '');
             const catStyle = catBadgeStyles[tpl.category] || { bg: 'bg-slate-100 text-slate-700 border-slate-200', icon: 'mail' };
+            const theme = this.getPastelTheme(tIdx);
 
             return `
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs hover:shadow-md p-5 flex flex-col justify-between gap-4 hover:border-emerald-300 transition-all group">
+                <div class="${theme.cardBg} rounded-2xl border ${theme.border} shadow-2xs ${theme.glow} p-5 flex flex-col justify-between gap-4 transition-all duration-200 group">
                     <div class="space-y-3">
                         <div class="flex items-start justify-between gap-2">
                             <div>
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${catStyle.bg}">
-                                    <i data-lucide="${catStyle.icon}" class="w-3 h-3"></i>
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold ${theme.badgeBg} shadow-2xs">
+                                    <i data-lucide="${catStyle.icon || 'mail'}" class="w-3.5 h-3.5"></i>
                                     <span>${this.escapeHtml(tpl.categoryLabel || 'Mẫu HR')}</span>
                                 </span>
-                                <h4 class="text-sm sm:text-base font-extrabold text-slate-900 mt-2">${this.escapeHtml(tpl.title)}</h4>
+                                <h4 class="text-sm sm:text-base font-extrabold text-slate-900 mt-2 group-hover:${theme.kwText} transition-colors">${this.escapeHtml(tpl.title)}</h4>
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
                                 <button type="button" onclick="window.hrHub.openTemplateModal('${tpl.id}')"
-                                    class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors" title="Chỉnh sửa mẫu">
+                                    class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-white/80 transition-colors" title="Chỉnh sửa mẫu">
                                     <i data-lucide="edit-3" class="w-4 h-4"></i>
                                 </button>
                                 <button type="button" onclick="window.hrHub.deleteTemplate('${tpl.id}')"
-                                    class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="Xóa mẫu">
+                                    class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-white/80 transition-colors" title="Xóa mẫu">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </div>
 
                         <!-- Tiêu đề Email -->
-                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
+                        <div class="p-2.5 rounded-xl bg-white/90 border border-slate-200/80 flex items-center justify-between gap-2 shadow-2xs">
                             <div class="min-w-0 flex-1">
                                 <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Tiêu đề Email / Tin nhắn:</span>
                                 <p class="text-xs font-bold text-slate-800 truncate">${this.escapeHtml(resolvedSubject)}</p>
                             </div>
                             <button type="button" onclick="window.hrHub.copyTemplateSubject('${tpl.id}')"
-                                class="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold shrink-0 flex items-center gap-1 shadow-2xs active:scale-95 transition-all">
+                                class="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold shrink-0 flex items-center gap-1 shadow-2xs active:scale-95 transition-all">
                                 <i data-lucide="copy" class="w-3 h-3"></i>
                                 <span>Copy tiêu đề</span>
                             </button>
                         </div>
 
                         <!-- Nội dung đã tự động điền tên -->
-                        <div class="p-3.5 rounded-xl bg-slate-50/70 border border-slate-200/80 max-h-60 overflow-y-auto">
+                        <div class="p-3.5 rounded-xl bg-white/90 border border-slate-200/80 max-h-60 overflow-y-auto shadow-2xs">
                             <div class="text-xs text-slate-800 whitespace-pre-wrap leading-relaxed select-text font-sans">${this.escapeHtml(resolvedContent)}</div>
                         </div>
                     </div>
 
-                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <span class="text-[11px] text-slate-400 flex items-center gap-1">
-                            <i data-lucide="sparkles" class="w-3 h-3 text-emerald-500"></i>
+                    <div class="pt-3 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                        <span class="text-[11px] ${theme.kwText} font-semibold flex items-center gap-1">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 ${theme.icon}"></i>
                             <span>Tự điền theo biến</span>
                         </span>
                         <button type="button" onclick="window.hrHub.copyTemplateContent('${tpl.id}')"
-                            class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs flex items-center gap-1.5 active:scale-95 transition-all">
+                            class="px-3.5 py-2 rounded-xl ${theme.btnBg} text-xs font-bold shadow-xs flex items-center gap-1.5 active:scale-95 transition-all">
                             <i data-lucide="copy-check" class="w-4 h-4"></i>
                             <span>Sao chép nội dung gửi ngay</span>
                         </button>
