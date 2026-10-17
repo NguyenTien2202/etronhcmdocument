@@ -45,6 +45,7 @@
         },
     };
     document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) lucide.createIcons();
         if (!window.firebaseDb || typeof firebase?.auth !== 'function') {
             document.getElementById('hr-auth-error').textContent = 'Không tải được dịch vụ đăng nhập. Vui lòng tải lại trang.';
             return;

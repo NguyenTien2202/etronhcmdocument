@@ -1121,28 +1121,138 @@ class DocumentHub {
         if (!dialog) {
             dialog = document.createElement('dialog');
             dialog.id = 'document-trash-dialog';
-            dialog.className = 'rounded-2xl p-5 w-full max-w-xl';
+            dialog.className = 'fixed inset-0 m-auto z-50 p-0 rounded-2xl w-[92vw] max-w-lg bg-transparent shadow-none border-none overflow-hidden';
+            dialog.onclick = (e) => {
+                if (e.target === dialog) dialog.close();
+            };
             document.body.append(dialog);
+        } else {
+            dialog.className = 'fixed inset-0 m-auto z-50 p-0 rounded-2xl w-[92vw] max-w-lg bg-transparent shadow-none border-none overflow-hidden';
+            dialog.onclick = (e) => {
+                if (e.target === dialog) dialog.close();
+            };
         }
         dialog.replaceChildren();
-        const title = document.createElement('h2'); title.textContent = 'Thùng rác tài liệu';
-        const close = document.createElement('button'); close.textContent = 'Đóng'; close.onclick = () => dialog.close();
-        dialog.append(title, close);
-        const docs = window.salesStore.getTrashedDocuments();
-        if (!docs.length) { const empty = document.createElement('p'); empty.textContent = 'Thùng rác trống.'; dialog.append(empty); }
-        for (const doc of docs) {
-            const row = document.createElement('div'); row.className = 'flex justify-between gap-3 py-3 border-b';
-            const name = document.createElement('span'); name.textContent = doc.title || 'Tài liệu';
-            const restore = document.createElement('button'); restore.textContent = 'Khôi phục';
-            restore.onclick = async () => {
-                restore.disabled = true;
-                try {
-                    await window.salesStore.restoreDocument(doc.id);
-                    this.renderStats(); this.renderQuickAccess(); this.renderDocumentsList(); this.showTrash();
-                } catch (_) { restore.disabled = false; window.salesApp.showNotification('Chưa khôi phục được. Hãy thử lại.', 'error'); }
-            };
-            row.append(name, restore); dialog.append(row);
+
+        const docs = (window.salesStore?.getTrashedDocuments ? window.salesStore.getTrashedDocuments() : []) || [];
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'bg-white rounded-2xl shadow-2xl border border-slate-200/90 flex flex-col max-h-[85vh] overflow-hidden';
+
+        // Header
+        const header = document.createElement('div');
+        header.className = 'px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80';
+        header.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 shadow-2xs shrink-0">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-sm font-extrabold text-slate-900 tracking-tight">Thùng rác tài liệu</h2>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">${docs.length}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Khôi phục tài liệu đã xóa về kho tài nguyên Sales</p>
+                </div>
+            </div>
+            <button type="button" class="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-xl transition-all" title="Đóng" aria-label="Đóng">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        `;
+        const closeBtn = header.querySelector('button');
+        closeBtn.onclick = () => dialog.close();
+        wrapper.append(header);
+
+        // Body
+        const body = document.createElement('div');
+        body.className = 'p-4 sm:p-5 overflow-y-auto space-y-2.5 max-h-[55vh] overscroll-contain';
+
+        if (!docs.length) {
+            const empty = document.createElement('div');
+            empty.className = 'py-10 text-center flex flex-col items-center justify-center text-slate-400';
+            empty.innerHTML = `
+                <div class="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-2.5 text-slate-400">
+                    <i data-lucide="archive" class="w-6 h-6"></i>
+                </div>
+                <p class="text-xs font-bold text-slate-700">Thùng rác trống</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Chưa có tài liệu nào bị xóa gần đây.</p>
+            `;
+            body.append(empty);
+        } else {
+            for (const doc of docs) {
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200/90 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all';
+
+                const left = document.createElement('div');
+                left.className = 'flex items-center gap-3 min-w-0';
+
+                const iconBox = document.createElement('div');
+                iconBox.className = 'w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100 shrink-0';
+                iconBox.innerHTML = '<i data-lucide="file-text" class="w-4 h-4"></i>';
+
+                const textCol = document.createElement('div');
+                textCol.className = 'min-w-0';
+
+                const name = document.createElement('p');
+                name.className = 'text-xs font-bold text-slate-800 truncate';
+                name.textContent = doc.title || 'Tài liệu không tên';
+
+                const sub = document.createElement('div');
+                sub.className = 'flex items-center gap-2 text-[10px] text-slate-400 mt-0.5';
+                const catBadge = document.createElement('span');
+                catBadge.className = 'px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-700 font-medium';
+                catBadge.textContent = doc.category || 'Chung';
+                sub.append(catBadge);
+                if (doc.type) {
+                    const typeSpan = document.createElement('span');
+                    typeSpan.className = 'uppercase';
+                    typeSpan.textContent = doc.type;
+                    sub.append(typeSpan);
+                }
+
+                textCol.append(name, sub);
+                left.append(iconBox, textCol);
+
+                const restore = document.createElement('button');
+                restore.type = 'button';
+                restore.setAttribute('aria-label', 'Khôi phục');
+                restore.className = 'px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs shrink-0 active:scale-95';
+                restore.innerHTML = '<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i><span>Khôi phục</span>';
+                restore.onclick = async () => {
+                    restore.disabled = true;
+                    try {
+                        await window.salesStore.restoreDocument(doc.id);
+                        this.renderStats();
+                        this.renderQuickAccess();
+                        this.renderDocumentsList();
+                        this.showTrash();
+                    } catch (_) {
+                        restore.disabled = false;
+                        window.salesApp.showNotification('Chưa khôi phục được. Hãy thử lại.', 'error');
+                    }
+                };
+
+                row.append(left, restore);
+                body.append(row);
+            }
         }
+        wrapper.append(body);
+
+        // Footer
+        const footer = document.createElement('div');
+        footer.className = 'px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-xs';
+        footer.innerHTML = '<span class="text-[11px] text-slate-400">Tài liệu trong thùng rác không hiển thị ở màn hình chính.</span>';
+
+        const closeBtnBottom = document.createElement('button');
+        closeBtnBottom.type = 'button';
+        closeBtnBottom.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/70 transition-colors';
+        closeBtnBottom.textContent = 'Đóng';
+        closeBtnBottom.onclick = () => dialog.close();
+        footer.append(closeBtnBottom);
+        wrapper.append(footer);
+
+        dialog.append(wrapper);
+        if (window.lucide) lucide.createIcons();
         if (!dialog.open) dialog.showModal();
     }
 

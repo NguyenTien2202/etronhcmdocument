@@ -427,3 +427,16 @@ body.modal-open-lock {
 .hr-authenticated #hr-private-content { display: contents; }
 .hr-authenticated #hr-login-screen { display: none; }
 .sync-status-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; padding: .6rem 1rem; margin-top: auto; border-top: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: .75rem; }
+
+/* Document Hub Trash Dialog */
+#document-trash-dialog {
+    border: none;
+    padding: 0;
+    background: transparent;
+    max-width: 95vw;
+}
+#document-trash-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
