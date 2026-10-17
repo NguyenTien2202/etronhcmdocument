@@ -865,6 +865,13 @@ class SalesStore {
 
     async deleteDocument(id) { return this.setDocumentTrashState(id, Date.now()); }
     async restoreDocument(id) { return this.setDocumentTrashState(id, null); }
+    async permanentlyDeleteDocument(id) {
+        if (window.firebaseDb) {
+            await window.firebaseDb.collection('documents').doc(id).delete();
+        }
+        const latest = this.getAllDocuments().filter(item => item.id !== id);
+        localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(latest));
+    }
     async setDocumentTrashState(id, deletedAt) {
         const docs = this.getAllDocuments();
         const doc = docs.find(item => item.id === id);

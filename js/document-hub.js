@@ -1116,6 +1116,25 @@ class DocumentHub {
             window.salesApp.showNotification('Đã chuyển vào thùng rác; tệp đính kèm được giữ lại.', 'info');
         } catch (_) { window.salesApp.showNotification('Chưa chuyển được vào thùng rác. Hãy thử lại.', 'error'); }
     }
+    async permanentlyDeleteDocument(id) {
+        if (!confirm('Bạn có chắc chắn muốn xóa vĩnh viễn tài liệu này? Thao tác này không thể hoàn tác.')) return;
+        try {
+            await window.salesStore.permanentlyDeleteDocument(id);
+            if (this.db) {
+                try {
+                    const tx = this.db.transaction(['files'], 'readwrite');
+                    tx.objectStore('files').delete(id);
+                } catch (_) {}
+            }
+            this.renderStats();
+            this.renderQuickAccess();
+            this.renderDocumentsList();
+            this.showTrash();
+            window.salesApp.showNotification('Đã xóa vĩnh viễn tài liệu.', 'info');
+        } catch (_) {
+            window.salesApp.showNotification('Chưa xóa được tài liệu. Hãy thử lại.', 'error');
+        }
+    }
     showTrash() {
         let dialog = document.getElementById('document-trash-dialog');
         if (!dialog) {
@@ -1213,11 +1232,15 @@ class DocumentHub {
                 textCol.append(name, sub);
                 left.append(iconBox, textCol);
 
+                const actions = document.createElement('div');
+                actions.className = 'flex items-center gap-1.5 shrink-0';
+
                 const restore = document.createElement('button');
                 restore.type = 'button';
                 restore.setAttribute('aria-label', 'Khôi phục');
-                restore.className = 'px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs shrink-0 active:scale-95';
-                restore.innerHTML = '<i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i><span>Khôi phục</span>';
+                restore.title = 'Khôi phục tài liệu';
+                restore.className = 'w-8 h-8 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-800 border border-emerald-200 flex items-center justify-center transition-all shadow-2xs shrink-0 active:scale-95';
+                restore.innerHTML = '<i data-lucide="rotate-ccw" class="w-4 h-4"></i>';
                 restore.onclick = async () => {
                     restore.disabled = true;
                     try {
@@ -1232,7 +1255,18 @@ class DocumentHub {
                     }
                 };
 
-                row.append(left, restore);
+                const permDelete = document.createElement('button');
+                permDelete.type = 'button';
+                permDelete.setAttribute('aria-label', 'Xóa vĩnh viễn');
+                permDelete.title = 'Xóa vĩnh viễn';
+                permDelete.className = 'w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 border border-rose-200 flex items-center justify-center transition-all shadow-2xs shrink-0 active:scale-95';
+                permDelete.innerHTML = '<i data-lucide="trash-2" class="w-4 h-4"></i>';
+                permDelete.onclick = async () => {
+                    await this.permanentlyDeleteDocument(doc.id);
+                };
+
+                actions.append(restore, permDelete);
+                row.append(left, actions);
                 body.append(row);
             }
         }
