@@ -72,14 +72,12 @@
     }
     window.syncStatus = { wrap, status };
     document.addEventListener('DOMContentLoaded', () => {
-        const box = document.createElement('div');
-        box.className = 'sync-status-bar';
         const text = document.createElement('span');
-        text.id = 'cloud-sync-status'; text.setAttribute('role', 'status');
-        const note = document.createElement('span');
-        note.textContent = 'Báo giá nháp và thiết lập công ty lưu riêng trên thiết bị.';
-        box.append(text, note);
-        document.body.append(box); render();
+        text.id = 'cloud-sync-status';
+        text.setAttribute('role', 'status');
+        text.style.display = 'none';
+        document.body.append(text);
+        render();
     });
     window.addEventListener('online', render);
     window.addEventListener('offline', render);

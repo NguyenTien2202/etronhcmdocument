@@ -325,6 +325,21 @@ class HrHubApp {
             this.selectedCandidateId = allCandidates[0].id;
         }
 
+        // Render Mobile Dropdown Selector
+        const mobileSelect = document.getElementById('hr-mobile-candidate-select');
+        if (mobileSelect) {
+            if (allCandidates.length === 0) {
+                mobileSelect.innerHTML = '<option value="">-- Chưa có nhân sự nào --</option>';
+            } else {
+                mobileSelect.innerHTML = allCandidates.map(c => {
+                    const statusMeta = this.getStatusMeta(c.status);
+                    const isSelected = c.id === this.selectedCandidateId;
+                    return `<option value="${c.id}" ${isSelected ? 'selected' : ''}>${this.escapeHtml(c.fullName)} – ${this.escapeHtml(c.role || 'Sales')} (${statusMeta.label})</option>`;
+                }).join('');
+                if (this.selectedCandidateId) mobileSelect.value = this.selectedCandidateId;
+            }
+        }
+
         // Render Left Sidebar List
         if (filtered.length === 0) {
             listEl.innerHTML = `

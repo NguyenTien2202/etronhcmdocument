@@ -7,7 +7,8 @@
 
 class OnboardingViewer {
     constructor() {
-        this.activeDayFilter = 'all';
+        this.activeDayFilter = null;
+        this.userSelectedFilter = false;
         this.candidateId = null;
         this.expandedModules = new Set();
     }
@@ -54,8 +55,47 @@ class OnboardingViewer {
     }
 
     setDayFilter(dayId) {
+        this.userSelectedFilter = true;
         this.activeDayFilter = dayId;
         this.render();
+    }
+
+    getTodayDayId(roadmap, candidate) {
+        if (!roadmap || !roadmap.length) return 'all';
+        const parts = Object.fromEntries(new Intl.DateTimeFormat('en', { timeZone: 'Asia/Ho_Chi_Minh', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date()).map(p => [p.type, p.value]));
+        const todayStr = `${parts.year}-${parts.month}-${parts.day}`;
+
+        // Lấy ngày ISO chuẩn của từng ngày trong lộ trình
+        const daySchedule = roadmap.map((day, idx) => {
+            let isoDate = day.date;
+            if (!isoDate && candidate?.startDate) {
+                if (window.hrOnboardingStore?.getWorkingDayDate) {
+                    isoDate = window.hrOnboardingStore.getWorkingDayDate(candidate.startDate, idx);
+                }
+            }
+            return { dayId: day.id, isoDate: isoDate ? String(isoDate).trim() : '' };
+        });
+
+        // 1. Kiểm tra xem hôm nay có trùng ngày nào không
+        const exactMatch = daySchedule.find(s => s.isoDate === todayStr);
+        if (exactMatch) return exactMatch.dayId;
+
+        // 2. Nếu hôm nay trước ngày bắt đầu lộ trình, nhảy đến Ngày 1
+        const firstDayWithDate = daySchedule.find(s => s.isoDate);
+        if (firstDayWithDate && todayStr < firstDayWithDate.isoDate) {
+            return roadmap[0]?.id || 'all';
+        }
+
+        // 3. Nếu hôm nay rơi vào giữa lộ trình (ví dụ Thứ 7 hoặc CN), nhảy đến ngày làm việc kế tiếp
+        const upcomingDay = daySchedule.find(s => s.isoDate && s.isoDate > todayStr);
+        if (upcomingDay) return upcomingDay.dayId;
+
+        // 4. Nếu đã qua hết ngày học, ưu tiên ngày có nội dung chưa hoàn thành
+        const progress = candidate?.taskProgress || window.hrOnboardingStore?.personalProgress || {};
+        const incompleteDay = roadmap.find(day => (day.tasks || []).some(t => !progress[t.id]));
+        if (incompleteDay) return incompleteDay.id;
+
+        return roadmap[roadmap.length - 1]?.id || 'all';
     }
 
     async toggleTask(taskId) {
@@ -177,6 +217,11 @@ class OnboardingViewer {
         });
         const percent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
+        const todayDayId = this.getTodayDayId(roadmap, candidate);
+        if (!this.userSelectedFilter || !this.activeDayFilter) {
+            this.activeDayFilter = todayDayId;
+        }
+
         const visibleDays = this.activeDayFilter === 'all'
             ? roadmap
             : roadmap.filter(d => d.id === this.activeDayFilter);
@@ -297,14 +342,17 @@ class OnboardingViewer {
                             const dayTasks = day.tasks || [];
                             const dayDone = dayTasks.length > 0 && dayTasks.every(t => progress[t.id]);
                             const isActive = this.activeDayFilter === day.id;
+                            const isToday = todayDayId === day.id;
                             return `
                                 <button type="button" onclick="window.onboardingViewer.setDayFilter('${day.id}')"
+                                    data-day-id="${day.id}"
                                     class="px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 active:scale-95 ${
                                         isActive
                                             ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-md shadow-indigo-600/20 border border-indigo-600'
                                             : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs'
                                     }">
                                     <span>${this.escapeHtml(day.dayNumber)}</span>
+                                    ${isToday ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold ${isActive ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700 border border-indigo-200'}">Hôm nay</span>` : ''}
                                     ${dayDone ? `<i data-lucide="check-circle" class="w-3.5 h-3.5 ${isActive ? 'text-emerald-300' : 'text-emerald-600'}"></i>` : ''}
                                 </button>
                             `;
@@ -322,7 +370,8 @@ class OnboardingViewer {
                             .map(id => allDocs.find(d => d.id === id))
                             .filter(Boolean);
                         const customLinks = day.customLinks || [];
-                        const formattedDayDate = this.getFormattedDayDate(day, dIdx, candidate);
+                        const originalDayIndex = roadmap.findIndex(d => d.id === day.id);
+                        const formattedDayDate = this.getFormattedDayDate(day, originalDayIndex >= 0 ? originalDayIndex : dIdx, candidate);
 
                         return `
                             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden transition-all hover:border-indigo-200">
@@ -535,6 +584,15 @@ class OnboardingViewer {
         `;
 
         if (window.lucide) lucide.createIcons();
+
+        if (this.activeDayFilter && this.activeDayFilter !== 'all') {
+            setTimeout(() => {
+                const activeBtn = container.querySelector(`button[data-day-id="${this.activeDayFilter}"]`);
+                if (activeBtn) {
+                    activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 80);
+        }
     }
 
     cleanTaskTitle(title) {

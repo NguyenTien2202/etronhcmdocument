@@ -426,7 +426,7 @@ body.modal-open-lock {
 #hr-private-content { display: none; }
 .hr-authenticated #hr-private-content { display: contents; }
 .hr-authenticated #hr-login-screen { display: none; }
-.sync-status-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem; padding: .6rem 1rem; margin-top: auto; border-top: 1px solid #cbd5e1; background: #f8fafc; color: #475569; font-size: .75rem; }
+.sync-status-bar { display: none !important; }
 
 /* Document Hub Trash Dialog */
 #document-trash-dialog {
