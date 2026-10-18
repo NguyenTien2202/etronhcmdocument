@@ -177,7 +177,7 @@ test('publishCandidate generates 64-char token, saves to candidate object and se
     assert.equal(token2, token);
 });
 
-test('saveRoadmap works for HR immediately, heals missing m-102 default links and protects against stale cloud overwrite', () => {
+test('saveRoadmap works for HR immediately, respects user link deletions and protects against stale cloud overwrite', () => {
     const { store, listeners, writes } = storeHarness(true);
     store.setupCloudSync();
 
@@ -187,18 +187,17 @@ test('saveRoadmap works for HR immediately, heals missing m-102 default links an
     const m102Initial = initialRoadmap[0].tasks.find(t => t.id === 'm-102');
     assert.ok(m102Initial && m102Initial.links.length > 0);
 
-    // Strip links from m-102 to test self-healing
-    const brokenRoadmap = JSON.parse(JSON.stringify(initialRoadmap));
-    const m102Broken = brokenRoadmap[0].tasks.find(t => t.id === 'm-102');
-    m102Broken.links = [];
+    // Delete links from m-102
+    const editedRoadmap = JSON.parse(JSON.stringify(initialRoadmap));
+    const m102Edited = editedRoadmap[0].tasks.find(t => t.id === 'm-102');
+    m102Edited.links = [];
 
-    // saveRoadmap should auto-heal m-102 links
-    store.saveRoadmap(brokenRoadmap);
+    // saveRoadmap should respect the deletion and NOT resurrect it
+    store.saveRoadmap(editedRoadmap);
     const saved = writes.find(w => w.name === 'hr_config' && w.id === 'onboarding_roadmap');
     assert.ok(saved);
-    const m102Healed = store.getRoadmap()[0].tasks.find(t => t.id === 'm-102');
-    assert.ok(m102Healed.links.length > 0);
-    assert.equal(m102Healed.links[0].title, 'Tài liệu Nội quy & Văn hóa làm việc Etron');
+    const m102AfterSave = store.getRoadmap()[0].tasks.find(t => t.id === 'm-102');
+    assert.equal(m102AfterSave.links.length, 0);
 
     // Stale cloud snapshot with older updatedAt should NOT overwrite fresh local roadmap
     const roadmapListener = listeners.find(l => l.id === 'onboarding_roadmap');
@@ -213,6 +212,7 @@ test('saveRoadmap works for HR immediately, heals missing m-102 default links an
     });
     // Roadmap should still retain the fresh local version, not the stale old-day
     assert.ok(store.getRoadmap()[0].tasks.some(t => t.id === 'm-102'));
+    assert.equal(store.getRoadmap()[0].tasks.find(t => t.id === 'm-102').links.length, 0);
 });
 
 

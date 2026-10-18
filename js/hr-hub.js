@@ -1644,8 +1644,15 @@ class HrHubApp {
                                                     </div>
 
                                                     ${taskLinks.length === 0 ? `
-                                                        <div class="p-2.5 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 pl-5">
-                                                            Chưa có tài liệu đính kèm riêng cho mục này. Dùng 2 icon kho tài liệu hoặc link ở trên để thêm.
+                                                        <div class="p-2.5 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 pl-5 flex items-center justify-between gap-2 flex-wrap">
+                                                            <span>Chưa có tài liệu đính kèm riêng cho mục này. Dùng 2 icon kho tài liệu hoặc link ở trên để thêm.</span>
+                                                            ${this.hasTaskDefaultLinks(day.id, task.id) ? `
+                                                                <button type="button" onclick="window.hrHub.restoreTaskDefaultLinks('${day.id}', '${task.id}')"
+                                                                    class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold inline-flex items-center gap-1 transition-colors shadow-2xs">
+                                                                    <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                                                                    <span>Khôi phục tài liệu mẫu</span>
+                                                                </button>
+                                                            ` : ''}
                                                         </div>
                                                     ` : `
                                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pl-5">
@@ -1841,9 +1848,9 @@ class HrHubApp {
                 }) || oldTasks[idx];
 
                 let taskLinks = [];
-                if (Array.isArray(existing?.links) && existing.links.length > 0) {
+                if (existing && Array.isArray(existing.links)) {
                     taskLinks = existing.links;
-                } else if (Array.isArray(oldTasks[idx]?.links) && oldTasks[idx].links.length > 0) {
+                } else if (oldTasks[idx] && Array.isArray(oldTasks[idx].links)) {
                     taskLinks = oldTasks[idx].links;
                 }
 
@@ -2186,6 +2193,49 @@ class HrHubApp {
         } catch (err) {
             console.error('[HrHub] Lỗi xóa link tài liệu:', err);
             this.showToast('Chưa xóa được link tài liệu. Vui lòng thử lại!', 'error');
+        }
+    }
+
+    hasTaskDefaultLinks(dayId, taskId) {
+        const defaultList = window.DEFAULT_ONBOARDING_ROADMAP || [];
+        const d = defaultList.find(item => item.id === dayId);
+        const t = d ? (d.tasks || []).find(task => task.id === taskId) : null;
+        return Array.isArray(t?.links) && t.links.length > 0;
+    }
+
+    restoreTaskDefaultLinks(dayId, taskId) {
+        const defaultList = window.DEFAULT_ONBOARDING_ROADMAP || [];
+        const d = defaultList.find(item => item.id === dayId);
+        const defaultTask = d ? (d.tasks || []).find(task => task.id === taskId) : null;
+        if (!defaultTask || !Array.isArray(defaultTask.links) || defaultTask.links.length === 0) {
+            this.showToast('Mục này không có tài liệu mẫu mặc định trong hệ thống.', 'info');
+            return;
+        }
+        if (!confirm(`Khôi phục tài liệu mẫu mặc định cho "${this.cleanTaskTitle(defaultTask.title)}"?`)) return;
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(item => item.id === dayId);
+        if (!day) return;
+        const task = (day.tasks || []).find(item => item.id === taskId);
+        if (!task) return;
+
+        if (!Array.isArray(task.links)) task.links = [];
+        const existingUrls = new Set(task.links.map(l => l.url));
+        let addedCount = 0;
+        defaultTask.links.forEach(l => {
+            if (!existingUrls.has(l.url)) {
+                task.links.push(JSON.parse(JSON.stringify(l)));
+                addedCount++;
+            }
+        });
+
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast(`Đã khôi phục ${addedCount} tài liệu mẫu cho mục này!`, 'success');
+        } catch (err) {
+            console.error('[HrHub] Lỗi khôi phục tài liệu mẫu:', err);
+            this.showToast('Chưa khôi phục được tài liệu mẫu. Vui lòng thử lại!', 'error');
         }
     }
 
