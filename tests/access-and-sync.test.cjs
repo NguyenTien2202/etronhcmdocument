@@ -134,9 +134,10 @@ test('OnboardingViewer defaults to "all" before start date, shifts to next worki
         { id: 'd3', dayNumber: 'Ngày 3', tasks: [] }
     ];
 
-    // If candidate start date is next Monday 2026-10-19, and today is Saturday 2026-10-17 (before start date)
-    // Note: getTodayDayId uses current date, which in Vietnam time on 2026-10-17 is before 2026-10-19
-    const candidateFuture = { startDate: '2026-10-19' };
+    // If candidate start date is in the future (relative to today), defaults to 'all'
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 14);
+    const candidateFuture = { startDate: futureDate.toISOString().slice(0, 10) };
     const dayIdBeforeStart = viewer.getTodayDayId(roadmap, candidateFuture);
     assert.equal(dayIdBeforeStart, 'all');
 
@@ -174,6 +175,44 @@ test('publishCandidate generates 64-char token, saves to candidate object and se
     // Verify repeating publishCandidate preserves the same token
     const token2 = await store.publishCandidate('cand-001');
     assert.equal(token2, token);
+});
+
+test('saveRoadmap works for HR immediately, heals missing m-102 default links and protects against stale cloud overwrite', () => {
+    const { store, listeners, writes } = storeHarness(true);
+    store.setupCloudSync();
+
+    // HR can save roadmap immediately without waiting for server snapshots
+    const initialRoadmap = store.getRoadmap();
+    assert.ok(initialRoadmap.length > 0);
+    const m102Initial = initialRoadmap[0].tasks.find(t => t.id === 'm-102');
+    assert.ok(m102Initial && m102Initial.links.length > 0);
+
+    // Strip links from m-102 to test self-healing
+    const brokenRoadmap = JSON.parse(JSON.stringify(initialRoadmap));
+    const m102Broken = brokenRoadmap[0].tasks.find(t => t.id === 'm-102');
+    m102Broken.links = [];
+
+    // saveRoadmap should auto-heal m-102 links
+    store.saveRoadmap(brokenRoadmap);
+    const saved = writes.find(w => w.name === 'hr_config' && w.id === 'onboarding_roadmap');
+    assert.ok(saved);
+    const m102Healed = store.getRoadmap()[0].tasks.find(t => t.id === 'm-102');
+    assert.ok(m102Healed.links.length > 0);
+    assert.equal(m102Healed.links[0].title, 'Tài liệu Nội quy & Văn hóa làm việc Etron');
+
+    // Stale cloud snapshot with older updatedAt should NOT overwrite fresh local roadmap
+    const roadmapListener = listeners.find(l => l.id === 'onboarding_roadmap');
+    assert.ok(roadmapListener);
+    roadmapListener.next({
+        exists: true,
+        metadata: { fromCache: false },
+        data: () => ({
+            days: [{ id: 'old-day', title: 'Old Day', tasks: [] }],
+            updatedAt: 1000 // Very old timestamp
+        })
+    });
+    // Roadmap should still retain the fresh local version, not the stale old-day
+    assert.ok(store.getRoadmap()[0].tasks.some(t => t.id === 'm-102'));
 });
 
 

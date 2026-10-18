@@ -711,7 +711,10 @@ class HrOnboardingStore {
             const cachedRoadmap = localStorage.getItem('etron_hr_cached_roadmap');
             if (cachedRoadmap) {
                 const parsed = JSON.parse(cachedRoadmap);
-                if (Array.isArray(parsed) && parsed.length > 0) this.roadmap = parsed;
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const { days } = this.sanitizeRoadmap(parsed);
+                    this.roadmap = days;
+                }
             }
         } catch (_) {}
         try {
@@ -742,6 +745,29 @@ class HrOnboardingStore {
         this.ready = new Set();
         this._progressListeners = new Map();
     }
+    sanitizeRoadmap(days) {
+        if (!Array.isArray(days) || days.length === 0) {
+            return { days: JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP)), healed: true };
+        }
+        const defaultTaskMap = new Map();
+        DEFAULT_ONBOARDING_ROADMAP.forEach(d => {
+            (d.tasks || []).forEach(t => defaultTaskMap.set(t.id, t));
+        });
+
+        let healed = false;
+        days.forEach(d => {
+            (d.tasks || []).forEach(t => {
+                if (!Array.isArray(t.links)) t.links = [];
+                const def = defaultTaskMap.get(t.id);
+                // Phục hồi link mặc định nếu task mẫu bị mất hết link (đặc biệt m-102: Văn hóa & Quy định làm việc)
+                if (def && Array.isArray(def.links) && def.links.length > 0 && t.links.length === 0) {
+                    t.links = JSON.parse(JSON.stringify(def.links));
+                    healed = true;
+                }
+            });
+        });
+        return { days, healed };
+    }
     isHr() { return window.hrAuth?.isHr() === true; }
     onChange(cb) { if (typeof cb === 'function') this._listeners.push(cb); }
     notifyChange(source = 'local') { this._listeners.forEach(cb => cb(source)); }
@@ -750,18 +776,23 @@ class HrOnboardingStore {
     }
     getRoadmap() { return this.roadmap; }
     saveRoadmap(list) {
-        this.requireHr('roadmap');
-        this.roadmap = list;
+        if (!this.isHr()) throw new Error('Chỉ tài khoản HR mới có quyền cập nhật lộ trình đào tạo.');
+        const { days } = this.sanitizeRoadmap(list);
+        this.roadmap = days;
+        const now = Date.now();
         try {
-            localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(list));
+            localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(days));
+            localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(now));
         } catch (_) {}
-        window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({ days: list, updatedAt: Date.now() })
-            .catch(err => {
-                console.error('[HrOnboardingStore] Lỗi lưu roadmap lên Firebase:', err);
-                if (window.hrHub?.showToast) {
-                    window.hrHub.showToast('Không thể lưu lên Cloud (kiểm tra mạng). Đã sao lưu cục bộ an toàn!', 'warning');
-                }
-            });
+        if (window.firebaseDb) {
+            window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({ days, updatedAt: now })
+                .catch(err => {
+                    console.error('[HrOnboardingStore] Lỗi lưu roadmap lên Firebase:', err);
+                    if (window.hrHub?.showToast) {
+                        window.hrHub.showToast('Không thể lưu lên Cloud (kiểm tra mạng). Đã sao lưu cục bộ an toàn!', 'warning');
+                    }
+                });
+        }
         this.notifyChange('roadmap');
     }
     getCandidates() { return this.isHr() ? this.privateData.candidates : []; }
@@ -940,12 +971,32 @@ class HrOnboardingStore {
         const listen = (ref, cb) => this._unsubscribers.push(ref.onSnapshot(cb, () => this.notifyChange('sync_error')));
         listen(db.collection('hr_config').doc('onboarding_roadmap'), doc => {
             if (doc.exists && Array.isArray(doc.data().days)) {
-                this.roadmap = doc.data().days;
+                const cloudData = doc.data();
+                const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
+                let localUpdatedAt = 0;
                 try {
-                    localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
+                    localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
                 } catch (_) {}
+
+                const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
+                if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
+                    const { days, healed } = this.sanitizeRoadmap(cloudData.days);
+                    this.roadmap = days;
+                    try {
+                        localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
+                        if (cloudUpdatedAt) {
+                            localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
+                        }
+                    } catch (_) {}
+                    if (healed && this.isHr()) {
+                        // Tự động đẩy bản sửa lỗi lên Cloud để lưu trữ vĩnh viễn trên Firestore
+                        db.collection('hr_config').doc('onboarding_roadmap').set({ days: this.roadmap, updatedAt: Date.now() }).catch(() => {});
+                    }
+                }
+            } else if (!doc.exists && this.isHr()) {
+                db.collection('hr_config').doc('onboarding_roadmap').set({ days: this.roadmap, updatedAt: Date.now() }).catch(() => {});
             }
-            if (!doc.metadata?.fromCache) this.ready.add('roadmap');
+            this.ready.add('roadmap');
             this.notifyChange('roadmap');
         });
         if (!this.isHr()) {

@@ -1840,6 +1840,13 @@ class HrHubApp {
                     return normTitle === normLine || cleanTitle === cleanLine;
                 }) || oldTasks[idx];
 
+                let taskLinks = [];
+                if (Array.isArray(existing?.links) && existing.links.length > 0) {
+                    taskLinks = existing.links;
+                } else if (Array.isArray(oldTasks[idx]?.links) && oldTasks[idx].links.length > 0) {
+                    taskLinks = oldTasks[idx].links;
+                }
+
                 return {
                     id: existing?.id || `t-${Date.now()}-${idx}`,
                     title: line,
@@ -1848,7 +1855,7 @@ class HrHubApp {
                     outcome: existing?.outcome || '',
                     requiresSubmission: existing ? (existing.requiresSubmission ?? (existing.type === 'practice')) : line.toLowerCase().includes('thực hành'),
                     submissionGuide: existing?.submissionGuide || '',
-                    links: Array.isArray(existing?.links) ? existing.links : []
+                    links: taskLinks
                 };
             });
         } else {
@@ -1876,10 +1883,15 @@ class HrHubApp {
             roadmap.push(target);
         }
 
-        window.hrOnboardingStore.saveRoadmap(roadmap);
-        this.closeRoadmapDayModal();
-        this.renderRoadmapTab();
-        this.showToast(`Đã lưu cập nhật "${dayNumber}" lên Cloud (Trang Onboard của nhân sự mới đã tự động cập nhật)!`, 'success');
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.closeRoadmapDayModal();
+            this.renderRoadmapTab();
+            this.showToast(`Đã lưu cập nhật "${dayNumber}" lên Cloud (Trang Onboard đã đồng bộ)!`, 'success');
+        } catch (err) {
+            console.error('[HrHub] Lỗi lưu ngày lộ trình:', err);
+            this.showToast('Chưa lưu được ngày lộ trình. Vui lòng thử lại!', 'error');
+        }
     }
 
     deleteRoadmapDay(dayId) {
@@ -2148,10 +2160,15 @@ class HrHubApp {
             day.customLinks.push(newLink);
         }
 
-        window.hrOnboardingStore.saveRoadmap(roadmap);
-        this.closeAddLinkModal();
-        this.renderRoadmapTab();
-        this.showToast('Đã lưu link tài liệu thành công!', 'success');
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.closeAddLinkModal();
+            this.renderRoadmapTab();
+            this.showToast('Đã lưu link tài liệu thành công!', 'success');
+        } catch (err) {
+            console.error('[HrHub] Lỗi lưu link tài liệu:', err);
+            this.showToast('Chưa lưu được link tài liệu. Vui lòng thử lại!', 'error');
+        }
     }
 
     deleteLinkFromModule(dayId, taskId, linkIdx) {
@@ -2162,9 +2179,14 @@ class HrHubApp {
         const task = (day.tasks || []).find(t => t.id === taskId);
         if (!task || !Array.isArray(task.links)) return;
         task.links.splice(linkIdx, 1);
-        window.hrOnboardingStore.saveRoadmap(roadmap);
-        this.renderRoadmapTab();
-        this.showToast('Đã xóa link tài liệu.', 'info');
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast('Đã xóa link tài liệu.', 'info');
+        } catch (err) {
+            console.error('[HrHub] Lỗi xóa link tài liệu:', err);
+            this.showToast('Chưa xóa được link tài liệu. Vui lòng thử lại!', 'error');
+        }
     }
 
     deleteCustomLinkFromDay(dayId, linkIdx) {
@@ -2173,9 +2195,14 @@ class HrHubApp {
         const day = roadmap.find(d => d.id === dayId);
         if (!day || !Array.isArray(day.customLinks)) return;
         day.customLinks.splice(linkIdx, 1);
-        window.hrOnboardingStore.saveRoadmap(roadmap);
-        this.renderRoadmapTab();
-        this.showToast('Đã xóa link tài liệu khỏi ngày.', 'info');
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast('Đã xóa link tài liệu khỏi ngày.', 'info');
+        } catch (err) {
+            console.error('[HrHub] Lỗi xóa link khỏi ngày:', err);
+            this.showToast('Chưa xóa được link tài liệu. Vui lòng thử lại!', 'error');
+        }
     }
 
     openAttachDocModal(dayId, taskId = null) {
@@ -2290,8 +2317,10 @@ class HrHubApp {
         const doc = allDocs.find(d => d.id === docId);
 
         const existingIdx = task.links.findIndex(l => l.docId === docId || (l.url && l.url.includes(`doc=${docId}`)));
+        let isAttachedNow = false;
         if (existingIdx >= 0) {
             task.links.splice(existingIdx, 1);
+            isAttachedNow = false;
         } else if (doc) {
             task.links.push({
                 docId: doc.id,
@@ -2301,11 +2330,19 @@ class HrHubApp {
                 type: 'internal'
             });
             this.expandedModules.add(task.id);
+            isAttachedNow = true;
         }
 
-        window.hrOnboardingStore.saveRoadmap(roadmap);
-        this.renderAttachDocModalList();
-        this.renderRoadmapTab();
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderAttachDocModalList();
+            this.renderRoadmapTab();
+            const docTitle = doc ? `"${doc.title}"` : 'tài liệu';
+            this.showToast(isAttachedNow ? `Đã gắn ${docTitle} vào mục học tập!` : `Đã gỡ ${docTitle} khỏi mục học tập.`, isAttachedNow ? 'success' : 'info');
+        } catch (err) {
+            console.error('[HrHub] Lỗi gắn tài liệu vào task:', err);
+            this.showToast('Chưa lưu được tài liệu. Vui lòng thử lại!', 'error');
+        }
     }
 
     toggleAttachDocToDay(dayId, docId) {
@@ -2314,16 +2351,31 @@ class HrHubApp {
         if (!day) return;
         if (!Array.isArray(day.attachedDocIds)) day.attachedDocIds = [];
 
+        const allDocs = (window.salesStore && typeof window.salesStore.getDocuments === 'function')
+            ? window.salesStore.getDocuments()
+            : [];
+        const doc = allDocs.find(d => d.id === docId);
+
         const idx = day.attachedDocIds.indexOf(docId);
+        let isAttachedNow = false;
         if (idx >= 0) {
             day.attachedDocIds.splice(idx, 1);
+            isAttachedNow = false;
         } else {
             day.attachedDocIds.push(docId);
+            isAttachedNow = true;
         }
 
-        window.hrOnboardingStore.saveRoadmap(roadmap);
-        this.renderAttachDocModalList();
-        this.renderRoadmapTab();
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderAttachDocModalList();
+            this.renderRoadmapTab();
+            const docTitle = doc ? `"${doc.title}"` : 'tài liệu';
+            this.showToast(isAttachedNow ? `Đã gắn ${docTitle} vào ${day.dayNumber}!` : `Đã gỡ ${docTitle} khỏi ${day.dayNumber}.`, isAttachedNow ? 'success' : 'info');
+        } catch (err) {
+            console.error('[HrHub] Lỗi gắn tài liệu vào ngày:', err);
+            this.showToast('Chưa lưu được tài liệu. Vui lòng thử lại!', 'error');
+        }
     }
 
     // ==========================================
