@@ -300,15 +300,76 @@ class OnboardingViewer {
         if (window.lucide) lucide.createIcons();
     }
 
+    cleanAddressBarUrl() {
+        try {
+            if (typeof window === 'undefined' || !window.history || !window.history.replaceState) return;
+            const currentUrl = new URL(window.location.href);
+            const cand = (this.candidateId && window.hrOnboardingStore?.getCandidateById)
+                ? window.hrOnboardingStore.getCandidateById(this.candidateId)
+                : window.hrOnboardingStore?.publicCandidate;
+            const candName = cand?.fullName || currentUrl.searchParams.get('nhan-su') || currentUrl.searchParams.get('name') || currentUrl.searchParams.get('uv') || '';
+
+            let changed = false;
+
+            // 1. Loại bỏ chuỗi #key=... khỏi hash để thanh URL luôn sạch sẽ, bảo mật
+            if (currentUrl.hash && currentUrl.hash.includes('key=')) {
+                const hashParams = new URLSearchParams(currentUrl.hash.slice(1));
+                hashParams.delete('key');
+                const remainingHash = hashParams.toString();
+                currentUrl.hash = remainingHash ? '#' + remainingHash : '';
+                changed = true;
+            }
+
+            // 2. Nếu có key trong search (?key=...), cũng xóa đi
+            if (currentUrl.searchParams.has('key')) {
+                currentUrl.searchParams.delete('key');
+                changed = true;
+            }
+
+            // 3. Đảm bảo hiển thị tên ứng viên thân thiện trên thanh địa chỉ (?nhan-su=...)
+            if (candName && currentUrl.searchParams.get('nhan-su') !== candName) {
+                currentUrl.searchParams.set('nhan-su', candName);
+                changed = true;
+            }
+
+            if (changed) {
+                const cleanUrlString = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '') + (currentUrl.hash ? currentUrl.hash : '');
+                window.history.replaceState(null, document.title, cleanUrlString);
+            }
+        } catch (_) {}
+    }
+
     init() {
-        const token = new URLSearchParams(window.location.hash.slice(1)).get('key');
-        const legacyId = new URLSearchParams(window.location.search).get('id');
+        let token = new URLSearchParams(window.location.hash.slice(1)).get('key');
+        if (!token) {
+            token = new URLSearchParams(window.location.search).get('key');
+        }
+
+        // Chỉ khôi phục token từ storage khi URL hiện tại có gắn tên nhân sự (?nhan-su=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasCandidateParam = urlParams.has('nhan-su') || urlParams.has('name') || urlParams.has('uv');
+        if (!token && hasCandidateParam) {
+            try {
+                token = sessionStorage.getItem('etron_onboard_token') || localStorage.getItem('etron_onboard_token');
+            } catch (_) {}
+        }
+
+        const legacyId = urlParams.get('id');
         this.candidateId = token || null;
         this.legacyLink = !!legacyId && !token;
+
+        // Lưu token vào storage để bảo toàn phiên làm việc ngay cả khi reload hoặc sau khi ẩn hash
+        if (token) {
+            try {
+                sessionStorage.setItem('etron_onboard_token', token);
+                localStorage.setItem('etron_onboard_token', token);
+            } catch (_) {}
+        }
 
         if (window.hrOnboardingStore) {
             window.hrOnboardingStore.setupCloudSync();
             window.hrOnboardingStore.onChange(() => {
+                this.cleanAddressBarUrl();
                 this.render();
             });
         }
@@ -316,6 +377,9 @@ class OnboardingViewer {
             try { window.hrOnboardingStore.openPersonalLink(token); }
             catch (_) { window.hrOnboardingStore.personalUnavailable = true; }
         }
+
+        // Tự động ẩn chuỗi hash #key=... trên thanh địa chỉ, chỉ hiển thị tên ứng viên sạch sẽ
+        this.cleanAddressBarUrl();
 
         if (typeof document !== 'undefined' && document.addEventListener) {
             document.addEventListener('click', (e) => {

@@ -118,7 +118,11 @@ class HrHubApp {
         try {
             const url = new URL('onboard.html', window.location.href);
             if (candidateId) {
-                const token = window.hrOnboardingStore.getCandidates().find(c => c.id === candidateId)?.onboardToken;
+                const cand = window.hrOnboardingStore?.getCandidates?.()?.find(c => c.id === candidateId);
+                const token = cand?.onboardToken;
+                if (cand?.fullName) {
+                    url.searchParams.set('nhan-su', cand.fullName);
+                }
                 if (token) url.hash = 'key=' + token;
             }
             return url.href;
@@ -807,9 +811,11 @@ class HrHubApp {
                                             <span class="text-[11px] text-emerald-800 font-bold block mb-0.5">Link Onboard riêng:</span>
                                             ${cand.onboardToken ? `
                                                 <a href="${this.escapeHtml(this.getPublicOnboardUrl(cand.id))}" target="_blank" onclick="event.stopPropagation()"
-                                                    class="text-[10px] text-emerald-700 hover:text-emerald-900 font-mono truncate block underline font-medium" title="Bấm để mở xem Cổng Onboard">
-                                                    ${this.escapeHtml(this.getPublicOnboardUrl(cand.id))}
+                                                    class="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold truncate flex items-center gap-1.5 underline" title="Bấm để mở xem Cổng Onboard dành cho ${this.escapeHtml(cand.fullName || 'nhân sự')}">
+                                                    <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0 text-emerald-600"></i>
+                                                    <span class="truncate">onboard.html?nhan-su=${this.escapeHtml(cand.fullName || 'ung-vien')}</span>
                                                 </a>
+                                                <span class="text-[9px] text-emerald-600 font-mono block truncate mt-0.5 opacity-80">(Mã bảo mật: ••••${cand.onboardToken.slice(-6)})</span>
                                             ` : `
                                                 <span class="text-[10px] text-amber-700 italic block">Chưa tạo link. Bấm nút bên cạnh để tạo ngay!</span>
                                             `}
@@ -1027,15 +1033,24 @@ class HrHubApp {
                                                                     <input type="checkbox" ${item.done ? 'checked' : ''}
                                                                         onchange="window.hrHub.toggleCandidateChecklistItem('${cand.id}', '${item.id}')"
                                                                         class="mt-0.5 w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer shrink-0">
-                                                                    <span class="text-xs sm:text-sm leading-relaxed ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}">
+                                                                    <span ondblclick="window.hrHub.editCandidateChecklistItem('${cand.id}', '${item.id}')"
+                                                                        class="text-xs sm:text-sm leading-relaxed ${item.done ? 'line-through text-slate-400' : 'text-slate-800 font-medium'}"
+                                                                        title="Nhấp đúp chuột hoặc bấm nút chỉnh sửa để sửa">
                                                                         ${this.escapeHtml(item.title)}
                                                                     </span>
                                                                 </label>
-                                                                <button type="button" onclick="window.hrHub.deleteCandidateChecklistItem('${cand.id}', '${item.id}')"
-                                                                    class="opacity-70 sm:opacity-0 group-hover:opacity-100 p-1 rounded-lg text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all shrink-0"
-                                                                    title="Xóa mục này">
-                                                                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                                                                </button>
+                                                                <div class="flex items-center gap-1 shrink-0 opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button type="button" onclick="window.hrHub.editCandidateChecklistItem('${cand.id}', '${item.id}')"
+                                                                        class="p-1 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                                                                        title="Chỉnh sửa nội dung mục này">
+                                                                        <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                                                    </button>
+                                                                    <button type="button" onclick="window.hrHub.deleteCandidateChecklistItem('${cand.id}', '${item.id}')"
+                                                                        class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                                                                        title="Xóa mục này">
+                                                                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         `).join('')}
 
@@ -1123,6 +1138,28 @@ class HrHubApp {
         input.value = '';
         window.hrOnboardingStore.saveCandidates(list);
         this.renderCandidatesTab();
+    }
+
+    editCandidateChecklistItem(candId, itemId) {
+        const list = window.hrOnboardingStore.getCandidates();
+        const cand = list.find(c => c.id === candId);
+        if (!cand || !Array.isArray(cand.checklist)) return;
+        const item = cand.checklist.find(i => i.id === itemId);
+        if (!item) return;
+
+        const newTitle = prompt('Chỉnh sửa nội dung mục kiểm tra:', item.title);
+        if (newTitle === null) return;
+        const trimmed = newTitle.trim();
+        if (!trimmed) {
+            this.showToast('Nội dung mục kiểm tra không được để trống.', 'warning');
+            return;
+        }
+
+        item.title = trimmed;
+        cand.updatedAt = Date.now();
+        window.hrOnboardingStore.saveCandidates(list);
+        this.renderCandidatesTab();
+        this.showToast('Đã cập nhật mục kiểm tra!', 'success');
     }
 
     deleteCandidateChecklistItem(candId, itemId) {

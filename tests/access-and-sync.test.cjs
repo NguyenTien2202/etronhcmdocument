@@ -215,4 +215,57 @@ test('saveRoadmap works for HR immediately, respects user link deletions and pro
     assert.equal(store.getRoadmap()[0].tasks.find(t => t.id === 'm-102').links.length, 0);
 });
 
+test('getPublicOnboardUrl includes candidate name, cleanAddressBarUrl hides token hash, and editCandidateChecklistItem edits tasks', () => {
+    const { store } = storeHarness(true);
+    store.ready.add('candidates');
+    const cand = { id: 'c-test', fullName: 'Nguyen Van A', onboardToken: 'a'.repeat(64), checklist: [{ id: 'chk-1', stage: 'legal', title: 'Nộp CCCD', done: false }] };
+    store.privateData.candidates = [cand];
+
+    let replacedStateUrl = null;
+    let currentHref = 'http://localhost/onboard.html?nhan-su=Nguyen+Van+A#key=' + 'a'.repeat(64);
+    const mockHistory = {
+        replaceState: (state, title, url) => {
+            replacedStateUrl = url;
+            currentHref = 'http://localhost' + url;
+        }
+    };
+    const mockStorage = new Map();
+    const context = vm.createContext({
+        window: {
+            location: new URL(currentHref),
+            history: mockHistory,
+            hrOnboardingStore: store,
+            sessionStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
+            localStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
+            lucide: { createIcons: () => {} }
+        },
+        document: { addEventListener: () => {}, getElementById: () => null },
+        URL,
+        URLSearchParams,
+        console
+    });
+
+    vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
+    const hrHub = context.window.hrHub;
+    const url = hrHub.getPublicOnboardUrl('c-test');
+    assert.ok(url.includes('nhan-su=Nguyen+Van+A') || url.includes('nhan-su=Nguyen%20Van%20A'));
+    assert.ok(url.includes('#key=' + 'a'.repeat(64)));
+
+    // Run onboarding viewer cleanAddressBarUrl
+    vm.runInContext(fs.readFileSync('js/onboarding-viewer.js', 'utf8'), context);
+    const viewer = context.window.onboardingViewer;
+    viewer.cleanAddressBarUrl();
+    assert.ok(replacedStateUrl);
+    assert.ok(!replacedStateUrl.includes('key='));
+    assert.ok(replacedStateUrl.includes('nhan-su='));
+
+    // Test editCandidateChecklistItem in hrHub
+    context.prompt = () => 'Nộp CCCD 2 mặt kèm thẻ BHYT';
+    hrHub.showToast = () => {};
+    hrHub.renderCandidatesTab = () => {};
+    hrHub.editCandidateChecklistItem('c-test', 'chk-1');
+    assert.equal(cand.checklist[0].title, 'Nộp CCCD 2 mặt kèm thẻ BHYT');
+});
+
+
 
