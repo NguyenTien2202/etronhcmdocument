@@ -116,7 +116,7 @@ function fakeFirebase() {
         await page.locator('#hr-cand-deadline').fill('2026-10-23');
         await page.getByRole('button', { name: 'Lưu Hồ Sơ', exact: true }).click();
         await page.waitForFunction(() => window.hrOnboardingStore.getCandidates()[0].targetDate === '2026-10-23');
-        await page.getByRole('button', { name: 'Cập nhật / Copy Link', exact: true }).first().click();
+        await page.locator('button[onclick*="copyCandidateOnboardLink"]').first().click();
         await page.waitForFunction(() => /^[a-f0-9]{64}$/.test(window.hrOnboardingStore.getCandidates()[0].onboardToken || ''));
         assert.equal(await page.evaluate(() => window.hrHub.getPublicOnboardUrl('c1').includes('onboard')), true);
         await page.locator('button[title="Đăng xuất HR"]').click();
@@ -140,7 +140,7 @@ function fakeFirebase() {
         await page.setViewportSize({ width: 390, height: 844 });
         await page.goto(base + '/hr.html');
         assert.equal(await page.getByRole('button', { name: 'Đăng nhập', exact: true }).isVisible(), true);
-        assert.deepEqual(errors, []);
+        assert.deepEqual(errors, [], `Page errors captured during smoke test: ${errors.join('; ')}`);
         console.log('PASS: public SalesHub, trash/restore, HR login/logout/denied role, personal progress, legacy links, mobile login; no live Firebase requests.');
     } finally {
         if (browser) await browser.close();
