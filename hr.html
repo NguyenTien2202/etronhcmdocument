@@ -760,6 +760,19 @@
                     </div>
                 </div>
 
+                <!-- Chọn Ngày học (cho phép chuyển mục sang Ngày khác nếu muốn) -->
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1 flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
+                            <span>Thuộc ngày đào tạo (Chuyển sang ngày khác)</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-normal">Chọn ngày muốn đặt mục học tập này</span>
+                    </label>
+                    <select id="hr-task-target-day" class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold text-slate-800 focus:outline-none focus:border-indigo-500">
+                    </select>
+                </div>
+
                 <!-- Yêu cầu nộp bài (Upload file, gắn link, ảnh, note) -->
                 <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-100 flex items-center justify-between cursor-pointer select-none transition-colors hover:bg-indigo-50"
                     onclick="const cb = document.getElementById('hr-task-requires-submission'); if(cb) cb.checked = !cb.checked;">

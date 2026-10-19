@@ -1532,6 +1532,18 @@ class HrHubApp {
                                 title="Thêm link ngoài (Drive, Docs, Sheets, Canva)">
                                 <i data-lucide="link" class="w-4 h-4"></i>
                             </button>
+                            <button type="button" onclick="window.hrHub.moveRoadmapDayUp('${day.id}')"
+                                class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-700 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}"
+                                ${idx === 0 ? 'disabled' : ''}
+                                title="${idx === 0 ? 'Đã là ngày đầu tiên' : 'Di chuyển ngày này lên trước'}">
+                                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="window.hrHub.moveRoadmapDayDown('${day.id}')"
+                                class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-700 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs ${idx === roadmap.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"
+                                ${idx === roadmap.length - 1 ? 'disabled' : ''}
+                                title="${idx === roadmap.length - 1 ? 'Đã là ngày cuối cùng' : 'Di chuyển ngày này xuống sau'}">
+                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                            </button>
                             <button type="button" onclick="window.hrHub.openRoadmapDayModal('${day.id}')"
                                 class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-700 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs"
                                 title="Sửa thông tin ngày" aria-label="Sửa thông tin ngày">
@@ -1564,7 +1576,7 @@ class HrHubApp {
                             </div>
 
                             <div class="space-y-2">
-                                ${tasks.map(task => {
+                                ${tasks.map((task, tIdx) => {
                                     const isExpanded = this.expandedModules.has(task.id);
                                     const taskLinks = task.links || [];
 
@@ -1593,6 +1605,18 @@ class HrHubApp {
                                                             <span>Có nộp bài</span>
                                                         </span>
                                                     ` : ''}
+                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.moveTaskUp('${day.id}', '${task.id}')"
+                                                        class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-500 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs ${tIdx === 0 ? 'opacity-30 cursor-not-allowed' : ''}"
+                                                        ${tIdx === 0 ? 'disabled' : ''}
+                                                        title="${tIdx === 0 ? 'Đã ở vị trí đầu tiên' : 'Di chuyển mục học tập này lên trên'}">
+                                                        <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                                                    </button>
+                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.moveTaskDown('${day.id}', '${task.id}')"
+                                                        class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-500 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs ${tIdx === tasks.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"
+                                                        ${tIdx === tasks.length - 1 ? 'disabled' : ''}
+                                                        title="${tIdx === tasks.length - 1 ? 'Đã ở vị trí cuối cùng' : 'Di chuyển mục học tập này xuống dưới'}">
+                                                        <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+                                                    </button>
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.openEditTaskModal('${day.id}', '${task.id}')"
                                                         class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-600 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs"
                                                         title="Chỉnh sửa nội dung & kết quả cần đạt của mục này">
@@ -1801,23 +1825,147 @@ class HrHubApp {
                         ` : ''}
                     </div>
                 </div>
+                ${idx < roadmap.length - 1 ? `
+                    <!-- Dấu cộng ở khoảng trống giữa các ngày -->
+                    <div class="relative py-2 group/insert-day flex items-center justify-center my-1 select-none transition-all">
+                        <div class="absolute inset-x-4 sm:inset-x-8 h-0.5 border-t-2 border-dashed border-slate-200/90 group-hover/insert-day:border-indigo-400 transition-colors pointer-events-none"></div>
+                        <button type="button" onclick="window.hrHub.openInsertRoadmapDayModal(${idx + 1})"
+                            class="relative z-10 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/90 text-slate-500 group-hover/insert-day:border-indigo-500 group-hover/insert-day:bg-indigo-600 group-hover/insert-day:text-white group-hover/insert-day:shadow-md transition-all text-xs font-bold flex items-center gap-1.5 opacity-40 group-hover/insert-day:opacity-100 hover:scale-105 active:scale-95 cursor-pointer shadow-2xs"
+                            title="Bấm để chèn thêm ngày học mới vào giữa ${this.escapeHtml(day.dayNumber)} và ${this.escapeHtml(roadmap[idx + 1].dayNumber)}">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                            <span>Chèn thêm ngày vào đây</span>
+                        </button>
+                    </div>
+                ` : ''}
             `;
         }).join('');
         if (window.lucide) lucide.createIcons();
     }
 
-    openRoadmapDayModal(dayId = null) {
+    reindexRoadmapDays(roadmap, baseStartDate = null) {
+        if (!Array.isArray(roadmap) || roadmap.length === 0) return roadmap;
+
+        if (!baseStartDate) {
+            baseStartDate = (roadmap[0]?.date && /^\d{4}-\d{2}-\d{2}$/.test(roadmap[0].date))
+                ? roadmap[0].date
+                : (roadmap.find(d => d.date && /^\d{4}-\d{2}-\d{2}$/.test(d.date))?.date || null);
+        }
+
+        // Cập nhật số ngày và ngày làm việc cụ thể tương ứng (T2 - T6)
+        roadmap.forEach((day, index) => {
+            day.dayNumber = `Ngày ${index + 1}`;
+            if (baseStartDate && window.hrOnboardingStore?.getWorkingDayDate) {
+                day.date = window.hrOnboardingStore.getWorkingDayDate(baseStartDate, index);
+            }
+        });
+
+        return roadmap;
+    }
+
+    moveRoadmapDayUp(dayId) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const idx = roadmap.findIndex(d => d.id === dayId);
+        if (idx <= 0) return;
+
+        const baseDate = (roadmap[0]?.date && /^\d{4}-\d{2}-\d{2}$/.test(roadmap[0].date))
+            ? roadmap[0].date
+            : (roadmap.find(d => d.date && /^\d{4}-\d{2}-\d{2}$/.test(d.date))?.date || null);
+
+        const temp = roadmap[idx];
+        roadmap[idx] = roadmap[idx - 1];
+        roadmap[idx - 1] = temp;
+
+        this.reindexRoadmapDays(roadmap, baseDate);
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.renderRoadmapTab();
+        this.showToast(`Đã chuyển ${roadmap[idx - 1].dayNumber} lên trước! Lịch và thứ tự các ngày đã được cập nhật.`, 'success');
+    }
+
+    moveRoadmapDayDown(dayId) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const idx = roadmap.findIndex(d => d.id === dayId);
+        if (idx < 0 || idx >= roadmap.length - 1) return;
+
+        const baseDate = (roadmap[0]?.date && /^\d{4}-\d{2}-\d{2}$/.test(roadmap[0].date))
+            ? roadmap[0].date
+            : (roadmap.find(d => d.date && /^\d{4}-\d{2}-\d{2}$/.test(d.date))?.date || null);
+
+        const temp = roadmap[idx];
+        roadmap[idx] = roadmap[idx + 1];
+        roadmap[idx + 1] = temp;
+
+        this.reindexRoadmapDays(roadmap, baseDate);
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.renderRoadmapTab();
+        this.showToast(`Đã chuyển ${roadmap[idx + 1].dayNumber} xuống sau! Lịch và thứ tự các ngày đã được cập nhật.`, 'success');
+    }
+
+    moveTaskUp(dayId, taskId) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day || !Array.isArray(day.tasks)) return;
+
+        const tIdx = day.tasks.findIndex(t => t.id === taskId);
+        if (tIdx <= 0) return;
+
+        const temp = day.tasks[tIdx];
+        day.tasks[tIdx] = day.tasks[tIdx - 1];
+        day.tasks[tIdx - 1] = temp;
+
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.renderRoadmapTab();
+        this.showToast('Đã di chuyển nội dung học tập lên trên!', 'success');
+    }
+
+    moveTaskDown(dayId, taskId) {
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day || !Array.isArray(day.tasks)) return;
+
+        const tIdx = day.tasks.findIndex(t => t.id === taskId);
+        if (tIdx < 0 || tIdx >= day.tasks.length - 1) return;
+
+        const temp = day.tasks[tIdx];
+        day.tasks[tIdx] = day.tasks[tIdx + 1];
+        day.tasks[tIdx + 1] = temp;
+
+        window.hrOnboardingStore.saveRoadmap(roadmap);
+        this.renderRoadmapTab();
+        this.showToast('Đã di chuyển nội dung học tập xuống dưới!', 'success');
+    }
+
+    openInsertRoadmapDayModal(insertAtIndex) {
+        this.openRoadmapDayModal(null, insertAtIndex);
+    }
+
+    openRoadmapDayModal(dayId = null, insertAtIndex = -1) {
         const modal = document.getElementById('hr-roadmap-day-modal');
         if (!modal) return;
 
         const roadmap = window.hrOnboardingStore.getRoadmap();
         const day = dayId ? roadmap.find(d => d.id === dayId) : null;
         this.editingDayId = day ? day.id : null;
+        this.insertRoadmapDayIndex = (typeof insertAtIndex === 'number' && insertAtIndex >= 0) ? insertAtIndex : -1;
 
-        document.getElementById('hr-day-modal-title').textContent = day ? `Chỉnh Sửa ${day.dayNumber}` : 'Thêm Ngày / Giai Đoạn Onboard Mới';
-        document.getElementById('hr-day-number').value = day ? (day.dayNumber || '') : `Ngày ${roadmap.length + 1}`;
+        const isInserting = this.insertRoadmapDayIndex >= 0;
+        const targetNumber = isInserting ? `Ngày ${this.insertRoadmapDayIndex + 1}` : `Ngày ${roadmap.length + 1}`;
+
+        document.getElementById('hr-day-modal-title').textContent = day
+            ? `Chỉnh Sửa ${day.dayNumber}`
+            : (isInserting ? `Chèn Thêm Ngày Mới (Vị Trí ${targetNumber})` : 'Thêm Ngày / Giai Đoạn Onboard Mới');
+
+        document.getElementById('hr-day-number').value = day ? (day.dayNumber || '') : targetNumber;
+        
+        let initialDate = '';
+        if (day) {
+            initialDate = day.date || '';
+        } else if (roadmap[0]?.date && window.hrOnboardingStore?.getWorkingDayDate) {
+            const dayOffset = isInserting ? this.insertRoadmapDayIndex : roadmap.length;
+            initialDate = window.hrOnboardingStore.getWorkingDayDate(roadmap[0].date, dayOffset);
+        }
+
         const dayDateEl = document.getElementById('hr-day-date');
-        if (dayDateEl) dayDateEl.value = day ? (day.date || '') : '';
+        if (dayDateEl) dayDateEl.value = initialDate;
         document.getElementById('hr-day-duration').value = day ? (day.duration || '08:30 – 17:30') : '08:30 – 17:30';
         document.getElementById('hr-day-title').value = day ? (day.title || '') : '';
         const trainerEl = document.getElementById('hr-day-trainer');
@@ -1924,8 +2072,19 @@ class HrHubApp {
                     links: []
                 }))
             };
-            roadmap.push(target);
+
+            const baseDate = (roadmap[0]?.date && /^\d{4}-\d{2}-\d{2}$/.test(roadmap[0].date))
+                ? roadmap[0].date
+                : (roadmap.find(d => d.date && /^\d{4}-\d{2}-\d{2}$/.test(d.date))?.date || null);
+
+            if (typeof this.insertRoadmapDayIndex === 'number' && this.insertRoadmapDayIndex >= 0 && this.insertRoadmapDayIndex <= roadmap.length) {
+                roadmap.splice(this.insertRoadmapDayIndex, 0, target);
+            } else {
+                roadmap.push(target);
+            }
+            this.reindexRoadmapDays(roadmap, baseDate);
         }
+        this.insertRoadmapDayIndex = -1;
 
         try {
             window.hrOnboardingStore.saveRoadmap(roadmap);
@@ -1944,10 +2103,14 @@ class HrHubApp {
         if (!target) return;
         if (!confirm(`Bạn có chắc muốn xóa "${target.dayNumber}: ${target.title}" khỏi lộ trình Onboard?`)) return;
 
-        const next = roadmap.filter(d => d.id !== dayId);
+        const baseDate = (roadmap[0]?.date && /^\d{4}-\d{2}-\d{2}$/.test(roadmap[0].date))
+            ? roadmap[0].date
+            : (roadmap.find(d => d.date && /^\d{4}-\d{2}-\d{2}$/.test(d.date))?.date || null);
+
+        const next = this.reindexRoadmapDays(roadmap.filter(d => d.id !== dayId), baseDate);
         window.hrOnboardingStore.saveRoadmap(next);
         this.renderRoadmapTab();
-        this.showToast('Đã xóa ngày khỏi lộ trình.', 'info');
+        this.showToast('Đã xóa ngày khỏi lộ trình. Thứ tự và lịch các ngày đã được cập nhật.', 'info');
     }
 
     async resetRoadmapToDefault() {
@@ -1986,6 +2149,15 @@ class HrHubApp {
         const reqSubEl = document.getElementById('hr-task-requires-submission');
         if (reqSubEl) reqSubEl.checked = !!(task.requiresSubmission ?? (task.type === 'practice'));
 
+        const targetDaySelect = document.getElementById('hr-task-target-day');
+        if (targetDaySelect) {
+            targetDaySelect.innerHTML = roadmap.map(d => `
+                <option value="${d.id}" ${d.id === dayId ? 'selected' : ''}>
+                    ${this.escapeHtml(d.dayNumber)}: ${this.escapeHtml(this.cleanTaskTitle(d.title))}
+                </option>
+            `).join('');
+        }
+
         const deleteBtn = document.getElementById('hr-task-delete-btn');
         if (deleteBtn) deleteBtn.classList.remove('hidden');
 
@@ -2013,6 +2185,15 @@ class HrHubApp {
         const reqSubEl = document.getElementById('hr-task-requires-submission');
         if (reqSubEl) reqSubEl.checked = false;
 
+        const targetDaySelect = document.getElementById('hr-task-target-day');
+        if (targetDaySelect) {
+            targetDaySelect.innerHTML = roadmap.map(d => `
+                <option value="${d.id}" ${d.id === dayId ? 'selected' : ''}>
+                    ${this.escapeHtml(d.dayNumber)}: ${this.escapeHtml(this.cleanTaskTitle(d.title))}
+                </option>
+            `).join('');
+        }
+
         const deleteBtn = document.getElementById('hr-task-delete-btn');
         if (deleteBtn) deleteBtn.classList.add('hidden');
 
@@ -2027,7 +2208,8 @@ class HrHubApp {
 
     async handleSaveTaskDetail(e) {
         if (e) e.preventDefault();
-        const dayId = document.getElementById('hr-task-day-id').value;
+        const originDayId = document.getElementById('hr-task-day-id').value;
+        const targetDayId = document.getElementById('hr-task-target-day')?.value || originDayId;
         const taskId = document.getElementById('hr-task-id').value;
         const title = document.getElementById('hr-task-title').value.trim();
         const type = document.getElementById('hr-task-type').value;
@@ -2041,19 +2223,28 @@ class HrHubApp {
         }
 
         const roadmap = window.hrOnboardingStore.getRoadmap();
-        const day = roadmap.find(d => d.id === dayId);
-        if (!day) return;
+        const originDay = roadmap.find(d => d.id === originDayId);
+        const targetDay = roadmap.find(d => d.id === targetDayId) || originDay;
+        if (!originDay || !targetDay) return;
 
-        if (!Array.isArray(day.tasks)) day.tasks = [];
+        if (!Array.isArray(originDay.tasks)) originDay.tasks = [];
+        if (!Array.isArray(targetDay.tasks)) targetDay.tasks = [];
 
         if (taskId) {
-            const task = day.tasks.find(t => t.id === taskId);
-            if (task) {
+            const taskIdx = originDay.tasks.findIndex(t => t.id === taskId);
+            if (taskIdx >= 0) {
+                const task = originDay.tasks[taskIdx];
                 task.title = title;
                 task.type = type;
                 task.activity = activity;
                 task.outcome = outcome;
                 task.requiresSubmission = requiresSubmission;
+
+                if (targetDayId !== originDayId) {
+                    originDay.tasks.splice(taskIdx, 1);
+                    targetDay.tasks.push(task);
+                    this.collapsedRoadmapDays.delete(targetDay.id);
+                }
                 this.expandedModules.add(task.id);
             }
         } else {
@@ -2067,16 +2258,16 @@ class HrHubApp {
                 requiresSubmission,
                 links: []
             };
-            day.tasks.push(newTask);
+            targetDay.tasks.push(newTask);
             this.expandedModules.add(newTaskId);
-            this.collapsedRoadmapDays.delete(day.id);
+            this.collapsedRoadmapDays.delete(targetDay.id);
         }
 
         try {
             await window.hrOnboardingStore.saveRoadmap(roadmap);
             this.closeTaskDetailModal();
             this.renderRoadmapTab();
-            this.showToast(`Đã lưu nội dung "${title}" thành công!`, 'success');
+            this.showToast(`Đã lưu nội dung "${title}" vào ${targetDay.dayNumber} thành công!`, 'success');
         } catch (err) {
             this.showToast('Chưa lưu được nội dung. Vui lòng thử lại!', 'error');
         }
@@ -3097,6 +3288,12 @@ class HrHubApp {
         const day = roadmap.find(d => d.id === dayId);
         if (!day) return;
         day.date = dateValue ? dateValue.trim() : '';
+
+        // Nếu cập nhật ngày cho Ngày 1, tự động tính tuần tự các ngày làm việc tiếp theo (T2-T6)
+        if (roadmap[0]?.id === dayId && day.date) {
+            this.reindexRoadmapDays(roadmap, day.date);
+        }
+
         try {
             window.hrOnboardingStore.saveRoadmap(roadmap);
             this.renderRoadmapTab();

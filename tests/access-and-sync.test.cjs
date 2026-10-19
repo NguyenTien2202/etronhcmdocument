@@ -267,5 +267,110 @@ test('getPublicOnboardUrl includes candidate name, cleanAddressBarUrl hides toke
     assert.equal(cand.checklist[0].title, 'Nộp CCCD 2 mặt kèm thẻ BHYT');
 });
 
+test('moveTaskUp, moveTaskDown, moveRoadmapDayUp, moveRoadmapDayDown and insert day in middle work and recalculate dates', () => {
+    const { store } = storeHarness(true);
+    store.ready.add('roadmap');
+
+    // Setup initial 3 days starting on Monday 2026-10-19
+    const initialDays = [
+        { id: 'day-1', dayNumber: 'Ngày 1', date: '2026-10-19', title: 'Hội nhập', tasks: [
+            { id: 'task-1', title: 'Văn hóa Etron' },
+            { id: 'task-2', title: 'Quy trình công ty' },
+            { id: 'task-3', title: 'Bàn giao tài khoản' }
+        ] },
+        { id: 'day-2', dayNumber: 'Ngày 2', date: '2026-10-20', title: 'Sản phẩm Callbot', tasks: [
+            { id: 'task-21', title: 'Học kịch bản' }
+        ] },
+        { id: 'day-3', dayNumber: 'Ngày 3', date: '2026-10-21', title: 'Phần mềm CRM', tasks: [
+            { id: 'task-31', title: 'Quản lý Lead' }
+        ] }
+    ];
+    store.roadmap = initialDays;
+
+    const mockStorage = new Map();
+    const context = vm.createContext({
+        window: {
+            location: new URL('http://localhost/hr.html'),
+            history: { replaceState() {} },
+            hrOnboardingStore: store,
+            sessionStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
+            localStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
+            lucide: { createIcons: () => {} }
+        },
+        document: { addEventListener: () => {}, getElementById: () => null },
+        URL,
+        URLSearchParams,
+        console
+    });
+
+    vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
+    const hrHub = context.window.hrHub;
+    hrHub.showToast = () => {};
+    hrHub.renderRoadmapTab = () => {};
+
+    // 1. Test moveTaskDown: Move task-1 down
+    hrHub.moveTaskDown('day-1', 'task-1');
+    const day1Tasks = store.getRoadmap().find(d => d.id === 'day-1').tasks;
+    assert.equal(day1Tasks[0].id, 'task-2');
+    assert.equal(day1Tasks[1].id, 'task-1');
+
+    // 2. Test moveTaskUp: Move task-1 back up
+    hrHub.moveTaskUp('day-1', 'task-1');
+    const day1TasksAfterUp = store.getRoadmap().find(d => d.id === 'day-1').tasks;
+    assert.equal(day1TasksAfterUp[0].id, 'task-1');
+    assert.equal(day1TasksAfterUp[1].id, 'task-2');
+
+    // 3. Test moveRoadmapDayDown: Move Day 1 down
+    hrHub.moveRoadmapDayDown('day-1');
+    const roadmapAfterDayMove = store.getRoadmap();
+    assert.equal(roadmapAfterDayMove[0].id, 'day-2');
+    assert.equal(roadmapAfterDayMove[0].dayNumber, 'Ngày 1');
+    assert.equal(roadmapAfterDayMove[0].date, '2026-10-19'); // Monday
+
+    assert.equal(roadmapAfterDayMove[1].id, 'day-1');
+    assert.equal(roadmapAfterDayMove[1].dayNumber, 'Ngày 2');
+    assert.equal(roadmapAfterDayMove[1].date, '2026-10-20'); // Tuesday
+
+    // 4. Test reindexRoadmapDays with weekend skipping
+    // Start on Friday 2026-10-23
+    store.roadmap[0].date = '2026-10-23';
+    hrHub.reindexRoadmapDays(store.roadmap);
+    assert.equal(store.roadmap[0].date, '2026-10-23'); // Friday
+    assert.equal(store.roadmap[1].date, '2026-10-26'); // Next Monday (skips Sat 24, Sun 25)
+    assert.equal(store.roadmap[2].date, '2026-10-27'); // Next Tuesday
+
+    // 5. Test inserting day in middle (between index 0 and 1)
+    hrHub.insertRoadmapDayIndex = 1;
+    // Mock modal form values
+    const domValues = {
+        'hr-day-number': 'Ngày 2',
+        'hr-day-title': 'Chuyên đề AI đặc biệt',
+        'hr-day-date': '',
+        'hr-day-duration': '08:30 – 17:30',
+        'hr-day-trainer': 'Nguyễn Thủy Tiên',
+        'hr-day-goal': 'Hiểu AI',
+        'hr-day-color': 'indigo',
+        'hr-day-note': '',
+        'hr-day-tasks': 'Thực hành Prompt Engineering'
+    };
+    context.document.getElementById = (id) => ({
+        value: domValues[id] || '',
+        classList: { add() {}, remove() {} }
+    });
+    hrHub.closeRoadmapDayModal = () => {};
+    hrHub.handleSaveRoadmapDay({ preventDefault() {} });
+
+    const roadmapAfterInsert = store.getRoadmap();
+    assert.equal(roadmapAfterInsert.length, 4);
+    assert.equal(roadmapAfterInsert[1].title, 'Chuyên đề AI đặc biệt');
+    assert.equal(roadmapAfterInsert[1].dayNumber, 'Ngày 2');
+    assert.equal(roadmapAfterInsert[1].date, '2026-10-26'); // Monday
+    assert.equal(roadmapAfterInsert[2].dayNumber, 'Ngày 3');
+    assert.equal(roadmapAfterInsert[2].date, '2026-10-27'); // Tuesday
+    assert.equal(roadmapAfterInsert[3].dayNumber, 'Ngày 4');
+    assert.equal(roadmapAfterInsert[3].date, '2026-10-28'); // Wednesday
+});
+
+
 
 
