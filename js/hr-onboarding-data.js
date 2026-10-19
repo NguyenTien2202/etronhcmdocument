@@ -724,6 +724,8 @@ Có bất kỳ điều gì cần hỗ trợ thêm, {{ten_ung_vien}} cứ chia s�
 ];
 
 
+const CURRENT_ROADMAP_VERSION = 20261019_94;
+
 class HrOnboardingStore {
     constructor() {
         this._listeners = [];
@@ -735,10 +737,20 @@ class HrOnboardingStore {
         // Nạp dữ liệu cache cục bộ an toàn nếu có (chống mất mát khi rớt mạng hoặc chưa đồng bộ xong)
         try {
             const cachedRoadmap = localStorage.getItem('etron_hr_cached_roadmap');
+            const cachedVersion = Number(localStorage.getItem('etron_hr_cached_roadmap_version')) || 0;
             if (cachedRoadmap) {
                 const parsed = JSON.parse(cachedRoadmap);
-                if (Array.isArray(parsed) && parsed.length > 0) {
+                const isLegacy = !cachedVersion || cachedVersion < CURRENT_ROADMAP_VERSION || (
+                    Array.isArray(parsed) && parsed.some(d => d.id === 'day-3' && (
+                        d.title === 'Phần Mềm Adahub CRM: Tổng quan, tính năng và lợi ích' ||
+                        !d.tasks?.some(t => t.id === 'm-306')
+                    ))
+                );
+                if (!isLegacy && Array.isArray(parsed) && parsed.length > 0) {
                     this.roadmap = this.sanitizeRoadmap(parsed);
+                } else {
+                    localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
+                    localStorage.setItem('etron_hr_cached_roadmap_version', String(CURRENT_ROADMAP_VERSION));
                 }
             }
         } catch (_) {}
@@ -831,6 +843,7 @@ class HrOnboardingStore {
             const now = Date.now();
             await window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({
                 days,
+                roadmapVersion: CURRENT_ROADMAP_VERSION,
                 updatedAt: now,
                 slugTokens: map
             });
@@ -846,10 +859,15 @@ class HrOnboardingStore {
         const now = Date.now();
         try {
             localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(days));
+            localStorage.setItem('etron_hr_cached_roadmap_version', String(CURRENT_ROADMAP_VERSION));
             localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(now));
         } catch (_) {}
         if (window.firebaseDb) {
-            const payload = { days, updatedAt: now };
+            const payload = {
+                days,
+                roadmapVersion: CURRENT_ROADMAP_VERSION,
+                updatedAt: now
+            };
             const slugMap = this.getSlugTokensMap();
             if (slugMap && Object.keys(slugMap).length > 0) {
                 payload.slugTokens = slugMap;
@@ -1050,26 +1068,58 @@ class HrOnboardingStore {
                     this.notifyChange('slugTokens');
                 }
                 if (Array.isArray(cloudData.days)) {
-                    const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
-                    let localUpdatedAt = 0;
-                    try {
-                        localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
-                    } catch (_) {}
+                    const cloudVersion = Number(cloudData.roadmapVersion) || 0;
+                    const isLegacyCloudData = cloudVersion < CURRENT_ROADMAP_VERSION &&
+                        cloudData.days.some(d => d.id === 'day-3' && (
+                            d.title === 'Phần Mềm Adahub CRM: Tổng quan, tính năng và lợi ích' ||
+                            !d.tasks?.some(t => t.id === 'm-306')
+                        ));
 
-                    const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
-                    if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
-                        this.roadmap = this.sanitizeRoadmap(cloudData.days);
+                    if (isLegacyCloudData) {
+                        const defaultMap = new Map(DEFAULT_ONBOARDING_ROADMAP.map(d => [d.id, d]));
+                        const upgradedDays = cloudData.days.map(d => {
+                            if (d.id === 'day-3' || d.id === 'day-4' || d.id === 'day-5') {
+                                return JSON.parse(JSON.stringify(defaultMap.get(d.id) || d));
+                            }
+                            return d;
+                        });
+                        this.roadmap = this.sanitizeRoadmap(upgradedDays);
+                        const now = Date.now();
                         try {
                             localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
-                            if (cloudUpdatedAt) {
-                                localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
-                            }
+                            localStorage.setItem('etron_hr_cached_roadmap_version', String(CURRENT_ROADMAP_VERSION));
+                            localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(now));
                         } catch (_) {}
+                        if (this.isHr()) {
+                            this.saveRoadmap(this.roadmap);
+                        }
+                    } else {
+                        const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
+                        let localUpdatedAt = 0;
+                        try {
+                            localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
+                        } catch (_) {}
+
+                        const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
+                        if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
+                            this.roadmap = this.sanitizeRoadmap(cloudData.days);
+                            try {
+                                localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
+                                localStorage.setItem('etron_hr_cached_roadmap_version', String(cloudVersion || CURRENT_ROADMAP_VERSION));
+                                if (cloudUpdatedAt) {
+                                    localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
+                                }
+                            } catch (_) {}
+                        }
                     }
                 }
             } else if (!doc.exists && this.isHr()) {
                 const map = this.getSlugTokensMap();
-                const payload = { days: this.roadmap, updatedAt: Date.now() };
+                const payload = {
+                    days: this.roadmap,
+                    roadmapVersion: CURRENT_ROADMAP_VERSION,
+                    updatedAt: Date.now()
+                };
                 if (Object.keys(map).length > 0) payload.slugTokens = map;
                 db.collection('hr_config').doc('onboarding_roadmap').set(payload).catch(() => {});
             }
