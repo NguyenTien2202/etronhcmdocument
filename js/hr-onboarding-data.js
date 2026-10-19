@@ -789,9 +789,11 @@ class HrOnboardingStore {
         if (!raw) return '';
         let text = String(raw).trim();
         text = text
+            .replace(/:\s*[•\-\*]\s+/g, ':\n• ')
+            .replace(/\s+[•\-\*]\s+/g, '\n• ')
             .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
+            .replace(/(?<![•\-\*]\s*)\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/(?<![•\-\*]\s*)\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
             .replace(/;\s*\n\s*/g, '\n• ')
             .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
         const lines = text.split('\n');
@@ -818,8 +820,10 @@ class HrOnboardingStore {
         if (!raw) return '';
         let text = String(raw).trim();
         text = text
+            .replace(/:\s*[•\-\*✓✔]\s+/g, ':\n• ')
+            .replace(/\s+[•\-\*✓✔]\s+/g, '\n• ')
             .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/(?<![•\-\*✓✔]\s*)\s+(?=\([1-9]\d*\))/g, '\n• ')
             .replace(/;\s*\n\s*/g, '\n• ')
             .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
         const lines = text.split('\n');

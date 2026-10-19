@@ -2387,6 +2387,7 @@ class HrHubApp {
         if (deleteBtn) deleteBtn.classList.remove('hidden');
 
         modal.classList.remove('hidden');
+        this.resetTaskFieldPreviews();
         if (window.lucide) lucide.createIcons();
     }
 
@@ -2423,12 +2424,14 @@ class HrHubApp {
         if (deleteBtn) deleteBtn.classList.add('hidden');
 
         modal.classList.remove('hidden');
+        this.resetTaskFieldPreviews();
         if (window.lucide) lucide.createIcons();
     }
 
     closeTaskDetailModal() {
         const modal = document.getElementById('hr-task-detail-modal');
         if (modal) modal.classList.add('hidden');
+        this.resetTaskFieldPreviews();
     }
 
     async handleSaveTaskDetail(e) {
@@ -3945,14 +3948,176 @@ class HrHubApp {
             .replace(/'/g, '&#039;');
     }
 
+    renderRichInline(rawStr) {
+        if (!rawStr) return '';
+        let res = String(rawStr)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+        // Unescape safe rich formatting tags
+        res = res
+            .replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/gi, '<strong class="font-bold text-slate-900">$1</strong>')
+            .replace(/&lt;strong&gt;(.*?)&lt;\/strong&gt;/gi, '<strong class="font-bold text-slate-900">$1</strong>')
+            .replace(/&lt;i&gt;(.*?)&lt;\/i&gt;/gi, '<em class="italic text-slate-700">$1</em>')
+            .replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/gi, '<em class="italic text-slate-700">$1</em>')
+            .replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/gi, '<span class="underline underline-offset-2">$1</span>')
+            .replace(/&lt;mark&gt;(.*?)&lt;\/mark&gt;/gi, '<mark class="bg-amber-100 text-amber-900 px-1 rounded">$1</mark>');
+
+        // Markdown bold **text** and *italic*
+        res = res
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
+            .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em class="italic text-slate-700">$1</em>');
+
+        // Process arrows -> or ➔
+        res = res
+            .replace(/\s*(-&gt;|->|➔)\s*/g, ' <span class="text-indigo-600 font-bold mx-0.5">➔</span> ');
+
+        return res;
+    }
+
+    formatTextSelection(fieldId, action) {
+        const el = document.getElementById(fieldId);
+        if (!el) return;
+        el.focus();
+        const start = el.selectionStart ?? 0;
+        const end = el.selectionEnd ?? 0;
+        const val = el.value || '';
+        const selected = val.substring(start, end);
+
+        let replacement = '';
+
+        switch (action) {
+            case 'bold':
+                replacement = selected ? `**${selected}**` : '**chữ đậm**';
+                break;
+            case 'italic':
+                replacement = selected ? `*${selected}*` : '*chữ nghiêng*';
+                break;
+            case 'underline':
+                replacement = selected ? `<u>${selected}</u>` : '<u>gạch chân</u>';
+                break;
+            case 'highlight':
+                replacement = selected ? `<mark>${selected}</mark>` : '<mark>nổi bật</mark>';
+                break;
+            case 'arrow':
+                replacement = ' ➔ ';
+                break;
+            case 'checkmark':
+                replacement = selected ? `✓ ${selected}` : '✓ ';
+                break;
+            case 'bullet':
+                if (selected) {
+                    replacement = selected
+                        .split('\n')
+                        .map(line => {
+                            let l = line.trim();
+                            if (!l) return '';
+                            l = l.replace(/^[•\-\*]\s*/, '');
+                            return `• ${l}`;
+                        })
+                        .join('\n');
+                } else {
+                    const before = val.substring(0, start);
+                    const needsNewline = before.length > 0 && !before.endsWith('\n');
+                    replacement = (needsNewline ? '\n• ' : '• ');
+                }
+                break;
+            case 'number':
+                if (selected) {
+                    let step = 1;
+                    replacement = selected
+                        .split('\n')
+                        .map(line => {
+                            let l = line.trim();
+                            if (!l) return '';
+                            l = l.replace(/^(\(\d+\)|\d+\.|\bBước \d+[:\-]?|[•\-\*])\s*/i, '');
+                            return `• (${step++}) ${l}`;
+                        })
+                        .join('\n');
+                } else {
+                    const before = val.substring(0, start);
+                    const needsNewline = before.length > 0 && !before.endsWith('\n');
+                    replacement = (needsNewline ? '\n• (1) ' : '• (1) ');
+                }
+                break;
+            case 'autobreak':
+                const textToClean = selected || val;
+                const cleaned = window.hrOnboardingStore ? window.hrOnboardingStore.cleanActivityText(textToClean) : textToClean;
+                if (selected) {
+                    replacement = cleaned;
+                } else {
+                    el.value = cleaned;
+                    el.dispatchEvent(new Event('input'));
+                    this.updateTaskFieldPreview(fieldId);
+                    return;
+                }
+                break;
+            default:
+                return;
+        }
+
+        el.value = val.substring(0, start) + replacement + val.substring(end);
+        el.selectionStart = start + replacement.length;
+        el.selectionEnd = start + replacement.length;
+        el.dispatchEvent(new Event('input'));
+        this.updateTaskFieldPreview(fieldId);
+    }
+
+    toggleTaskFieldPreview(fieldId) {
+        const textarea = document.getElementById(fieldId);
+        const box = document.getElementById(`${fieldId}-preview-box`);
+        const toggleText = document.getElementById(`${fieldId}-preview-toggle-text`);
+        if (!textarea || !box) return;
+
+        const isCurrentlyPreview = !box.classList.contains('hidden');
+        if (isCurrentlyPreview) {
+            box.classList.add('hidden');
+            textarea.classList.remove('hidden');
+            if (toggleText) toggleText.textContent = 'Xem trước';
+        } else {
+            this.updateTaskFieldPreview(fieldId);
+            box.classList.remove('hidden');
+            textarea.classList.add('hidden');
+            if (toggleText) toggleText.textContent = 'Soạn thảo';
+        }
+    }
+
+    updateTaskFieldPreview(fieldId) {
+        const textarea = document.getElementById(fieldId);
+        const box = document.getElementById(`${fieldId}-preview-box`);
+        if (!textarea || !box) return;
+        const val = textarea.value.trim();
+        if (fieldId === 'hr-task-outcome') {
+            box.innerHTML = this.formatOutcomeHtml(val);
+        } else {
+            box.innerHTML = this.formatActivityHtml(val);
+        }
+    }
+
+    resetTaskFieldPreviews() {
+        ['hr-task-activity', 'hr-task-outcome'].forEach(fieldId => {
+            const textarea = document.getElementById(fieldId);
+            const box = document.getElementById(`${fieldId}-preview-box`);
+            const toggleText = document.getElementById(`${fieldId}-preview-toggle-text`);
+            if (box) box.classList.add('hidden');
+            if (textarea) textarea.classList.remove('hidden');
+            if (toggleText) toggleText.textContent = 'Xem trước';
+        });
+    }
+
     formatActivityHtml(rawText, placeholder = 'Chưa có mô tả hoạt động. Bấm để thêm nội dung...') {
         if (!rawText) return `<span class="italic text-slate-400">${placeholder}</span>`;
         let text = String(rawText).trim();
 
         text = text
+            .replace(/:\s*[•\-\*]\s+/g, ':\n• ')
+            .replace(/\s+[•\-\*]\s+/g, '\n• ')
             .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
+            .replace(/(?<![•\-\*]\s*)\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/(?<![•\-\*]\s*)\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
             .replace(/;\s*\n\s*/g, '\n• ')
             .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
 
@@ -3978,20 +4143,20 @@ class HrHubApp {
             const stepMatch = trimmed.match(/^(\(\d+\)|\d+\.|\bBước \d+[:\-]?|\(Trigger\b[^\)]*\)|\(Action \d+[^\)]*\)|\(Khối \d+[^\)]*\))/i);
             if (stepMatch) {
                 const prefix = this.escapeHtml(stepMatch[0]);
-                const rest = this.escapeHtml(trimmed.slice(stepMatch[0].length).trim());
+                const rest = this.renderRichInline(trimmed.slice(stepMatch[0].length).trim());
                 return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-700 font-bold shrink-0 text-xs bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/80 shadow-2xs">${prefix}</span><span class="leading-relaxed text-slate-700">${rest}</span></div>`;
             }
 
             const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && isMultiItem && trimmed.length < 80 && !trimmed.includes(';') && !trimmed.includes('('));
             if (isHeading) {
-                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.renderRichInline(trimmed)}</div>`;
             }
 
             if (!isMultiItem && !isBullet) {
-                return `<div class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</div>`;
             }
 
-            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed select-none">•</span><span class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</span></div>`;
+            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed select-none">•</span><span class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</span></div>`;
         }).join('');
     }
 
@@ -4000,8 +4165,10 @@ class HrHubApp {
         let text = String(rawText).trim();
 
         text = text
+            .replace(/:\s*[•\-\*✓✔]\s+/g, ':\n• ')
+            .replace(/\s+[•\-\*✓✔]\s+/g, '\n• ')
             .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/(?<![•\-\*✓✔]\s*)\s+(?=\([1-9]\d*\))/g, '\n• ')
             .replace(/;\s*\n\s*/g, '\n• ')
             .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
 
@@ -4025,14 +4192,14 @@ class HrHubApp {
 
             const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && isMultiItem && trimmed.length < 80 && !trimmed.includes(';') && !trimmed.includes('('));
             if (isHeading) {
-                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.renderRichInline(trimmed)}</div>`;
             }
 
             if (!isMultiItem && !isBullet) {
-                return `<div class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</div>`;
             }
 
-            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-emerald-500 font-bold shrink-0 leading-relaxed select-none">✓</span><span class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</span></div>`;
+            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-emerald-500 font-bold shrink-0 leading-relaxed select-none">✓</span><span class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</span></div>`;
         }).join('');
     }
 }

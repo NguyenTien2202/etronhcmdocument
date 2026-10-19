@@ -1414,14 +1414,46 @@ class OnboardingViewer {
             .replace(/\r/g, '');
     }
 
+    renderRichInline(rawStr) {
+        if (!rawStr) return '';
+        let res = String(rawStr)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+        // Unescape safe rich formatting tags
+        res = res
+            .replace(/&lt;b&gt;(.*?)&lt;\/b&gt;/gi, '<strong class="font-bold text-slate-900">$1</strong>')
+            .replace(/&lt;strong&gt;(.*?)&lt;\/strong&gt;/gi, '<strong class="font-bold text-slate-900">$1</strong>')
+            .replace(/&lt;i&gt;(.*?)&lt;\/i&gt;/gi, '<em class="italic text-slate-700">$1</em>')
+            .replace(/&lt;em&gt;(.*?)&lt;\/em&gt;/gi, '<em class="italic text-slate-700">$1</em>')
+            .replace(/&lt;u&gt;(.*?)&lt;\/u&gt;/gi, '<span class="underline underline-offset-2">$1</span>')
+            .replace(/&lt;mark&gt;(.*?)&lt;\/mark&gt;/gi, '<mark class="bg-amber-100 text-amber-900 px-1 rounded">$1</mark>');
+
+        // Markdown bold **text** and *italic*
+        res = res
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-slate-900">$1</strong>')
+            .replace(/(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)/g, '<em class="italic text-slate-700">$1</em>');
+
+        // Process arrows -> or ➔
+        res = res
+            .replace(/\s*(-&gt;|->|➔)\s*/g, ' <span class="text-indigo-600 font-bold mx-0.5">➔</span> ');
+
+        return res;
+    }
+
     formatActivityHtml(rawText, placeholder = 'Chưa có mô tả hoạt động.') {
         if (!rawText) return `<span class="italic text-slate-400">${placeholder}</span>`;
         let text = String(rawText).trim();
 
         text = text
+            .replace(/:\s*[•\-\*]\s+/g, ':\n• ')
+            .replace(/\s+[•\-\*]\s+/g, '\n• ')
             .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
+            .replace(/(?<![•\-\*]\s*)\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/(?<![•\-\*]\s*)\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
             .replace(/;\s*\n\s*/g, '\n• ')
             .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
 
@@ -1447,20 +1479,20 @@ class OnboardingViewer {
             const stepMatch = trimmed.match(/^(\(\d+\)|\d+\.|\bBước \d+[:\-]?|\(Trigger\b[^\)]*\)|\(Action \d+[^\)]*\)|\(Khối \d+[^\)]*\))/i);
             if (stepMatch) {
                 const prefix = this.escapeHtml(stepMatch[0]);
-                const rest = this.escapeHtml(trimmed.slice(stepMatch[0].length).trim());
+                const rest = this.renderRichInline(trimmed.slice(stepMatch[0].length).trim());
                 return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-700 font-bold shrink-0 text-xs bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/80 shadow-2xs">${prefix}</span><span class="leading-relaxed text-slate-700">${rest}</span></div>`;
             }
 
             const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && isMultiItem && trimmed.length < 80 && !trimmed.includes(';') && !trimmed.includes('('));
             if (isHeading) {
-                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.renderRichInline(trimmed)}</div>`;
             }
 
             if (!isMultiItem && !isBullet) {
-                return `<div class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</div>`;
             }
 
-            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed select-none">•</span><span class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</span></div>`;
+            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed select-none">•</span><span class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</span></div>`;
         }).join('');
     }
 
@@ -1469,8 +1501,10 @@ class OnboardingViewer {
         let text = String(rawText).trim();
 
         text = text
+            .replace(/:\s*[•\-\*✓✔]\s+/g, ':\n• ')
+            .replace(/\s+[•\-\*✓✔]\s+/g, '\n• ')
             .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
-            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/(?<![•\-\*✓✔]\s*)\s+(?=\([1-9]\d*\))/g, '\n• ')
             .replace(/;\s*\n\s*/g, '\n• ')
             .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
 
@@ -1494,14 +1528,14 @@ class OnboardingViewer {
 
             const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && isMultiItem && trimmed.length < 80 && !trimmed.includes(';') && !trimmed.includes('('));
             if (isHeading) {
-                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.renderRichInline(trimmed)}</div>`;
             }
 
             if (!isMultiItem && !isBullet) {
-                return `<div class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</div>`;
+                return `<div class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</div>`;
             }
 
-            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-emerald-500 font-bold shrink-0 leading-relaxed select-none">✓</span><span class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</span></div>`;
+            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-emerald-500 font-bold shrink-0 leading-relaxed select-none">✓</span><span class="leading-relaxed text-slate-700">${this.renderRichInline(trimmed)}</span></div>`;
         }).join('');
     }
 }

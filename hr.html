@@ -924,10 +924,57 @@
                             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-500"></i>
                             <span>Hoạt động & Nội dung kèm theo</span>
                         </span>
-                        <span class="text-[10px] text-slate-400 font-normal">Mô tả bài học, quy trình, slide, hướng dẫn</span>
+                        <span class="text-[10px] text-slate-400 font-normal">Hỗ trợ định dạng: Đậm, Nghiêng, Danh sách, Các bước, Mũi tên</span>
                     </label>
-                    <textarea id="hr-task-activity" rows="4" placeholder="Nhập chi tiết các hoạt động, nội dung bài học, hướng dẫn thao tác..."
-                        class="w-full p-3 border border-slate-200 rounded-xl leading-relaxed text-slate-800 focus:outline-none focus:border-indigo-500"></textarea>
+
+                    <!-- Thanh công cụ định dạng văn bản (Rich Text Toolbar) -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-500 transition-colors shadow-2xs">
+                        <div class="flex flex-wrap items-center justify-between gap-1 bg-slate-50/90 border-b border-slate-200 p-1.5 px-2 text-xs">
+                            <div class="flex flex-wrap items-center gap-1">
+                                <button type="button" title="In đậm (Ctrl+B / **đậm**)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'bold')"
+                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-extrabold border border-transparent hover:border-slate-200 transition-all">B</button>
+                                <button type="button" title="In nghiêng (*nghiêng*)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'italic')"
+                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 italic font-serif font-bold border border-transparent hover:border-slate-200 transition-all">I</button>
+                                <button type="button" title="Gạch chân" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'underline')"
+                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 underline font-semibold border border-transparent hover:border-slate-200 transition-all">U</button>
+                                <button type="button" title="Làm nổi bật (Highlight)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'highlight')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-amber-100/70 text-amber-800 text-[11px] font-bold border border-amber-200/80 bg-amber-50/80 transition-all">
+                                    <i data-lucide="highlighter" class="w-3 h-3 text-amber-600"></i>
+                                    <span>Highlight</span>
+                                </button>
+                                <span class="w-px h-4 bg-slate-300 mx-0.5"></span>
+                                <button type="button" title="Tạo danh sách chấm tròn (•)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'bullet')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-semibold border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="list" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                    <span>Danh sách</span>
+                                </button>
+                                <button type="button" title="Đánh số các bước (1), (2)..." onclick="window.hrHub.formatTextSelection('hr-task-activity', 'number')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-semibold border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="list-ordered" class="w-3.5 h-3.5 text-indigo-600"></i>
+                                    <span>Các bước</span>
+                                </button>
+                                <button type="button" title="Chèn mũi tên chuyển trạng thái (➔)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'arrow')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-indigo-700 font-bold border border-transparent hover:border-slate-200 transition-all">
+                                    <span>➔ Quy trình</span>
+                                </button>
+                                <span class="w-px h-4 bg-slate-300 mx-0.5"></span>
+                                <button type="button" title="Tự động bẻ dòng các ý bị dính chùm hoặc cách nhau bởi dấu chấm phẩy" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'autobreak')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80 transition-all">
+                                    <i data-lucide="wand-2" class="w-3 h-3 text-emerald-600"></i>
+                                    <span>Tách dòng</span>
+                                </button>
+                            </div>
+                            <button type="button" onclick="window.hrHub.toggleTaskFieldPreview('hr-task-activity')"
+                                class="h-7 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 font-bold flex items-center gap-1 transition-all shadow-2xs">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                <span id="hr-task-activity-preview-toggle-text">Xem trước</span>
+                            </button>
+                        </div>
+                        <textarea id="hr-task-activity" rows="5" placeholder="Nhập chi tiết các hoạt động, nội dung bài học, hướng dẫn thao tác... (Bấm thanh công cụ trên để định dạng)"
+                            oninput="window.hrHub.updateTaskFieldPreview('hr-task-activity')"
+                            class="w-full p-3 leading-relaxed text-slate-800 focus:outline-none bg-white text-xs sm:text-sm"></textarea>
+                        <div id="hr-task-activity-preview-box" class="hidden p-3 bg-slate-50 border-t border-slate-200 text-xs sm:text-sm text-slate-700 space-y-1 max-h-48 overflow-y-auto"></div>
+                    </div>
                 </div>
 
                 <div>
@@ -938,8 +985,41 @@
                         </span>
                         <span class="text-[10px] text-slate-400 font-normal">Tiêu chí hoàn thành hoặc bài nộp cuối buổi</span>
                     </label>
-                    <textarea id="hr-task-outcome" rows="3" placeholder="Nhập mục tiêu đầu ra hoặc kết quả cần nộp để được đánh giá hoàn thành..."
-                        class="w-full p-3 border border-slate-200 rounded-xl leading-relaxed text-slate-800 focus:outline-none focus:border-indigo-500"></textarea>
+
+                    <!-- Thanh công cụ định dạng văn bản cho Outcome -->
+                    <div class="border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-500 transition-colors shadow-2xs">
+                        <div class="flex flex-wrap items-center justify-between gap-1 bg-slate-50/90 border-b border-slate-200 p-1.5 px-2 text-xs">
+                            <div class="flex flex-wrap items-center gap-1">
+                                <button type="button" title="In đậm (Ctrl+B / **đậm**)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'bold')"
+                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-extrabold border border-transparent hover:border-slate-200 transition-all">B</button>
+                                <button type="button" title="In nghiêng (*nghiêng*)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'italic')"
+                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 italic font-serif font-bold border border-transparent hover:border-slate-200 transition-all">I</button>
+                                <button type="button" title="Tạo danh sách chấm tròn (•)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'bullet')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-semibold border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="list" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                    <span>Danh sách</span>
+                                </button>
+                                <button type="button" title="Chèn dấu tick hoàn thành (✓)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'checkmark')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-emerald-700 font-bold border border-transparent hover:border-slate-200 transition-all">
+                                    <span>✓ Mục tiêu</span>
+                                </button>
+                                <button type="button" title="Tự động bẻ dòng các tiêu chí" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'autobreak')"
+                                    class="h-7 px-2 flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80 transition-all">
+                                    <i data-lucide="wand-2" class="w-3 h-3 text-emerald-600"></i>
+                                    <span>Tách dòng</span>
+                                </button>
+                            </div>
+                            <button type="button" onclick="window.hrHub.toggleTaskFieldPreview('hr-task-outcome')"
+                                class="h-7 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-slate-600 font-bold flex items-center gap-1 transition-all shadow-2xs">
+                                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                <span id="hr-task-outcome-preview-toggle-text">Xem trước</span>
+                            </button>
+                        </div>
+                        <textarea id="hr-task-outcome" rows="3" placeholder="Nhập mục tiêu đầu ra hoặc kết quả cần nộp để được đánh giá hoàn thành..."
+                            oninput="window.hrHub.updateTaskFieldPreview('hr-task-outcome')"
+                            class="w-full p-3 leading-relaxed text-slate-800 focus:outline-none bg-white text-xs sm:text-sm"></textarea>
+                        <div id="hr-task-outcome-preview-box" class="hidden p-3 bg-slate-50 border-t border-slate-200 text-xs sm:text-sm text-slate-700 space-y-1 max-h-40 overflow-y-auto"></div>
+                    </div>
                 </div>
 
                 <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -1117,7 +1197,7 @@
     <!-- Scripts -->
     <script src="js/store.js?v=20261018_v89"></script>
     <script src="js/document-hub.js?v=20261018_v90"></script>
-    <script src="js/hr-onboarding-data.js?v=20261019_v98"></script>
+    <script src="js/hr-onboarding-data.js?v=20261019_v99"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -1127,7 +1207,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261019_v98"></script>
-    <script src="js/hr-hub.js?v=20261019_v98"></script>
+    <script src="js/hr-auth.js?v=20261019_v99"></script>
+    <script src="js/hr-hub.js?v=20261019_v99"></script>
 </body>
 </html>
