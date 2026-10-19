@@ -361,14 +361,25 @@ class OnboardingViewer {
     cleanAddressBarUrl() {
         try {
             if (typeof window === 'undefined' || !window.history || !window.history.replaceState) return;
+            if (window.location.protocol === 'file:') return;
+
+            // QUAN TRỌNG: Chỉ làm sạch URL nếu đang thực sự ở trang onboarding độc lập (onboard.html hoặc /onboard/...)
+            // hoặc khi tab Onboarding trên SalesApp đang hoạt động.
+            // Tuyệt đối không can thiệp thanh địa chỉ khi đang ở các tab khác của SalesApp (Báo giá, Kho tài liệu, Callbot, v.v.)
+            const isStandaloneOnboard = window.location.pathname.includes('/onboard.html') || window.location.pathname.includes('/onboard/');
+            const isOnboardTabActive = window.salesApp && window.salesApp.currentTab === 'onboard';
+            if (!isStandaloneOnboard && !isOnboardTabActive) return;
+
             const currentUrl = new URL(window.location.href);
             const cand = (this.candidateId && window.hrOnboardingStore?.getCandidateById)
                 ? window.hrOnboardingStore.getCandidateById(this.candidateId)
                 : window.hrOnboardingStore?.publicCandidate;
             const candName = cand?.fullName || currentUrl.searchParams.get('nhan-su') || currentUrl.searchParams.get('nhansu') || currentUrl.searchParams.get('name') || currentUrl.searchParams.get('uv') || '';
-            const slug = this.candidateSlug || (candName ? ('nhansu' + this.toCandidateSlug(candName)) : 'nhansu');
+            const slug = this.candidateSlug || (candName ? ('nhansu' + this.toCandidateSlug(candName)) : '');
 
-            if (window.location.protocol === 'file:') return;
+            // Nếu không có slug nhân sự và không phải trang onboard thì không tự gán slug nhansu bừa bãi
+            if (!slug && !isStandaloneOnboard) return;
+
             let basePath = '';
             if (currentUrl.pathname.includes('/onboard/')) {
                 basePath = currentUrl.pathname.split('/onboard/')[0];
@@ -378,7 +389,7 @@ class OnboardingViewer {
                 basePath = currentUrl.pathname.substring(0, currentUrl.pathname.lastIndexOf('/'));
             }
 
-            const cleanPath = `${basePath}/onboard/${slug}`;
+            const cleanPath = slug ? `${basePath}/onboard/${slug}` : `${basePath}/onboard`;
             if (window.location.pathname + window.location.search + window.location.hash !== cleanPath) {
                 window.history.replaceState(null, document.title, cleanPath);
             }

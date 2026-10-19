@@ -12,6 +12,9 @@ class SalesApp {
         // Kích hoạt đồng bộ đám mây Real-time Firebase Firestore trước tiên
         window.salesStore.setupCloudSync();
 
+        // Xác định tab mục tiêu từ URL trước khi khởi tạo các component con
+        const targetTab = this.resolveTabFromLocation() || 'quote-builder';
+
         this.setupNavigation();
         this.setupEventListeners();
         this.setupModalScrollLock();
@@ -26,13 +29,8 @@ class SalesApp {
         if (window.onboardingViewer) window.onboardingViewer.init();
         window.quoteBuilder.resetForm();
 
-        // Mở thẳng tab nếu trên URL có route cụ thể hoặc ?tab=...
-        const targetTab = this.resolveTabFromLocation();
-        if (targetTab) {
-            this.switchTab(targetTab, true, true);
-        } else {
-            this.switchTab('quote-builder', false, true);
-        }
+        // Mở thẳng tab mục tiêu và đồng bộ URL trên thanh địa chỉ
+        this.switchTab(targetTab, true, true);
 
         // Lắng nghe sự kiện Back/Forward của trình duyệt để chuyển tab tương ứng
         if (typeof window !== 'undefined' && window.addEventListener) {
