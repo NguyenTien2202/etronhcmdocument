@@ -248,8 +248,8 @@ test('getPublicOnboardUrl includes candidate name, cleanAddressBarUrl hides toke
     vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
     const hrHub = context.window.hrHub;
     const url = hrHub.getPublicOnboardUrl('c-test');
-    assert.ok(url.includes('nhan-su=Nguyen+Van+A') || url.includes('nhan-su=Nguyen%20Van%20A'));
-    assert.ok(url.includes('#key=' + 'a'.repeat(64)));
+    assert.ok(url.includes('nhansunguyenvana'));
+    assert.ok(url.includes('k=' + 'a'.repeat(64)));
 
     // Run onboarding viewer cleanAddressBarUrl
     vm.runInContext(fs.readFileSync('js/onboarding-viewer.js', 'utf8'), context);
@@ -257,7 +257,8 @@ test('getPublicOnboardUrl includes candidate name, cleanAddressBarUrl hides toke
     viewer.cleanAddressBarUrl();
     assert.ok(replacedStateUrl);
     assert.ok(!replacedStateUrl.includes('key='));
-    assert.ok(replacedStateUrl.includes('nhan-su='));
+    assert.ok(!replacedStateUrl.includes('k='));
+    assert.ok(replacedStateUrl.includes('nhansunguyenvana'));
 
     // Test editCandidateChecklistItem in hrHub
     context.prompt = () => 'Nộp CCCD 2 mặt kèm thẻ BHYT';
@@ -370,6 +371,74 @@ test('moveTaskUp, moveTaskDown, moveRoadmapDayUp, moveRoadmapDayDown and insert 
     assert.equal(roadmapAfterInsert[3].dayNumber, 'Ngày 4');
     assert.equal(roadmapAfterInsert[3].date, '2026-10-28'); // Wednesday
 });
+
+test('task drag-and-drop reorder and unified attachment modal with 2 tabs', async () => {
+    const { store } = storeHarness(true);
+    store.ready.add('roadmap');
+    store.roadmap = [
+        {
+            id: 'day-1',
+            dayNumber: 'Ngày 1',
+            date: '2026-10-19',
+            title: 'Hội nhập',
+            tasks: [
+                { id: 'task-1', text: 'Giới thiệu công ty', links: [] },
+                { id: 'task-2', text: 'Cài đặt phần mềm', links: [] },
+                { id: 'task-3', text: 'Học văn hóa doanh nghiệp', links: [] }
+            ]
+        }
+    ];
+
+    const context = vm.createContext({
+        window: {
+            hrOnboardingStore: store,
+            addEventListener: () => {},
+            confirm: () => true,
+            alert: () => {},
+            lucide: { createIcons: () => {} }
+        },
+        document: {
+            addEventListener: () => {},
+            getElementById: () => ({
+                classList: { add() {}, remove() {}, toggle() {} },
+                setAttribute() {},
+                removeAttribute() {},
+                focus() {},
+                value: ''
+            })
+        },
+        URL,
+        URLSearchParams,
+        lucide: { createIcons: () => {} },
+        console
+    });
+
+    vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
+    const hrHub = context.window.hrHub;
+    hrHub.showToast = () => {};
+    hrHub.renderRoadmapTab = () => {};
+
+    // 1. Reorder task-1 to place below task-2: order should become task-2, task-1, task-3
+    hrHub.reorderTasksInDay('day-1', 'task-1', 'task-2', true);
+    let tasks = store.getRoadmap()[0].tasks;
+    assert.equal(tasks[0].id, 'task-2');
+    assert.equal(tasks[1].id, 'task-1');
+    assert.equal(tasks[2].id, 'task-3');
+
+    // 2. Reorder task-3 to place above task-2 (placeBelow = false): order becomes task-3, task-2, task-1
+    hrHub.reorderTasksInDay('day-1', 'task-3', 'task-2', false);
+    tasks = store.getRoadmap()[0].tasks;
+    assert.equal(tasks[0].id, 'task-3');
+    assert.equal(tasks[1].id, 'task-2');
+    assert.equal(tasks[2].id, 'task-1');
+
+    // 3. Test switchAttachDocTab
+    hrHub.switchAttachDocTab('custom');
+    assert.equal(hrHub.attachModalTab, 'custom');
+    hrHub.switchAttachDocTab('repo');
+    assert.equal(hrHub.attachModalTab, 'repo');
+});
+
 
 
 

@@ -300,6 +300,17 @@ class OnboardingViewer {
         if (window.lucide) lucide.createIcons();
     }
 
+    toCandidateSlug(fullName) {
+        if (!fullName) return '';
+        return String(fullName)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'd')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+    }
+
     cleanAddressBarUrl() {
         try {
             if (typeof window === 'undefined' || !window.history || !window.history.replaceState) return;
@@ -307,54 +318,54 @@ class OnboardingViewer {
             const cand = (this.candidateId && window.hrOnboardingStore?.getCandidateById)
                 ? window.hrOnboardingStore.getCandidateById(this.candidateId)
                 : window.hrOnboardingStore?.publicCandidate;
-            const candName = cand?.fullName || currentUrl.searchParams.get('nhan-su') || currentUrl.searchParams.get('name') || currentUrl.searchParams.get('uv') || '';
+            const candName = cand?.fullName || currentUrl.searchParams.get('nhan-su') || currentUrl.searchParams.get('nhansu') || currentUrl.searchParams.get('name') || currentUrl.searchParams.get('uv') || '';
+            const slug = this.toCandidateSlug(candName);
+            const cleanSlugParam = slug ? `nhansu${slug}` : 'nhansu';
 
-            let changed = false;
-
-            // 1. Loại bỏ chuỗi #key=... khỏi hash để thanh URL luôn sạch sẽ, bảo mật
-            if (currentUrl.hash && currentUrl.hash.includes('key=')) {
-                const hashParams = new URLSearchParams(currentUrl.hash.slice(1));
-                hashParams.delete('key');
-                const remainingHash = hashParams.toString();
-                currentUrl.hash = remainingHash ? '#' + remainingHash : '';
-                changed = true;
-            }
-
-            // 2. Nếu có key trong search (?key=...), cũng xóa đi
-            if (currentUrl.searchParams.has('key')) {
-                currentUrl.searchParams.delete('key');
-                changed = true;
-            }
-
-            // 3. Đảm bảo hiển thị tên ứng viên thân thiện trên thanh địa chỉ (?nhan-su=...)
-            if (candName && currentUrl.searchParams.get('nhan-su') !== candName) {
-                currentUrl.searchParams.set('nhan-su', candName);
-                changed = true;
-            }
-
-            if (changed) {
-                const cleanUrlString = currentUrl.pathname + (currentUrl.search ? currentUrl.search : '') + (currentUrl.hash ? currentUrl.hash : '');
+            // Clean address bar: no secret keys or hash, just /onboard.html?nhansudothitruclinh
+            const cleanUrlString = currentUrl.pathname + '?' + cleanSlugParam;
+            if (window.location.pathname + window.location.search + window.location.hash !== cleanUrlString) {
                 window.history.replaceState(null, document.title, cleanUrlString);
             }
         } catch (_) {}
     }
 
     init() {
-        let token = new URLSearchParams(window.location.hash.slice(1)).get('key');
-        if (!token) {
-            token = new URLSearchParams(window.location.search).get('key');
+        let token = null;
+
+        // 1. Kiểm tra query param ?k=... hoặc ?key=... hoặc ?token=...
+        const searchParams = new URLSearchParams(window.location.search);
+        token = searchParams.get('k') || searchParams.get('key') || searchParams.get('token');
+
+        // 2. Kiểm tra hash: #nhansudothitruclinh hoặc #key=... hoặc #<token>
+        if (!token && window.location.hash) {
+            const hashStr = window.location.hash.slice(1);
+            const hashParams = new URLSearchParams(hashStr);
+            token = hashParams.get('k') || hashParams.get('key') || hashParams.get('token');
+            if (!token && /^[a-f0-9]{64}$/i.test(hashStr.trim())) {
+                token = hashStr.trim();
+            }
         }
 
-        // Chỉ khôi phục token từ storage khi URL hiện tại có gắn tên nhân sự (?nhan-su=...)
-        const urlParams = new URLSearchParams(window.location.search);
-        const hasCandidateParam = urlParams.has('nhan-su') || urlParams.has('name') || urlParams.has('uv');
-        if (!token && hasCandidateParam) {
+        // 3. Quét toàn bộ search & hash xem có chuỗi 64 ký tự hex (256-bit token)
+        if (!token) {
+            const fullLoc = (window.location.search || '') + (window.location.hash || '');
+            const match = fullLoc.match(/[a-f0-9]{64}/i);
+            if (match) token = match[0];
+        }
+
+        // 4. Khôi phục từ storage nếu URL có chứa thông tin nhân sự (?nhansudothitruclinh, ?nhansu=..., ?nhan-su=...)
+        const hasCandInSearch = Array.from(searchParams.keys()).some(k => k.startsWith('nhansu')) ||
+            searchParams.has('nhansu') || searchParams.has('nhan-su') || searchParams.has('name') || searchParams.has('uv');
+        const hasCandInHash = (window.location.hash || '').toLowerCase().includes('nhansu');
+
+        if (!token && (hasCandInSearch || hasCandInHash)) {
             try {
                 token = sessionStorage.getItem('etron_onboard_token') || localStorage.getItem('etron_onboard_token');
             } catch (_) {}
         }
 
-        const legacyId = urlParams.get('id');
+        const legacyId = searchParams.get('id');
         this.candidateId = token || null;
         this.legacyLink = !!legacyId && !token;
 
@@ -378,7 +389,7 @@ class OnboardingViewer {
             catch (_) { window.hrOnboardingStore.personalUnavailable = true; }
         }
 
-        // Tự động ẩn chuỗi hash #key=... trên thanh địa chỉ, chỉ hiển thị tên ứng viên sạch sẽ
+        // Tự động ẩn hash và hiển thị URL sạch sẽ trên thanh địa chỉ (?nhansudothitruclinh)
         this.cleanAddressBarUrl();
 
         if (typeof document !== 'undefined' && document.addEventListener) {

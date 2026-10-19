@@ -114,16 +114,31 @@ class HrHubApp {
         if (window.lucide) lucide.createIcons();
     }
 
+    toCandidateSlug(fullName) {
+        if (!fullName) return '';
+        return String(fullName)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'd')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+    }
+
     getPublicOnboardUrl(candidateId = null) {
         try {
             const url = new URL('onboard.html', window.location.href);
             if (candidateId) {
                 const cand = window.hrOnboardingStore?.getCandidates?.()?.find(c => c.id === candidateId);
                 const token = cand?.onboardToken;
-                if (cand?.fullName) {
-                    url.searchParams.set('nhan-su', cand.fullName);
+                const slug = this.toCandidateSlug(cand?.fullName);
+                const candSlug = slug ? `nhansu${slug}` : 'nhansu';
+                if (token) {
+                    url.searchParams.set('k', token);
+                    url.hash = candSlug;
+                } else if (slug) {
+                    url.search = candSlug;
                 }
-                if (token) url.hash = 'key=' + token;
             }
             return url.href;
         } catch (e) {
@@ -813,7 +828,7 @@ class HrHubApp {
                                                 <a href="${this.escapeHtml(this.getPublicOnboardUrl(cand.id))}" target="_blank" onclick="event.stopPropagation()"
                                                     class="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold truncate flex items-center gap-1.5 underline" title="Bấm để mở xem Cổng Onboard dành cho ${this.escapeHtml(cand.fullName || 'nhân sự')}">
                                                     <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0 text-emerald-600"></i>
-                                                    <span class="truncate">onboard.html?nhan-su=${this.escapeHtml(cand.fullName || 'ung-vien')}</span>
+                                                    <span class="truncate">onboard.html?${this.toCandidateSlug(cand.fullName) ? 'nhansu' + this.toCandidateSlug(cand.fullName) : 'nhansu'}</span>
                                                 </a>
                                                 <span class="text-[9px] text-emerald-600 font-mono block truncate mt-0.5 opacity-80">(Mã bảo mật: ••••${cand.onboardToken.slice(-6)})</span>
                                             ` : `
@@ -1519,18 +1534,13 @@ class HrHubApp {
                         <div class="flex flex-wrap items-center gap-2 shrink-0">
                             <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}')"
                                 class="relative w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-indigo-700 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs"
-                                title="Kho Tài Liệu SalesHub (${attachedDocs.length} tài liệu)">
-                                <i data-lucide="folder-plus" class="w-4 h-4"></i>
-                                ${attachedDocs.length > 0 ? `
+                                title="Đính kèm tài liệu & liên kết (${attachedDocs.length + (day.customLinks || []).length} mục)">
+                                <i data-lucide="paperclip" class="w-4 h-4"></i>
+                                ${(attachedDocs.length + (day.customLinks || []).length) > 0 ? `
                                     <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full ${theme.pill} text-[10px] font-bold flex items-center justify-center leading-none shadow-xs">
-                                        ${attachedDocs.length}
+                                        ${attachedDocs.length + (day.customLinks || []).length}
                                     </span>
                                 ` : ''}
-                            </button>
-                            <button type="button" onclick="window.hrHub.openAddLinkModal('${day.id}')"
-                                class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-emerald-800 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs"
-                                title="Thêm link ngoài (Drive, Docs, Sheets, Canva)">
-                                <i data-lucide="link" class="w-4 h-4"></i>
                             </button>
                             <button type="button" onclick="window.hrHub.moveRoadmapDayUp('${day.id}')"
                                 class="w-8 h-8 rounded-xl bg-white/90 hover:bg-white text-slate-700 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-all shadow-2xs ${idx === 0 ? 'opacity-30 cursor-not-allowed' : ''}"
@@ -1571,21 +1581,32 @@ class HrHubApp {
                             <div class="flex items-center justify-between">
                                 <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                                     <i data-lucide="layers" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                    <span>Nội dung học tập (${tasks.length} mục - Bấm để xổ xuống xem nội dung & link):</span>
+                                    <span>Nội dung học tập (${tasks.length} mục - Kéo thả hoặc nhấn giữ để đổi thứ tự):</span>
                                 </span>
                             </div>
 
-                            <div class="space-y-2">
+                            <div class="space-y-2" id="hr-day-tasks-${day.id}">
                                 ${tasks.map((task, tIdx) => {
                                     const isExpanded = this.expandedModules.has(task.id);
                                     const taskLinks = task.links || [];
 
                                     return `
-                                        <div class="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-all hover:border-indigo-300">
+                                        <div id="hr-task-card-${task.id}"
+                                            class="hr-task-card border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs transition-all hover:border-indigo-300"
+                                            data-day-id="${day.id}"
+                                            data-task-id="${task.id}"
+                                            data-task-idx="${tIdx}">
                                             <!-- Task Header -->
-                                            <div class="p-3 sm:p-3.5 flex items-center justify-between gap-3 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors"
+                                            <div class="p-3 sm:p-3.5 flex items-center justify-between gap-2.5 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors"
                                                 onclick="window.hrHub.toggleModule('${task.id}')">
-                                                <div class="flex items-center gap-3 min-w-0 flex-1">
+                                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                                    <!-- Drag handle (kéo thả hoặc nhấn giữ di chuyển) -->
+                                                    <button type="button"
+                                                        class="hr-task-drag-handle p-1 -ml-1 text-slate-300 hover:text-indigo-600 cursor-grab active:cursor-grabbing rounded-lg hover:bg-indigo-50 transition-colors touch-none shrink-0"
+                                                        title="Nhấn giữ hoặc kéo để thay đổi thứ tự mục học tập"
+                                                        onclick="event.stopPropagation()">
+                                                        <i data-lucide="grip-vertical" class="w-4 h-4"></i>
+                                                    </button>
                                                     <i data-lucide="check-square" class="w-4 h-4 text-indigo-500 shrink-0"></i>
                                                     <span class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">
                                                         ${this.escapeHtml(this.cleanTaskTitle(task.title))}
@@ -1605,18 +1626,6 @@ class HrHubApp {
                                                             <span>Có nộp bài</span>
                                                         </span>
                                                     ` : ''}
-                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.moveTaskUp('${day.id}', '${task.id}')"
-                                                        class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-500 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs ${tIdx === 0 ? 'opacity-30 cursor-not-allowed' : ''}"
-                                                        ${tIdx === 0 ? 'disabled' : ''}
-                                                        title="${tIdx === 0 ? 'Đã ở vị trí đầu tiên' : 'Di chuyển mục học tập này lên trên'}">
-                                                        <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
-                                                    </button>
-                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.moveTaskDown('${day.id}', '${task.id}')"
-                                                        class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-500 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs ${tIdx === tasks.length - 1 ? 'opacity-30 cursor-not-allowed' : ''}"
-                                                        ${tIdx === tasks.length - 1 ? 'disabled' : ''}
-                                                        title="${tIdx === tasks.length - 1 ? 'Đã ở vị trí cuối cùng' : 'Di chuyển mục học tập này xuống dưới'}">
-                                                        <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-                                                    </button>
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.openEditTaskModal('${day.id}', '${task.id}')"
                                                         class="w-7 h-7 rounded-lg bg-white hover:bg-slate-100 text-slate-600 hover:text-indigo-600 border border-slate-200/90 flex items-center justify-center transition-colors shadow-2xs"
                                                         title="Chỉnh sửa nội dung & kết quả cần đạt của mục này">
@@ -1624,13 +1633,8 @@ class HrHubApp {
                                                     </button>
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.openAttachDocModal('${day.id}', '${task.id}')"
                                                         class="w-7 h-7 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-colors shadow-2xs"
-                                                        title="Gắn tài liệu từ Kho SalesHub vào mục này">
-                                                        <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
-                                                    </button>
-                                                    <button type="button" onclick="event.stopPropagation(); window.hrHub.openAddLinkModal('${day.id}', '${task.id}')"
-                                                        class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center justify-center transition-colors shadow-2xs"
-                                                        title="Thêm link ngoài (Drive, Docs, Sheets, Canva) vào mục này">
-                                                        <i data-lucide="link" class="w-3.5 h-3.5"></i>
+                                                        title="Đính kèm tài liệu từ kho hoặc link ngoài, ghi chú">
+                                                        <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                                                     </button>
                                                     <button type="button" onclick="event.stopPropagation(); window.hrHub.deleteTaskFromDay('${day.id}', '${task.id}')"
                                                         class="w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors"
@@ -1840,6 +1844,7 @@ class HrHubApp {
             `;
         }).join('');
         if (window.lucide) lucide.createIcons();
+        this.setupTaskDragAndDrop();
     }
 
     reindexRoadmapDays(roadmap, baseStartDate = null) {
@@ -1932,6 +1937,207 @@ class HrHubApp {
         window.hrOnboardingStore.saveRoadmap(roadmap);
         this.renderRoadmapTab();
         this.showToast('Đã di chuyển nội dung học tập xuống dưới!', 'success');
+    }
+
+    reorderTasksInDay(dayId, sourceTaskId, targetTaskId, placeBelow = false) {
+        if (!dayId || !sourceTaskId || !targetTaskId || sourceTaskId === targetTaskId) return;
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day || !Array.isArray(day.tasks)) return;
+
+        const srcIdx = day.tasks.findIndex(t => t.id === sourceTaskId);
+        if (srcIdx < 0) return;
+
+        const [movedTask] = day.tasks.splice(srcIdx, 1);
+
+        let tgtIdx = day.tasks.findIndex(t => t.id === targetTaskId);
+        if (tgtIdx < 0) {
+            day.tasks.push(movedTask);
+        } else {
+            if (placeBelow) tgtIdx++;
+            day.tasks.splice(tgtIdx, 0, movedTask);
+        }
+
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderRoadmapTab();
+            this.showToast(`Đã chuyển "${this.cleanTaskTitle(movedTask.title)}" sang vị trí mới!`, 'success');
+        } catch (err) {
+            console.error('[HrHub] Lỗi di chuyển task:', err);
+            this.showToast('Chưa lưu được vị trí mới. Vui lòng thử lại!', 'error');
+        }
+    }
+
+    setupTaskDragAndDrop() {
+        const cards = document.querySelectorAll('.hr-task-card');
+        if (!cards || cards.length === 0) return;
+
+        cards.forEach(card => {
+            card.setAttribute('draggable', 'true');
+
+            // --- Desktop HTML5 Drag Events ---
+            card.ondragstart = (e) => {
+                if (e.target.closest('button:not(.hr-task-drag-handle), a, input, textarea')) {
+                    e.preventDefault();
+                    return;
+                }
+
+                window._hrDraggedTask = {
+                    dayId: card.dataset.dayId,
+                    taskId: card.dataset.taskId,
+                    el: card
+                };
+
+                e.dataTransfer.effectAllowed = 'move';
+                try {
+                    e.dataTransfer.setData('text/plain', card.dataset.taskId);
+                } catch (_) {}
+
+                setTimeout(() => {
+                    card.classList.add('hr-task-lifted');
+                }, 10);
+            };
+
+            card.ondragover = (e) => {
+                if (!window._hrDraggedTask || window._hrDraggedTask.dayId !== card.dataset.dayId) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                const rect = card.getBoundingClientRect();
+                const isBelow = (e.clientY - rect.top) > (rect.height / 2);
+
+                document.querySelectorAll('.hr-task-card').forEach(c => {
+                    c.classList.remove('hr-task-drop-target-above', 'hr-task-drop-target-below');
+                });
+
+                if (card !== window._hrDraggedTask.el) {
+                    if (isBelow) {
+                        card.classList.add('hr-task-drop-target-below');
+                    } else {
+                        card.classList.add('hr-task-drop-target-above');
+                    }
+                }
+            };
+
+            card.ondragleave = () => {
+                card.classList.remove('hr-task-drop-target-above', 'hr-task-drop-target-below');
+            };
+
+            card.ondragend = () => {
+                if (window._hrDraggedTask?.el) {
+                    window._hrDraggedTask.el.classList.remove('hr-task-lifted');
+                }
+                document.querySelectorAll('.hr-task-card').forEach(c => {
+                    c.classList.remove('hr-task-lifted', 'hr-task-drop-target-above', 'hr-task-drop-target-below');
+                });
+                window._hrDraggedTask = null;
+            };
+
+            card.ondrop = (e) => {
+                e.preventDefault();
+                if (!window._hrDraggedTask || window._hrDraggedTask.dayId !== card.dataset.dayId) return;
+
+                const sourceTaskId = window._hrDraggedTask.taskId;
+                const targetTaskId = card.dataset.taskId;
+                const rect = card.getBoundingClientRect();
+                const isBelow = (e.clientY - rect.top) > (rect.height / 2);
+
+                document.querySelectorAll('.hr-task-card').forEach(c => {
+                    c.classList.remove('hr-task-lifted', 'hr-task-drop-target-above', 'hr-task-drop-target-below');
+                });
+                window._hrDraggedTask = null;
+
+                if (sourceTaskId !== targetTaskId) {
+                    this.reorderTasksInDay(card.dataset.dayId, sourceTaskId, targetTaskId, isBelow);
+                }
+            };
+
+            // --- Mobile / Touch Long-press Drag Events ---
+            let touchTimer = null;
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isTouchDragging = false;
+            let currentTargetCard = null;
+
+            card.ontouchstart = (e) => {
+                if (e.target.closest('button:not(.hr-task-drag-handle), a, input, textarea')) return;
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+
+                const isHandle = !!e.target.closest('.hr-task-drag-handle');
+                const holdDelay = isHandle ? 60 : 200;
+
+                touchTimer = setTimeout(() => {
+                    isTouchDragging = true;
+                    card.classList.add('hr-task-lifted');
+                    if (navigator.vibrate) {
+                        try { navigator.vibrate(30); } catch (_) {}
+                    }
+                }, holdDelay);
+            };
+
+            card.ontouchmove = (e) => {
+                const touch = e.touches[0];
+                if (!isTouchDragging) {
+                    const dist = Math.hypot(touch.clientX - touchStartX, touch.clientY - touchStartY);
+                    if (dist > 8) {
+                        clearTimeout(touchTimer);
+                    }
+                    return;
+                }
+
+                e.preventDefault();
+
+                const elem = document.elementFromPoint(touch.clientX, touch.clientY);
+                const targetCard = elem ? elem.closest('.hr-task-card') : null;
+
+                document.querySelectorAll('.hr-task-card').forEach(c => {
+                    c.classList.remove('hr-task-drop-target-above', 'hr-task-drop-target-below');
+                });
+
+                if (targetCard && targetCard.dataset.dayId === card.dataset.dayId && targetCard !== card) {
+                    currentTargetCard = targetCard;
+                    const rect = targetCard.getBoundingClientRect();
+                    const isBelow = (touch.clientY - rect.top) > (rect.height / 2);
+                    targetCard.classList.add(isBelow ? 'hr-task-drop-target-below' : 'hr-task-drop-target-above');
+                } else {
+                    currentTargetCard = null;
+                }
+            };
+
+            card.ontouchend = (e) => {
+                clearTimeout(touchTimer);
+                if (isTouchDragging) {
+                    card.classList.remove('hr-task-lifted');
+                    document.querySelectorAll('.hr-task-card').forEach(c => {
+                        c.classList.remove('hr-task-drop-target-above', 'hr-task-drop-target-below');
+                    });
+
+                    if (currentTargetCard && currentTargetCard !== card && currentTargetCard.dataset.dayId === card.dataset.dayId) {
+                        const touch = e.changedTouches ? e.changedTouches[0] : null;
+                        let isBelow = false;
+                        if (touch) {
+                            const rect = currentTargetCard.getBoundingClientRect();
+                            isBelow = (touch.clientY - rect.top) > (rect.height / 2);
+                        }
+                        this.reorderTasksInDay(card.dataset.dayId, card.dataset.taskId, currentTargetCard.dataset.taskId, isBelow);
+                    }
+                    isTouchDragging = false;
+                    currentTargetCard = null;
+                }
+            };
+
+            card.ontouchcancel = () => {
+                clearTimeout(touchTimer);
+                isTouchDragging = false;
+                card.classList.remove('hr-task-lifted');
+                document.querySelectorAll('.hr-task-card').forEach(c => {
+                    c.classList.remove('hr-task-drop-target-above', 'hr-task-drop-target-below');
+                });
+            };
+        });
     }
 
     openInsertRoadmapDayModal(insertAtIndex) {
@@ -2336,25 +2542,7 @@ class HrHubApp {
     }
 
     openAddLinkModal(dayId, taskId = null) {
-        this.linkTargetDayId = dayId;
-        this.linkTargetTaskId = taskId;
-        const modal = document.getElementById('hr-add-link-modal');
-        if (!modal) return;
-
-        const day = window.hrOnboardingStore.getRoadmap().find(d => d.id === dayId);
-        const task = taskId && day ? (day.tasks || []).find(t => t.id === taskId) : null;
-
-        const targetDescEl = document.getElementById('hr-link-target-desc');
-        if (targetDescEl) {
-            targetDescEl.textContent = task
-                ? `Thêm link ngoài cho ${day.dayNumber} > ${this.cleanTaskTitle(task.title)}`
-                : `Thêm link ngoài chung cho ${day ? day.dayNumber : ''}`;
-        }
-        document.getElementById('hr-link-title').value = '';
-        document.getElementById('hr-link-url').value = '';
-        document.getElementById('hr-link-note').value = '';
-        modal.classList.remove('hidden');
-        if (window.lucide) lucide.createIcons();
+        this.openAttachDocModal(dayId, taskId, 'custom');
     }
 
     closeAddLinkModal() {
@@ -2483,16 +2671,29 @@ class HrHubApp {
         }
     }
 
-    openAttachDocModal(dayId, taskId = null) {
+    openAttachDocModal(dayId, taskId = null, defaultTab = 'repo') {
         this.attachingDayId = dayId;
         this.attachingTaskId = taskId;
+        this.linkTargetDayId = dayId;
+        this.linkTargetTaskId = taskId;
         this.docPickerSearch = '';
         const searchInput = document.getElementById('hr-doc-picker-search');
         if (searchInput) searchInput.value = '';
 
         const modal = document.getElementById('hr-attach-doc-modal');
         if (!modal) return;
-        this.renderAttachDocModalList();
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        const task = taskId && day ? (day.tasks || []).find(t => t.id === taskId) : null;
+        const subtitleEl = document.getElementById('hr-doc-picker-subtitle');
+        if (subtitleEl) {
+            subtitleEl.textContent = task
+                ? `${day.dayNumber} > ${this.cleanTaskTitle(task.title)}`
+                : `${day ? day.dayNumber : ''}: ${day ? this.cleanTaskTitle(day.title) : ''}`;
+        }
+
+        this.switchAttachDocTab(defaultTab);
         modal.classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
     }
@@ -2500,6 +2701,233 @@ class HrHubApp {
     closeAttachDocModal() {
         const modal = document.getElementById('hr-attach-doc-modal');
         if (modal) modal.classList.add('hidden');
+    }
+
+    switchAttachDocTab(tab = 'repo') {
+        this.attachModalTab = tab;
+        const tabRepo = document.getElementById('hr-attach-tab-repo');
+        const tabCustom = document.getElementById('hr-attach-tab-custom');
+        const secRepo = document.getElementById('hr-attach-section-repo');
+        const secCustom = document.getElementById('hr-attach-section-custom');
+
+        const activeClass = "px-3 py-2 text-xs font-bold rounded-lg bg-white text-indigo-700 shadow-xs border border-slate-200 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap";
+        const inactiveClass = "px-3 py-2 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap";
+
+        if (tabRepo) tabRepo.className = tab === 'repo' ? activeClass : inactiveClass;
+        if (tabCustom) tabCustom.className = tab === 'custom' ? activeClass : inactiveClass;
+
+        if (secRepo) secRepo.classList.toggle('hidden', tab !== 'repo');
+        if (secCustom) secCustom.classList.toggle('hidden', tab !== 'custom');
+
+        if (tab === 'custom') {
+            this.renderAttachedCustomLinksList();
+        } else {
+            this.renderAttachDocModalList();
+        }
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    switchCustomLinkType(type = 'url') {
+        this.customLinkType = type;
+        const btnUrl = document.getElementById('hr-custom-type-url-btn');
+        const btnNote = document.getElementById('hr-custom-type-note-btn');
+        const fieldUrl = document.getElementById('hr-custom-field-url');
+        const fieldNote = document.getElementById('hr-custom-field-note');
+        const modeInput = document.getElementById('hr-custom-link-mode');
+        const titleInput = document.getElementById('hr-unified-link-title');
+        const titleLabel = document.getElementById('hr-custom-title-label');
+
+        if (modeInput) modeInput.value = type;
+
+        if (btnUrl) {
+            btnUrl.className = type === 'url'
+                ? "px-2.5 py-1 rounded-md font-bold bg-white text-indigo-700 shadow-2xs"
+                : "px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900";
+        }
+        if (btnNote) {
+            btnNote.className = type === 'note'
+                ? "px-2.5 py-1 rounded-md font-bold bg-white text-indigo-700 shadow-2xs"
+                : "px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900";
+        }
+
+        if (fieldUrl) fieldUrl.classList.toggle('hidden', type !== 'url');
+        if (fieldNote) fieldNote.classList.toggle('hidden', type !== 'note');
+
+        if (titleLabel) {
+            titleLabel.textContent = type === 'url' ? 'Tên tài liệu / Tiêu đề liên kết *' : 'Tiêu đề thông báo / Ghi chú *';
+        }
+        if (titleInput && !titleInput.value) {
+            titleInput.placeholder = type === 'url' ? 'VD: Slide Đào tạo Kịch bản Bán hàng 2026' : 'VD: Lưu ý quan trọng khi gọi khách';
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    async pasteToUnifiedNote() {
+        const textarea = document.getElementById('hr-unified-note-content');
+        if (!textarea) return;
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text && text.trim()) {
+                textarea.value = text;
+                const titleInput = document.getElementById('hr-unified-link-title');
+                if (titleInput && !titleInput.value) {
+                    const firstLine = text.trim().split('\n')[0].trim();
+                    titleInput.value = firstLine.length > 60 ? firstLine.substring(0, 60) + '...' : firstLine;
+                }
+                this.showToast('Đã dán nội dung từ Clipboard!', 'success');
+            } else {
+                this.showToast('Clipboard hiện đang trống.', 'info');
+            }
+        } catch (_) {
+            this.showToast('Nhấn Ctrl+V để dán trực tiếp vào ô nội dung nhé!', 'info');
+        }
+    }
+
+    renderAttachedCustomLinksList() {
+        const container = document.getElementById('hr-custom-links-attached-list');
+        const countEl = document.getElementById('hr-custom-links-count');
+        if (!container) return;
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === this.attachingDayId);
+        if (!day) return;
+
+        const isTaskLevel = !!this.attachingTaskId;
+        const task = isTaskLevel ? (day.tasks || []).find(t => t.id === this.attachingTaskId) : null;
+
+        let customLinks = [];
+        if (isTaskLevel && task) {
+            customLinks = (task.links || []).map((l, originalIdx) => ({ link: l, originalIdx })).filter(item => {
+                const l = item.link;
+                return !l.docId && (!l.url || !l.url.includes('doc='));
+            });
+        } else {
+            customLinks = (day.customLinks || []).map((l, originalIdx) => ({ link: l, originalIdx }));
+        }
+
+        if (countEl) countEl.textContent = `${customLinks.length} mục`;
+
+        if (customLinks.length === 0) {
+            container.innerHTML = '<div class="py-4 text-center text-slate-400 text-xs">Chưa có liên kết ngoài hoặc ghi chú nào cho mục này.</div>';
+            return;
+        }
+
+        container.innerHTML = customLinks.map(item => {
+            const l = item.link;
+            const isNote = l.type === 'note' || !!l.content;
+            const deleteHandler = isTaskLevel
+                ? `window.hrHub.deleteCustomLinkFromUnifiedModal('${day.id}', '${task.id}', ${item.originalIdx})`
+                : `window.hrHub.deleteCustomLinkFromDay('${day.id}', ${item.originalIdx})`;
+
+            return `
+                <div class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-white border border-slate-200/90 shadow-2xs">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
+                        <div class="w-7 h-7 rounded-lg ${isNote ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'} flex items-center justify-center shrink-0">
+                            <i data-lucide="${isNote ? 'message-square-text' : 'link-2'}" class="w-3.5 h-3.5"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-bold text-slate-800 text-xs truncate">${this.escapeHtml(l.title)}</p>
+                            <p class="text-[10px] text-slate-400 truncate">${this.escapeHtml(l.url || l.note || (isNote ? 'Ghi chú văn bản' : 'Link ngoài'))}</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="${deleteHandler}"
+                        class="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors shrink-0"
+                        title="Xóa liên kết này">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    deleteCustomLinkFromUnifiedModal(dayId, taskId, linkIdx) {
+        if (!confirm('Xóa liên kết này khỏi mục học tập?')) return;
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === dayId);
+        if (!day) return;
+        const task = (day.tasks || []).find(t => t.id === taskId);
+        if (!task || !Array.isArray(task.links)) return;
+        task.links.splice(linkIdx, 1);
+
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            this.renderAttachedCustomLinksList();
+            this.renderRoadmapTab();
+            this.showToast('Đã xóa liên kết.', 'info');
+        } catch (err) {
+            console.error('[HrHub] Lỗi xóa link:', err);
+            this.showToast('Chưa xóa được. Vui lòng thử lại!', 'error');
+        }
+    }
+
+    handleSaveCustomLinkFromUnifiedModal(e) {
+        if (e) e.preventDefault();
+        const mode = document.getElementById('hr-custom-link-mode')?.value || 'url';
+        const title = document.getElementById('hr-unified-link-title')?.value.trim();
+        const url = document.getElementById('hr-unified-link-url')?.value.trim();
+        const noteContent = document.getElementById('hr-unified-note-content')?.value.trim();
+        const noteDesc = document.getElementById('hr-unified-link-note')?.value.trim();
+
+        if (!title) {
+            alert('Vui lòng nhập Tiêu đề!');
+            return;
+        }
+
+        if (mode === 'url' && !url) {
+            alert('Vui lòng nhập Đường dẫn URL (Drive, Docs, Sheets, Canva, Youtube)!');
+            return;
+        }
+
+        if (mode === 'note' && !noteContent) {
+            alert('Vui lòng nhập hoặc dán Nội dung ghi chú / Hướng dẫn!');
+            return;
+        }
+
+        const roadmap = window.hrOnboardingStore.getRoadmap();
+        const day = roadmap.find(d => d.id === this.attachingDayId);
+        if (!day) return;
+
+        const newLink = {
+            title: title,
+            url: mode === 'url' ? url : `note:${Date.now()}`,
+            note: noteDesc || (mode === 'note' ? 'Ghi chú đào tạo' : undefined),
+            type: mode === 'note' ? 'note' : (url.startsWith('http') ? 'external' : 'internal'),
+            content: mode === 'note' ? noteContent : undefined
+        };
+
+        const isTaskLevel = !!this.attachingTaskId;
+        if (isTaskLevel) {
+            const task = (day.tasks || []).find(t => t.id === this.attachingTaskId);
+            if (task) {
+                if (!Array.isArray(task.links)) task.links = [];
+                task.links.push(newLink);
+                this.expandedModules.add(task.id);
+            }
+        } else {
+            if (!Array.isArray(day.customLinks)) day.customLinks = [];
+            day.customLinks.push(newLink);
+        }
+
+        try {
+            window.hrOnboardingStore.saveRoadmap(roadmap);
+            const titleInp = document.getElementById('hr-unified-link-title');
+            const urlInp = document.getElementById('hr-unified-link-url');
+            const noteInp = document.getElementById('hr-unified-note-content');
+            const noteDescInp = document.getElementById('hr-unified-link-note');
+            if (titleInp) titleInp.value = '';
+            if (urlInp) urlInp.value = '';
+            if (noteInp) noteInp.value = '';
+            if (noteDescInp) noteDescInp.value = '';
+
+            this.renderAttachedCustomLinksList();
+            this.renderRoadmapTab();
+            this.showToast(`Đã đính kèm "${title}" vào lộ trình!`, 'success');
+        } catch (err) {
+            console.error('[HrHub] Lỗi lưu link:', err);
+            this.showToast('Chưa lưu được. Vui lòng thử lại!', 'error');
+        }
     }
 
     renderDocPickerStorageIndicator() {
