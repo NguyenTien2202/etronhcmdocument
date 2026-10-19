@@ -162,7 +162,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-301',
                 title: 'Tổng quan 5 khối tính năng Adahub CRM',
                 type: 'learn',
-                activity: 'Giới thiệu tổng quan hệ thống CRM trong bán hàng B2B và cấu trúc 5 khối module từ cơ bản đến nâng cao (Nền tảng dữ liệu, Luồng bán hàng, Chat đa kênh, Tổng đài/Chiến dịch, Tự động hóa/Báo cáo).',
+                activity: 'Giới thiệu tổng quan hệ thống CRM trong bán hàng B2B và cấu trúc 5 khối module từ cơ bản đến nâng cao:\n• Khối 1: Nền tảng & Quản trị Dữ liệu (Contact & Company 360°).\n• Khối 2: Quản lý Luồng Bán hàng (Deal Pipeline, Order, Task & Meeting).\n• Khối 3: Giao tiếp & Tương tác Đa kênh (Omnichannel Chat & Ticket).\n• Khối 4: Chiến dịch & Tổng đài Gọi điện (Telesale Workspace, Auto Dialer, Callbot AI & Ví cước).\n• Khối 5: Tự động hóa & Báo cáo Quản trị (AdaFlow Automation Canvas & KPI Dashboard).',
                 outcome: 'Nắm được bức tranh tổng quan của hệ thống Adahub CRM và vai trò của từng khối module trong doanh nghiệp.',
                 links: [
                     { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' }
@@ -172,7 +172,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-302',
                 title: 'Khối 1: Nền tảng & Quản trị Dữ liệu (Contact & Company)',
                 type: 'learn',
-                activity: 'Quản lý Danh bạ cá nhân (Contact) và Doanh nghiệp (Company); xem chi tiết khách hàng 360° (Timeline tương tác, lịch sử cuộc gọi, ghi chú, đơn hàng); thiết lập bộ lọc Custom Views, chế độ xem Kanban/Danh sách; cấu hình trường tùy biến (Custom Fields) và trường tính toán; thao tác hàng loạt (Bulk actions) & quy trình Import/Export Excel.',
+                activity: 'Thực hành làm chủ quản trị dữ liệu khách hàng 360 độ:\n• Quản lý Danh bạ cá nhân (Contact) và Doanh nghiệp (Company).\n• Chi tiết khách hàng 360°: Timeline tương tác, lịch sử cuộc gọi, ghi chú, đơn hàng.\n• Thiết lập Bộ lọc dữ liệu, Custom Views cá nhân, chế độ xem Kanban / Danh sách.\n• Cấu hình trường dữ liệu tùy biến (Custom Fields) và trường tính toán tự động.\n• Thao tác hàng loạt (Bulk actions) & Quy trình Import / Export file Excel chuẩn xác.',
                 outcome: 'Biết cách tạo, lọc, quản lý dữ liệu khách hàng 360 độ và chuẩn bị file mẫu import chuẩn xác không bị trùng lặp số điện thoại.',
                 links: [
                     { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' }
@@ -182,7 +182,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-303',
                 title: 'Khối 2: Quản lý Luồng Bán hàng & Vận hành (Sales Pipeline & Operations)',
                 type: 'learn',
-                activity: 'Quản lý Cơ hội bán hàng (Deal): Phễu bán hàng qua các giai đoạn, tỷ lệ chuyển đổi, lý do Lost; Đơn hàng (Order) & Sản phẩm (Product): Tạo báo giá, chọn sản phẩm, tính chiết khấu; Công việc (Task) & Lịch hẹn (Meeting): To-do list, nhắc việc tự động, tích hợp đồng bộ Google Calendar / Outlook.',
+                activity: 'Vận hành luồng bán hàng B2B và quản lý công việc:\n• Cơ hội bán hàng (Deal): Quản lý phễu qua các giai đoạn, tỷ lệ chuyển đổi, lý do Lost.\n• Đơn hàng (Order) & Sản phẩm (Product): Tạo báo giá, chọn sản phẩm, tính chiết khấu.\n• Công việc (Task) & Lịch hẹn (Meeting): Quản lý to-do list, nhắc việc tự động, tích hợp đồng bộ Google Calendar / Outlook.',
                 outcome: 'Hiểu rõ vòng đời một Deal từ khi tiếp cận đến Won/Lost, biết cách lên lịch hẹn meeting và tạo đơn hàng gắn sản phẩm.',
                 links: [
                     { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' }
@@ -192,7 +192,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-304',
                 title: 'Bài tập 1 & 2: Chuẩn hóa Dữ liệu & Vận hành Phễu Bán hàng',
                 type: 'practice',
-                activity: 'Thực hành trên hệ thống: (1) Tải file mẫu và import 15 khách hàng giả lập (không trùng SĐT); tạo 2 trường tùy biến "Nguồn Lead" (Dropdown: Facebook, Zalo, Giới thiệu) và "Quy mô nhân sự" (Number); lưu 1 View lọc hiển thị riêng các khách hàng có nguồn từ Facebook và chưa được liên hệ. (2) Tạo 1 Deal 15.000.000đ gói "CRM Standard", kéo qua các bước: Tiếp cận -> Đặt lịch hẹn Demo -> Gửi báo giá -> Đàm phán -> Won; tạo Lịch hẹn Meeting lúc 14h00 ngày mai sync Google Calendar; tạo 1 Task deadline 24h; tạo Đơn hàng (Order) chiết khấu 10%.',
+                activity: 'Hướng dẫn thực hành chi tiết trên hệ thống:\n• (1) Import Data: Tải file mẫu và import danh sách 15 khách hàng giả lập vào hệ thống (không trùng số điện thoại).\n• (2) Cấu hình Trường: Tạo 2 trường dữ liệu tùy biến: "Nguồn Lead" (Dropdown: Facebook, Zalo, Giới thiệu) và "Quy mô nhân sự" (Number).\n• (3) Tạo View cá nhân: Tạo 1 View lọc hiển thị riêng: "Các khách hàng có nguồn từ Facebook và chưa được liên hệ" ➔ Lưu thành bộ lọc nhanh trên thanh công cụ.\n• (4) Khởi tạo Deal: Từ một Contact có sẵn, khởi tạo Cơ hội bán hàng (Deal) trị giá 15.000.000đ thuộc gói "CRM Standard".\n• (5) Luân chuyển Trạng thái: Kéo Deal qua các bước: Tiếp cận ➔ Đặt lịch hẹn Demo ➔ Gửi báo giá ➔ Đàm phán ➔ Chốt thành công (Won).\n• (6) Task & Meeting: Tạo Lịch hẹn Meeting (Demo phần mềm) lúc 14h00 ngày mai, bật đồng bộ với Google Calendar; tạo 1 Task: "Gửi hợp đồng và hóa đơn sau demo" (Deadline 24h).\n• (7) Khởi tạo Đơn hàng: Tạo Đơn hàng (Order) từ Deal đã chốt, đính kèm thông tin giảm giá 10%.',
                 outcome: 'Hoàn thành nộp kết quả Bài tập 1 và Bài tập 2 cho Trainer/Mentor duyệt.',
                 links: []
             },
@@ -200,7 +200,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-305',
                 title: 'Khối 3: Giao tiếp & Tương tác Đa kênh (Omnichannel Chat & Ticket)',
                 type: 'learn',
-                activity: 'Workspace Chat Đa Kênh: Quản lý tập trung tin nhắn Facebook Fanpage, Zalo OA, Zalo cá nhân; cơ chế phân quyền và bảo mật đoạn chat Zalo cá nhân; chuyển đổi trực tiếp đoạn chat thành Contact / Deal / Task chỉ với 1 click; Phiếu ghi (Ticket): Quy trình tiếp nhận yêu cầu, xử lý khiếu nại, đo lường SLA của CSKH.',
+                activity: 'Làm chủ giao tiếp khách hàng đa kênh & chăm sóc:\n• Workspace Chat Đa Kênh: Quản lý tập trung tin nhắn Facebook Fanpage, Zalo OA, Zalo cá nhân.\n• Phân quyền & Bảo mật: Cơ chế phân quyền và bảo mật an toàn đoạn chat Zalo cá nhân.\n• Chuyển đổi 1-Click: Chuyển đổi trực tiếp đoạn chat thành Contact / Deal / Task ngay trong khung chat.\n• Phiếu ghi (Ticket): Quy trình tiếp nhận yêu cầu, xử lý khiếu nại, đo lường SLA của CSKH.',
                 outcome: 'Nắm vững quy trình trực chat đa kênh, phân quyền bảo mật Zalo cá nhân và quy trình tiếp nhận/xử lý Ticket CSKH.',
                 links: [
                     { title: 'HDSD & Video Hướng dẫn Adahub CRM', url: 'https://docs.google.com/spreadsheets/d/1WENMoEByRAPrKGWulpPVyv5255LBNkqbCjyXWRxQJGs/edit?gid=1630288305#gid=1630288305', type: 'external' }
@@ -210,7 +210,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-306',
                 title: 'Bài tập 3: Tương tác Đa kênh & Xử lý Ticket CSKH',
                 type: 'practice',
-                activity: 'Thực hành: Dùng tài khoản cá nhân nhắn tin vào kênh Zalo/Fanpage test của công ty -> Vào Chat Workspace tiếp nhận, gán nhãn "Quan tâm CRM"; bấm nút tạo trực tiếp 1 Contact mới ngay trong khung chat mà không gõ lại tay; Giả định khách báo lỗi âm thanh khi gọi -> Tạo 1 Phiếu ghi (Ticket) loại "Hỗ trợ kỹ thuật", mức ưu tiên "Cao", giao cho bộ phận Vận hành/CSKH xử lý.',
+                activity: 'Các bước thực hành thực chiến:\n• (1) Chat thực chiến: Dùng tài khoản cá nhân nhắn tin vào kênh Zalo/Fanpage test của công ty ➔ Vào Chat Workspace tiếp nhận, gán nhãn "Quan tâm CRM".\n• (2) Chuyển đổi từ Chat: Bấm nút tạo trực tiếp 1 Contact mới ngay trong khung chat mà không cần nhập lại tay số điện thoại hay họ tên.\n• (3) Mở Ticket hỗ trợ: Giả định khách báo lỗi âm thanh khi gọi ➔ Tạo 1 Phiếu ghi (Ticket) loại "Hỗ trợ kỹ thuật", mức ưu tiên "Cao", giao cho bộ phận Vận hành/CSKH xử lý.',
                 outcome: 'Hoàn thành nộp kết quả Bài tập 3 cho Trainer/Mentor nghiệm thu cuối ngày.',
                 links: []
             }
@@ -234,7 +234,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-401',
                 title: 'Khối 4 (Phần 1): Tổng đài gọi điện thủ công & Telesale Workspace',
                 type: 'learn',
-                activity: 'Lịch sử cuộc gọi (Call History): Nghe lại ghi âm, đọc transcript, lọc trạng thái cuộc gọi; Giao diện Telesale Workspace: Bấm gọi 1 chạm, vừa nghe vừa ghi chú, phân loại và cập nhật trạng thái khách hàng tức thì.',
+                activity: 'Thao tác gọi điện chuyên nghiệp trên Telesale:\n• Lịch sử cuộc gọi (Call History): Nghe lại ghi âm, đọc transcript đàm thoại, lọc trạng thái cuộc gọi.\n• Giao diện Telesale Workspace: Bấm gọi 1 chạm, vừa nghe vừa ghi chú, phân loại và cập nhật trạng thái khách hàng tức thì.',
                 outcome: 'Thành thạo thao tác bấm gọi 1 chạm trên Telesale Workspace và quản lý lịch sử cuộc gọi.',
                 links: [
                     { title: 'Kho Tài Liệu Tổng Hợp Sản Phẩm & Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
@@ -244,7 +244,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-402',
                 title: 'Khối 4 (Phần 2): Chiến dịch quay số tự động, Callbot AI & Quản trị Ví cước',
                 type: 'learn',
-                activity: 'Chiến dịch Telesale & Auto Dialer (quay số tự động theo danh sách); Chiến dịch Callbot AI: Cấu hình gọi tự động hàng loạt từ kịch bản AI Botflow V4; Chiến dịch gửi tin ZNS / SMS chăm sóc; Quản trị Ví & Thanh toán: Cơ chế nạp tiền VietQR, phí mua đầu số, trừ cước viễn thông, cơ chế trừ tiền Callbot (Block 6s, FIFO), quản lý hạn mức nhân viên.',
+                activity: 'Triển khai chiến dịch tự động & Quản lý ví cước viễn thông:\n• Chiến dịch Telesale & Auto Dialer: Bật chế độ quay số tự động liên tục theo danh sách được giao.\n• Chiến dịch Callbot AI: Cấu hình gọi tự động hàng loạt từ kịch bản AI Botflow V4.\n• Chiến dịch Tin nhắn: Gửi tin ZNS / SMS Brandname chăm sóc khách hàng hàng loạt.\n• Quản trị Ví & Thanh toán: Cơ chế nạp tiền VietQR tự động, phí mua đầu số, trừ cước viễn thông, cơ chế trừ tiền Callbot (Block 6s, FIFO), quản lý hạn mức gọi của từng nhân viên.',
                 outcome: 'Nắm rõ nguyên lý vận hành chiến dịch tự động, cơ chế trừ tiền ví cước theo block 6s/FIFO và quản trị hạn mức.',
                 links: [
                     { title: 'Slide Đào tạo Zalo ZNS', url: 'https://drive.google.com/file/d/10ZoR56MtKPpgy941pW61Sk5hsqZwBRio/view?usp=drive_link', type: 'external' },
@@ -255,7 +255,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-403',
                 title: 'Bài tập 4: Thực thi Chiến dịch Gọi & Đối soát Ví cước',
                 type: 'practice',
-                activity: 'Thực hành: Tạo 1 chiến dịch Telesale tên "Khảo sát nhu cầu CRM Tháng này" với danh sách 5 số điện thoại test; Mở màn hình Telesale Workspace, bấm gọi lần lượt, cập nhật trạng thái (Đã nghe máy / Bận / Sai số) và ghi chú cuộc gọi; Truy cập phân hệ Thanh toán & Ví, tìm lại cuộc gọi vừa gọi để đối soát số tiền cước viễn thông bị trừ và kiểm tra mã giao dịch.',
+                activity: 'Các bước thực hành gọi và đối soát ví:\n• (1) Tạo Chiến dịch Telesale: Tạo 1 chiến dịch tên "Khảo sát nhu cầu CRM Tháng này", gán danh sách 5 số điện thoại nội bộ/test.\n• (2) Thao tác Workspace: Mở màn hình Telesale Workspace, bấm gọi lần lượt, chọn trạng thái cuộc gọi sau khi kết thúc (Đã nghe máy / Bận / Sai số) và lưu ghi chú cuộc gọi.\n• (3) Kiểm tra Đối soát Ví: Truy cập phân hệ Thanh toán & Ví ➔ Tìm lại đúng cuộc gọi vừa thực hiện để đối soát số tiền cước viễn thông bị trừ và kiểm tra mã giao dịch.',
                 outcome: 'Hoàn thành chiến dịch test và đối soát chính xác số dư ví cước viễn thông.',
                 links: []
             },
@@ -263,7 +263,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-404',
                 title: 'Khối 5: Tự động hóa AdaFlow Canvas & Báo cáo Quản trị KPI',
                 type: 'learn',
-                activity: 'AdaFlow Canvas: Khối kích hoạt (Trigger), Khối logic/điều kiện (Condition), Khối hành động (Action); Các kịch bản tự động hóa kinh điển: Tự động chia Lead (Round-Robin xoay vòng / theo ca trực), tự động gửi tin ZNS sau mua, tự động kích hoạt Callbot gọi xác nhận form đăng ký; Dashboard & Báo cáo: Đo lường mục tiêu KPI, báo cáo doanh thu, tỷ lệ chốt đơn theo từng Sale.',
+                activity: 'Thiết lập tự động hóa quy trình & Đọc báo cáo quản trị:\n• AdaFlow Canvas: Khối kích hoạt (Trigger), Khối logic/điều kiện (Condition), Khối hành động (Action).\n• Các kịch bản tự động hóa kinh điển: Tự động chia Lead (Xoay vòng Round-Robin / Theo ca trực); Tự động gửi tin ZNS chăm sóc sau khi khách mua hàng; Tự động kích hoạt Callbot gọi xác nhận form đăng ký.\n• Dashboard & Báo cáo Quản trị: Đo lường mục tiêu KPI, báo cáo doanh thu, tỷ lệ chốt đơn theo từng Sale.',
                 outcome: 'Hiểu rõ tư duy kéo thả luồng tự động hóa AdaFlow và cách theo dõi bảng chỉ số KPI doanh thu cá nhân/đội ngũ.',
                 links: [
                     { title: 'Thư mục Dashboard & KPI Bán hàng', url: 'https://drive.google.com/drive/folders/11dYYmc8GL7MxCoovDEsDgxC4rB_fLnGY?usp=drive_link', type: 'external' }
@@ -273,7 +273,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-405',
                 title: 'Bài tập 5: Dựng luồng Tự động hóa AdaFlow hoàn chỉnh',
                 type: 'practice',
-                activity: 'Thực hành thiết lập 1 luồng AdaFlow hoàn chỉnh trên giao diện kéo thả: (Trigger) Có Contact mới tạo từ Nguồn "Website" -> (Action 1) Tự động giao người phụ trách cho Sale A -> (Action 2) Tự động tạo Task cho Sale A "Gọi điện tư vấn trong vòng 15 phút" -> (Action 3) Gửi tin nhắn chào mừng (ZNS/SMS) tới khách hàng. Chạy thử nghiệm luồng và chụp màn hình Báo cáo thực thi Thành công nộp Mentor.',
+                activity: 'Đề bài thực hành thiết lập 1 luồng tự động hóa hoàn chỉnh trên giao diện kéo thả AdaFlow:\n• Khối Trigger: Khi có một Contact mới được tạo trên hệ thống với Nguồn là "Website".\n• Khối Action 1: Tự động giao người phụ trách (Owner) cho Sale A.\n• Khối Action 2: Tự động tạo 1 Task cho Sale A: "Gọi điện tư vấn trong vòng 15 phút".\n• Khối Action 3: Gửi 1 tin nhắn thông báo (ZNS hoặc SMS) tới khách hàng với nội dung chào mừng.\n➔ Chạy thử nghiệm luồng và chụp màn hình Báo cáo thực thi "Thành công" nộp Trainer/Mentor.',
                 outcome: 'Dựng thành công luồng AdaFlow tự động hóa chạy trơn tru không lỗi.',
                 links: []
             }
@@ -297,7 +297,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-501',
                 title: 'Tìm hiểu các loại Đầu số viễn thông & Phương án tối ưu cho khách hàng',
                 type: 'learn',
-                activity: 'Phân loại các đầu số phổ biến trên thị trường: Đầu số cố định (024/028), đầu số di động doanh nghiệp, đầu số 1800/1900 và Voice Brandname (hiển thị tên thương hiệu); Phân tích nhu cầu từng ngành để tư vấn đúng loại đầu số, tối ưu chi phí cước viễn thông và nâng cao tỷ lệ bắt máy.',
+                activity: 'Phân tích chuyên sâu các loại đầu số viễn thông trên thị trường:\n• Phân loại đầu số: Đầu số cố định (024/028), Đầu số di động doanh nghiệp, Đầu số Hotline 1800/1900, và Voice Brandname (Hiển thị tên thương hiệu khi gọi).\n• Tư vấn giải pháp: Phân tích nhu cầu từng ngành để tư vấn đúng loại đầu số, tối ưu chi phí cước viễn thông và nâng cao tỷ lệ bắt máy của khách hàng.',
                 outcome: 'Phân biệt chính xác ưu nhược điểm, chi phí, thủ tục đăng ký và tư vấn giải pháp đầu số phù hợp cho khách hàng.',
                 links: [
                     { title: 'Bảng Giá & Tra Cứu Cước Đầu Số', url: 'index.html?tab=documents', type: 'internal' }
@@ -307,7 +307,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-502',
                 title: 'Giá sản phẩm & Gói dịch vụ (Callbot Ucall, Adahub CRM, Combo)',
                 type: 'learn',
-                activity: 'Phân tích chi tiết bảng giá các gói dịch vụ: Phút gọi Ucall (CB2 45N, CB3 90N, CB4 120N), phí khởi tạo/triển khai, phí duy trì tổng đài hàng tháng, gói phần mềm Adahub CRM và các gói combo tích hợp tiết kiệm.',
+                activity: 'Phân tích chi tiết bảng giá các gói giải pháp:\n• Gói Phút gọi Callbot Ucall: CB2 (45.000 phút), CB3 (90.000 phút), CB4 (120.000 phút).\n• Phí triển khai & duy trì: Phí khởi tạo kịch bản Botflow, phí duy trì tổng đài hàng tháng.\n• Gói phần mềm Adahub CRM: Các gói Standard, Pro, Enterprise theo số lượng người dùng.\n• Gói Combo tích hợp: Chính sách chiết khấu khi khách hàng sử dụng combo Callbot + CRM + Tổng đài.',
                 outcome: 'Tư vấn chuẩn xác giá thành các gói theo từng quy mô và nhu cầu khách hàng.',
                 links: [
                     { title: 'Bảng Mức lương & Chính sách Bán hàng Etron', url: 'https://docs.google.com/spreadsheets/d/1PHHfU_FM2Hf7eKJTIhH7tZEhsgptb4ZlH6uoIX0XuoU/edit?usp=sharing', type: 'external' }
@@ -317,7 +317,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-503',
                 title: 'Quy trình thanh toán, Hợp đồng & Xuất hóa đơn VAT điện tử',
                 type: 'learn',
-                activity: 'Nắm vững quy trình thanh toán (tạm ứng, đặt cọc, thanh toán đợt cuối), quy trình ký kết hợp đồng, bảo mật thông tin và thủ tục kích hoạt dịch vụ; Hướng dẫn thu thập thông tin xuất hóa đơn VAT (Tên công ty, MST, địa chỉ, email nhận hóa đơn) và phối hợp với kế toán.',
+                activity: 'Nắm vững quy trình pháp lý & chứng từ kế toán:\n• Quy trình thanh toán: Tạm ứng, đặt cọc, thanh toán đợt cuối và kích hoạt dịch vụ.\n• Quy trình hợp đồng: Soạn thảo hợp đồng, phụ lục dịch vụ, bảo mật thông tin khách hàng.\n• Hóa đơn VAT điện tử: Thu thập thông tin doanh nghiệp (Tên công ty, MST, Địa chỉ ĐKKD, Email nhận HĐ) và quy trình phối hợp xuất hóa đơn với kế toán.',
                 outcome: 'Nắm chắc quy trình pháp lý, hợp đồng, chứng từ thanh toán và thủ tục kích hoạt dịch vụ.',
                 links: [
                     { title: 'Tài liệu Quy trình Hợp đồng & Thanh toán', url: 'https://docs.google.com/document/d/1TUp4Nam4AKsslvIP6HrlErfN9NosOLP-sI22PdlJLFk/edit?tab=t.0', type: 'external' }
@@ -327,7 +327,7 @@ const DEFAULT_ONBOARDING_ROADMAP = [
                 id: 'm-504',
                 title: 'Thực hành Lập Báo Giá chuyên nghiệp trên Etron SalesHub',
                 type: 'practice',
-                activity: 'Sử dụng công cụ Tạo Báo Giá Online trên Etron SalesHub để tự tạo 02 bản báo giá PDF hoàn chỉnh: (1) Bản báo giá Callbot AI Ucall, (2) Bản báo giá Combo Adahub CRM + Tổng đài Telesale, sau đó tải file PDF và gửi cho Trainer duyệt.',
+                activity: 'Bài tập thực hành xuất bản báo giá:\n• (1) Mở công cụ Tạo Báo Giá Online trên Etron SalesHub (index.html?tab=quote-builder).\n• (2) Tạo Báo giá 1: Gói Callbot AI Ucall dành cho doanh nghiệp Bất động sản / Tài chính.\n• (3) Tạo Báo giá 2: Gói Combo Adahub CRM + Tổng đài Telesale 5 vị trí.\n• (4) Xuất file PDF chuẩn nhận diện Etron và gửi file qua nhóm Zalo Training để Trainer nghiệm thu.',
                 outcome: 'Thành thạo thao tác xuất bản báo giá PDF chuẩn nhận diện thương hiệu chỉ trong 2 phút.',
                 links: [
                     { title: 'Công cụ Tạo Báo Giá Online Etron SalesHub', url: 'index.html?tab=quote-builder', type: 'internal' }
@@ -724,7 +724,7 @@ Có bất kỳ điều gì cần hỗ trợ thêm, {{ten_ung_vien}} cứ chia s�
 ];
 
 
-const CURRENT_ROADMAP_VERSION = 20261019_94;
+const CURRENT_ROADMAP_VERSION = 20261019_96;
 
 class HrOnboardingStore {
     constructor() {
