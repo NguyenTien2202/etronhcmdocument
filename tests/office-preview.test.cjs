@@ -105,3 +105,19 @@ test('styles.css contains styling classes for Word and Excel preview', () => {
     assert.ok(cssCode.includes('.excel-preview-wrapper'), 'styles.css must have .excel-preview-wrapper');
     assert.ok(cssCode.includes('.excel-preview-wrapper table'), 'styles.css must style excel table');
 });
+
+test('document-hub.js cloud sync supports files up to 35MB and provides retry buttons', () => {
+    const docHubCode = fs.readFileSync(path.join(ROOT, 'js', 'document-hub.js'), 'utf8');
+
+    // 1. Max size must be at least 35MB (to support 17MB files like Văn hoá Etron.pdf)
+    assert.ok(docHubCode.includes('35 * 1024 * 1024'), 'Must support files up to 35MB');
+    assert.ok(!docHubCode.includes('15 * 1024 * 1024'), 'Old 15MB limit must be removed');
+
+    // 2. Chunks doc ID must not be double HTML-escaped in Firestore queries
+    assert.ok(docHubCode.includes('doc(`${docId}_chunk_${j}`)'), 'Chunk set must use clean docId');
+    assert.ok(docHubCode.includes('doc(`${doc.id}_chunk_0`)'), 'Chunk get must use clean doc.id');
+
+    // 3. Modals must provide retry buttons when cloud file is not yet found
+    assert.ok(docHubCode.includes('Thử tải lại từ Cloud'), 'Error modal must provide retry button');
+});
+

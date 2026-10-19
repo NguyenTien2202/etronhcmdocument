@@ -939,8 +939,14 @@ class DocumentHub {
     // 3. ACTIONS & INTERACTION HANDLERS
     // ==========================================
     async openDocument(id) {
-        const docs = window.salesStore.getDocuments();
-        const doc = docs.find(d => d.id === id);
+        let docs = window.salesStore ? window.salesStore.getDocuments() : [];
+        let doc = docs.find(d => d.id === id);
+        if (!doc) {
+            // Thử chờ một nhịp nếu trang vừa mở và Firestore đang đồng bộ danh sách tài liệu
+            await new Promise(r => setTimeout(r, 600));
+            docs = window.salesStore ? window.salesStore.getDocuments() : [];
+            doc = docs.find(d => d.id === id);
+        }
         if (!doc) return;
 
         if (doc.fileUrl && !this.isSafeResourceUrl(doc.fileUrl)) {
@@ -2123,6 +2129,13 @@ class DocumentHub {
                 const file = this.selectedUploadFile;
                 const ext = file.name.split('.').pop().toLowerCase();
 
+                // Kiểm tra giới hạn dung lượng tối đa 35MB để đồng bộ Cloud
+                const MAX_FILE_SIZE = 35 * 1024 * 1024;
+                if (file.size > MAX_FILE_SIZE) {
+                    alert(`Tệp "${file.name}" có dung lượng ${(file.size / 1024 / 1024).toFixed(1)}MB, vượt quá mức tối đa 35MB cho phép đồng bộ trực tiếp lên Cloud.\n\nĐể ứng viên và nhân sự mở nhanh trên mọi thiết bị, vui lòng nén tệp nhỏ hơn 35MB hoặc tải lên Google Drive / OneDrive rồi dán link vào tab "Liên kết Cloud"!`);
+                    return;
+                }
+
                 let type = 'file';
                 if (['png', 'jpg', 'jpeg', 'webp', 'svg'].includes(ext)) {
                     type = 'image';
@@ -2147,9 +2160,18 @@ class DocumentHub {
                 await this.fileStore.saveFile(docId, file);
 
                 // Đồng bộ tệp tải lên sang Firebase Cloud để điện thoại / thiết bị khác mở được ngay
-                this.uploadFileToCloud(docId, file, file.name, targetDoc.mimeType).catch(err => {
-                    console.warn('Cloud file sync warning:', err);
-                });
+                if (window.salesApp?.showNotification) {
+                    window.salesApp.showNotification(`Đang đồng bộ tệp "${targetDoc.title}" lên Cloud...`, 'info');
+                }
+                this.uploadFileToCloud(docId, file, file.name, targetDoc.mimeType)
+                    .then(ok => {
+                        if (ok && window.salesApp?.showNotification) {
+                            window.salesApp.showNotification(`Đã đồng bộ tệp "${targetDoc.title}" lên Cloud thành công! Người khác có thể xem trực tiếp.`, 'success');
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('Cloud file sync warning:', err);
+                    });
             } else if (!existingDoc) {
                 alert('Vui lòng chọn tệp từ máy tính để tải lên!');
                 return;
@@ -2304,9 +2326,10 @@ class DocumentHub {
 
     async uploadFileToCloud(docId, fileOrBlob, fileName, mimeType) {
         if (!window.firebaseDb || !docId || !fileOrBlob) return false;
-        // Giới hạn tối đa 15MB cho đồng bộ Firestore Chunk để tránh quá tải
-        if (fileOrBlob.size > 15 * 1024 * 1024) {
-            console.warn(`File ${fileName} lớn hơn 15MB, bỏ qua đồng bộ trực tiếp qua Firestore chunks.`);
+        // Giới hạn tối đa 35MB cho đồng bộ Firestore Chunk để tránh quá tải
+        const MAX_SIZE = 35 * 1024 * 1024;
+        if (fileOrBlob.size > MAX_SIZE) {
+            console.warn(`File ${fileName} lớn hơn 35MB (${(fileOrBlob.size / 1024 / 1024).toFixed(1)}MB), bỏ qua đồng bộ trực tiếp qua Firestore chunks.`);
             return false;
         }
         if (this.syncingDocIds.has(docId)) return false;
@@ -2317,18 +2340,26 @@ class DocumentHub {
             const CHUNK_SIZE = 650000; // ~650KB mỗi chunk (an toàn dưới ngưỡng 1MB của Firestore)
             const totalChunks = Math.ceil(dataUrl.length / CHUNK_SIZE);
 
-            for (let i = 0; i < totalChunks; i++) {
-                const chunkData = dataUrl.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-                await window.firebaseDb.collection('document_files').doc(`${docId}_chunk_${i}`).set({
-                    docId: docId,
-                    index: i,
-                    totalChunks: totalChunks,
-                    data: chunkData,
-                    fileName: fileName || '',
-                    mimeType: mimeType || fileOrBlob.type || 'application/octet-stream',
-                    fileSize: fileOrBlob.size || 0,
-                    updatedAt: Date.now()
-                });
+            // Upload chunks theo nhóm 4 chunk song song để đẩy nhanh tốc độ gấp 4 lần
+            const BATCH_SIZE = 4;
+            for (let i = 0; i < totalChunks; i += BATCH_SIZE) {
+                const batchPromises = [];
+                for (let j = i; j < Math.min(i + BATCH_SIZE, totalChunks); j++) {
+                    const chunkData = dataUrl.slice(j * CHUNK_SIZE, (j + 1) * CHUNK_SIZE);
+                    batchPromises.push(
+                        window.firebaseDb.collection('document_files').doc(`${docId}_chunk_${j}`).set({
+                            docId: docId,
+                            index: j,
+                            totalChunks: totalChunks,
+                            data: chunkData,
+                            fileName: fileName || '',
+                            mimeType: mimeType || fileOrBlob.type || 'application/octet-stream',
+                            fileSize: fileOrBlob.size || 0,
+                            updatedAt: Date.now()
+                        })
+                    );
+                }
+                await Promise.all(batchPromises);
             }
 
             // Cập nhật cờ hasCloudFile vào metadata tài liệu
@@ -2399,13 +2430,13 @@ class DocumentHub {
             console.warn('IndexedDB read warning:', localErr);
         }
 
-        // 2. Nếu thiết bị hiện tại (ví dụ: điện thoại) chưa có tệp trong IndexedDB, tải từ Firebase Cloud về
+        // 2. Nếu thiết bị hiện tại (ví dụ: điện thoại, ứng viên qua link) chưa có tệp trong IndexedDB, tải từ Firebase Cloud về
         try {
             let firstChunk = null;
 
             if (window.firebaseDb) {
                 try {
-                    const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${this.escapeHtml(this.escapeJs(doc.id))}_chunk_0`).get();
+                    const firstChunkSnap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_0`).get();
                     if (firstChunkSnap && firstChunkSnap.exists) {
                         firstChunk = firstChunkSnap.data();
                     }
@@ -2427,23 +2458,27 @@ class DocumentHub {
             chunks[0] = firstChunk.data || '';
 
             if (totalChunks > 1) {
-                const promises = [];
-                for (let i = 1; i < totalChunks; i++) {
-                    promises.push((async (idx) => {
+                // Tải theo nhóm 6 chunks song song để tải về siêu nhanh
+                const FETCH_BATCH = 6;
+                for (let i = 1; i < totalChunks; i += FETCH_BATCH) {
+                    const batchIndices = [];
+                    for (let j = i; j < Math.min(i + FETCH_BATCH, totalChunks); j++) {
+                        batchIndices.push(j);
+                    }
+                    const batchResults = await Promise.all(batchIndices.map(async (idx) => {
                         if (window.firebaseDb) {
                             try {
-                                const snap = await window.firebaseDb.collection('document_files').doc(`${this.escapeHtml(this.escapeJs(doc.id))}_chunk_${idx}`).get();
-                                if (snap && snap.exists) return snap.data().data || '';
+                                const snap = await window.firebaseDb.collection('document_files').doc(`${doc.id}_chunk_${idx}`).get();
+                                if (snap && snap.exists) return { idx, data: snap.data().data || '' };
                             } catch (e) {}
                         }
                         const restChunk = await this.fetchCloudChunkViaRest(doc.id, idx);
-                        return restChunk ? (restChunk.data || '') : null;
-                    })(i));
-                }
-                const results = await Promise.all(promises);
-                for (let i = 0; i < results.length; i++) {
-                    if (results[i] === null) return null;
-                    chunks[i + 1] = results[i];
+                        return { idx, data: restChunk ? (restChunk.data || '') : null };
+                    }));
+                    for (const res of batchResults) {
+                        if (res.data === null) return null;
+                        chunks[res.idx] = res.data;
+                    }
                 }
             }
 
@@ -2454,7 +2489,7 @@ class DocumentHub {
 
             const fileName = firstChunk.fileName || doc.fileName || (doc.title + (doc.fileType ? `.${doc.fileType}` : ''));
 
-            // Lưu đệm vào IndexedDB của điện thoại (bọc trong try/catch để không bao giờ làm gián đoạn việc mở file trên iOS/WebView)
+            // Lưu đệm vào IndexedDB của thiết bị người xem để lần sau mở tức thì
             try {
                 await this.fileStore.saveFile(doc.id, blob);
             } catch (cacheErr) {
@@ -2481,17 +2516,25 @@ class DocumentHub {
         for (const doc of docs) {
             // Chỉ kiểm tra các tài liệu dạng tệp tải lên mà chưa được đánh dấu hasCloudFile
             if (!doc.fileUrl && doc.type !== 'note' && doc.fileType !== 'note' && !doc.hasCloudFile) {
-                const localData = await this.fileStore.getFile(doc.id);
-                if (localData && localData.blob) {
-                    const ok = await this.uploadFileToCloud(
-                        doc.id,
-                        localData.blob,
-                        localData.fileName || doc.fileName || doc.title,
-                        localData.fileType || doc.mimeType || (doc.fileType === 'pdf' ? 'application/pdf' : '')
-                    );
-                    if (ok) {
-                        console.log(`☁️ Đã đồng bộ tệp "${doc.title}" từ máy tính lên Cloud!`);
+                try {
+                    const localData = await this.fileStore.getFile(doc.id);
+                    if (localData && localData.blob) {
+                        console.log(`[DocumentHub] Bắt đầu tự động đồng bộ tệp "${doc.title}" (${(localData.blob.size / 1024 / 1024).toFixed(1)} MB) lên Cloud...`);
+                        const ok = await this.uploadFileToCloud(
+                            doc.id,
+                            localData.blob,
+                            localData.fileName || doc.fileName || doc.title,
+                            localData.fileType || doc.mimeType || (doc.fileType === 'pdf' ? 'application/pdf' : '')
+                        );
+                        if (ok) {
+                            console.log(`☁️ Đã đồng bộ tệp "${doc.title}" từ máy tính lên Cloud thành công!`);
+                            if (window.salesApp && typeof window.salesApp.showNotification === 'function') {
+                                window.salesApp.showNotification(`Đã tự động đồng bộ tệp "${doc.title}" lên Cloud! Người khác có thể xem trực tiếp.`, 'success');
+                            }
+                        }
                     }
+                } catch (err) {
+                    console.warn('[DocumentHub] Lỗi đồng bộ tệp cục bộ lên Cloud:', err);
                 }
             }
         }
@@ -2634,14 +2677,24 @@ class DocumentHub {
             await this.openPdfPreview(fileData.blob, doc);
         } else {
             container.innerHTML = `
-                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3 shadow-sm">
+                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3.5 shadow-sm">
                     <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
                         <i data-lucide="file-warning" class="w-6 h-6"></i>
                     </div>
-                    <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp PDF trên Cloud</h5>
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp PDF trên Cloud</h5>
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">${this.escapeHtml(doc.title || '')} ${doc.fileSize ? `(${this.escapeHtml(doc.fileSize)})` : ''}</p>
+                    </div>
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
+                        Tệp này được tải lên trước đó từ máy tính của HR. Khi HR mở lại trang web trên máy tính đó, hệ thống sẽ tự động đồng bộ tệp lên Cloud cho bạn xem nhé!
                     </p>
+                    <div class="pt-1 flex items-center justify-center gap-2">
+                        <button type="button" onclick="window.documentHub.openPdfDocument(window.salesStore ? (window.salesStore.getDocuments().find(d => d.id === '${this.escapeHtml(this.escapeJs(doc.id))}') || { id: '${this.escapeHtml(this.escapeJs(doc.id))}', title: '${this.escapeHtml(this.escapeJs(doc.title || ''))}', fileType: 'pdf' }) : { id: '${this.escapeHtml(this.escapeJs(doc.id))}', title: '${this.escapeHtml(this.escapeJs(doc.title || ''))}', fileType: 'pdf' })"
+                            class="px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            <span>Thử tải lại từ Cloud</span>
+                        </button>
+                    </div>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
@@ -2680,14 +2733,24 @@ class DocumentHub {
             }
         } else {
             container.innerHTML = `
-                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3 shadow-sm">
+                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3.5 shadow-sm">
                     <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
                         <i data-lucide="file-warning" class="w-6 h-6"></i>
                     </div>
-                    <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp Word trên Cloud</h5>
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp Word trên Cloud</h5>
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">${this.escapeHtml(doc.title || '')} ${doc.fileSize ? `(${this.escapeHtml(doc.fileSize)})` : ''}</p>
+                    </div>
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
+                        Tệp này được tải lên trước đó từ máy tính của HR. Khi HR mở lại trang web trên máy tính đó, hệ thống sẽ tự động đồng bộ tệp lên Cloud cho bạn xem nhé!
                     </p>
+                    <div class="pt-1 flex items-center justify-center gap-2">
+                        <button type="button" onclick="window.documentHub.openWordDocument(window.salesStore ? (window.salesStore.getDocuments().find(d => d.id === '${this.escapeHtml(this.escapeJs(doc.id))}') || { id: '${this.escapeHtml(this.escapeJs(doc.id))}', title: '${this.escapeHtml(this.escapeJs(doc.title || ''))}', fileType: 'docx' }) : { id: '${this.escapeHtml(this.escapeJs(doc.id))}', title: '${this.escapeHtml(this.escapeJs(doc.title || ''))}', fileType: 'docx' })"
+                            class="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            <span>Thử tải lại từ Cloud</span>
+                        </button>
+                    </div>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
@@ -2726,14 +2789,24 @@ class DocumentHub {
             }
         } else {
             container.innerHTML = `
-                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3 shadow-sm">
+                <div class="w-full max-w-md mx-auto my-8 bg-white rounded-2xl border border-rose-200 p-6 text-center space-y-3.5 shadow-sm">
                     <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center">
                         <i data-lucide="file-warning" class="w-6 h-6"></i>
                     </div>
-                    <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp Excel trên Cloud</h5>
+                    <div>
+                        <h5 class="text-sm font-bold text-slate-800">Chưa tìm thấy dữ liệu tệp Excel trên Cloud</h5>
+                        <p class="text-[11px] text-slate-400 font-medium mt-0.5">${this.escapeHtml(doc.title || '')} ${doc.fileSize ? `(${this.escapeHtml(doc.fileSize)})` : ''}</p>
+                    </div>
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Tệp này được tải lên trước đó trên máy tính. Bạn hãy mở lại trang web trên máy tính 1 lần để hệ thống tự động đồng bộ tệp lên Cloud nhé!
+                        Tệp này được tải lên trước đó từ máy tính của HR. Khi HR mở lại trang web trên máy tính đó, hệ thống sẽ tự động đồng bộ tệp lên Cloud cho bạn xem nhé!
                     </p>
+                    <div class="pt-1 flex items-center justify-center gap-2">
+                        <button type="button" onclick="window.documentHub.openExcelDocument(window.salesStore ? (window.salesStore.getDocuments().find(d => d.id === '${this.escapeHtml(this.escapeJs(doc.id))}') || { id: '${this.escapeHtml(this.escapeJs(doc.id))}', title: '${this.escapeHtml(this.escapeJs(doc.title || ''))}', fileType: 'xlsx' }) : { id: '${this.escapeHtml(this.escapeJs(doc.id))}', title: '${this.escapeHtml(this.escapeJs(doc.title || ''))}', fileType: 'xlsx' })"
+                            class="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                            <span>Thử tải lại từ Cloud</span>
+                        </button>
+                    </div>
                 </div>
             `;
             if (window.lucide) lucide.createIcons();
