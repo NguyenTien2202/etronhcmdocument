@@ -3,26 +3,78 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Etron Onboarding - Đang chuyển hướng...</title>
+    <title>Etron Document - Đang chuyển hướng...</title>
     <link rel="icon" type="image/x-icon" href="https://img.icons8.com/color/48/handshake.png">
     <script>
         (function() {
-            var path = window.location.pathname;
+            var path = window.location.pathname || '';
             var repoPrefix = path.indexOf('/etronhcmdocument') === 0 ? '/etronhcmdocument' : '';
-            // Xử lý chuyển hướng cho URL dạng đẹp: /onboard/nhansudothitruclinh
-            if (path.indexOf('/onboard/') !== -1) {
-                var parts = path.split('/onboard/');
-                var slug = (parts[1] || '').replace(/\/$/, '').trim();
-                var search = window.location.search || '';
-                var hash = window.location.hash || '';
-                
-                // Giữ nguyên các tham số nếu có
-                var target = repoPrefix + '/onboard.html?' + encodeURIComponent(slug) + (search ? '&' + search.slice(1) : '') + hash;
+            var search = window.location.search || '';
+            var hash = window.location.hash || '';
+
+            // 1. Xử lý chuyển hướng cho Onboarding: /onboard/nhansudothitruclinh hoặc /onboard
+            if (path.indexOf('/onboard') !== -1) {
+                if (path.indexOf('/onboard/') !== -1) {
+                    var parts = path.split('/onboard/');
+                    var slug = (parts[1] || '').replace(/\/$/, '').trim();
+                    var target = repoPrefix + '/onboard.html?' + encodeURIComponent(slug) + (search ? '&' + search.slice(1) : '') + hash;
+                    window.location.replace(target);
+                    return;
+                }
+                window.location.replace(repoPrefix + '/onboard.html' + search + hash);
+                return;
+            }
+
+            // 2. Xử lý HR Hub: /hr
+            if (path.indexOf('/hr') !== -1 && path.indexOf('/hr.html') === -1) {
+                window.location.replace(repoPrefix + '/hr.html' + search + hash);
+                return;
+            }
+
+            // 3. Xử lý các tab SalesHub (/baogia, /khotailieu, /callbot, v.v.)
+            var cleanPath = path;
+            if (repoPrefix && cleanPath.indexOf(repoPrefix) === 0) {
+                cleanPath = cleanPath.slice(repoPrefix.length);
+            }
+            var route = cleanPath.replace(/^\/+/, '').replace(/\/+$/, '').toLowerCase().replace(/\.html$/i, '');
+
+            var tabMap = {
+                // Tạo Báo Giá
+                'baogia': 'quote-builder',
+                'bao-gia': 'quote-builder',
+                'quote': 'quote-builder',
+                'quote-builder': 'quote-builder',
+                'quotes': 'quote-builder',
+                // Kho Tài Liệu
+                'khotailieu': 'documents',
+                'kho-tai-lieu': 'documents',
+                'tailieu': 'documents',
+                'tai-lieu': 'documents',
+                'documents': 'documents',
+                'docs': 'documents',
+                // Callbot & Kịch Bản
+                'callbot': 'callbot-hub',
+                'callbot-hub': 'callbot-hub',
+                'kichban': 'callbot-hub',
+                'kich-ban': 'callbot-hub',
+                'callbot-ai': 'callbot-hub',
+                // Lịch sử & Cài đặt
+                'history': 'history',
+                'lichsu': 'history',
+                'lich-su': 'history',
+                'settings': 'settings',
+                'caidat': 'settings',
+                'cai-dat': 'settings'
+            };
+
+            if (tabMap[route]) {
+                var target = repoPrefix + '/index.html?tab=' + encodeURIComponent(tabMap[route]) + (search ? '&' + search.slice(1) : '') + hash;
                 window.location.replace(target);
                 return;
             }
+
             // Mặc định chuyển hướng về trang chủ
-            window.location.replace((repoPrefix || '') + '/index.html');
+            window.location.replace((repoPrefix || '') + '/index.html' + search + hash);
         })();
     </script>
     <style>
@@ -78,8 +130,8 @@
 <body>
     <div class="card">
         <div class="spinner"></div>
-        <h2>Cổng Hội Nhập Etron HCM</h2>
-        <p>Đang chuẩn bị lộ trình học tập cá nhân của bạn, vui lòng đợi trong giây lát...</p>
+        <h2>Etron Solution Hub</h2>
+        <p>Đang chuyển hướng tới nội dung bạn cần, vui lòng đợi trong giây lát...</p>
     </div>
 </body>
 </html>

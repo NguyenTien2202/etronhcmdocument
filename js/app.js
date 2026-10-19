@@ -26,14 +26,21 @@ class SalesApp {
         if (window.onboardingViewer) window.onboardingViewer.init();
         window.quoteBuilder.resetForm();
 
-        // Mở thẳng tab nếu trên URL có ?tab=...
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialTab = urlParams.get('tab');
-            if (initialTab && ['quote-builder', 'documents', 'callbot-hub', 'onboard'].includes(initialTab)) {
-                this.switchTab(initialTab);
-            }
-        } catch (e) {}
+        // Mở thẳng tab nếu trên URL có route cụ thể hoặc ?tab=...
+        const targetTab = this.resolveTabFromLocation();
+        if (targetTab) {
+            this.switchTab(targetTab, true, true);
+        } else {
+            this.switchTab('quote-builder', false, true);
+        }
+
+        // Lắng nghe sự kiện Back/Forward của trình duyệt để chuyển tab tương ứng
+        if (typeof window !== 'undefined' && window.addEventListener) {
+            window.addEventListener('popstate', (e) => {
+                const poppedTab = e.state?.tab || this.resolveTabFromLocation() || 'quote-builder';
+                this.switchTab(poppedTab, false);
+            });
+        }
 
         // Đồng bộ tức thì khi người dùng mở nhiều tab cùng lúc
         window.addEventListener('storage', () => {
@@ -54,7 +61,163 @@ class SalesApp {
             }
         });
 
-        lucide.createIcons();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+    }
+
+    getBasePath() {
+        const path = (typeof window !== 'undefined' && window.location) ? (window.location.pathname || '') : '';
+        if (path.includes('/etronhcmdocument')) {
+            return '/etronhcmdocument';
+        }
+        if (path.includes('/index.html')) {
+            return path.split('/index.html')[0];
+        }
+        const knownSlugs = ['baogia', 'bao-gia', 'quote', 'quote-builder', 'khotailieu', 'kho-tai-lieu', 'tailieu', 'documents', 'callbot', 'callbot-hub', 'kichban', 'kich-ban', 'history', 'lichsu', 'settings', 'caidat', 'onboard'];
+        for (const slug of knownSlugs) {
+            if (path.endsWith('/' + slug)) {
+                return path.slice(0, -(slug.length + 1));
+            }
+        }
+        if (path.endsWith('/')) {
+            return path.slice(0, -1);
+        }
+        return path.substring(0, path.lastIndexOf('/'));
+    }
+
+    getCanonicalSlugForTab(tabId) {
+        const map = {
+            'quote-builder': 'baogia',
+            'documents': 'khotailieu',
+            'callbot-hub': 'callbot',
+            'history': 'history',
+            'settings': 'settings',
+            'onboard': 'onboard'
+        };
+        return map[tabId] || null;
+    }
+
+    mapSlugToTabId(slug) {
+        if (!slug || typeof slug !== 'string') return null;
+        const s = slug.trim().toLowerCase().replace(/^\/+/, '').replace(/\/+$/, '').replace(/\.html$/i, '');
+        const map = {
+            // Tạo Báo Giá
+            'baogia': 'quote-builder',
+            'bao-gia': 'quote-builder',
+            'quote': 'quote-builder',
+            'quote-builder': 'quote-builder',
+            'quotes': 'quote-builder',
+            // Kho Tài Liệu
+            'khotailieu': 'documents',
+            'kho-tai-lieu': 'documents',
+            'tailieu': 'documents',
+            'tai-lieu': 'documents',
+            'documents': 'documents',
+            'docs': 'documents',
+            // Callbot & Kịch Bản
+            'callbot': 'callbot-hub',
+            'callbot-hub': 'callbot-hub',
+            'kichban': 'callbot-hub',
+            'kich-ban': 'callbot-hub',
+            'callbot-ai': 'callbot-hub',
+            // Lịch sử & Cài đặt
+            'history': 'history',
+            'lichsu': 'history',
+            'lich-su': 'history',
+            'settings': 'settings',
+            'caidat': 'settings',
+            'cai-dat': 'settings',
+            // Onboard
+            'onboard': 'onboard',
+            'onboarding': 'onboard'
+        };
+        return map[s] || null;
+    }
+
+    resolveTabFromLocation() {
+        try {
+            if (typeof window === 'undefined' || !window.location) return null;
+            // 1. Kiểm tra query param ?tab=... hoặc ?t=...
+            const searchParams = new URLSearchParams(window.location.search || '');
+            const tabParam = searchParams.get('tab') || searchParams.get('t') || '';
+            const fromParam = this.mapSlugToTabId(tabParam);
+            if (fromParam) return fromParam;
+
+            // 2. Kiểm tra query param trần (ví dụ ?baogia, ?khotailieu, ?callbot)
+            for (const key of searchParams.keys()) {
+                const mapped = this.mapSlugToTabId(key);
+                if (mapped) return mapped;
+            }
+
+            // 3. Kiểm tra hash (#baogia, #khotailieu, #callbot)
+            const hash = (window.location.hash || '').replace(/^#/, '').toLowerCase();
+            const fromHash = this.mapSlugToTabId(hash);
+            if (fromHash) return fromHash;
+
+            // 4. Kiểm tra pathname (/baogia, /khotailieu, /callbot, /etronhcmdocument/baogia)
+            const path = window.location.pathname || '';
+            const segments = path.replace(/\/+$/, '').split('/').filter(Boolean);
+            const lastSegment = segments.pop() || '';
+            const fromPath = this.mapSlugToTabId(lastSegment);
+            if (fromPath) return fromPath;
+        } catch (_) {}
+        return null;
+    }
+
+    updateAddressBar(tabId, replace = false) {
+        try {
+            if (typeof window === 'undefined' || !window.history || window.location.protocol === 'file:') return;
+            const canonicalSlug = this.getCanonicalSlugForTab(tabId);
+            if (!canonicalSlug) return;
+
+            const basePath = this.getBasePath();
+            const cleanPath = `${basePath}/${canonicalSlug}`;
+
+            if (window.location.pathname !== cleanPath) {
+                if (replace) {
+                    window.history.replaceState({ tab: tabId }, document.title, cleanPath);
+                } else {
+                    window.history.pushState({ tab: tabId }, document.title, cleanPath);
+                }
+            }
+        } catch (_) {}
+    }
+
+    getTabUrl(tabId = this.currentTab) {
+        const slug = this.getCanonicalSlugForTab(tabId) || 'baogia';
+        const origin = (typeof window !== 'undefined' && window.location && window.location.origin)
+            ? window.location.origin
+            : 'https://nguyentien2202.github.io';
+        const basePath = this.getBasePath();
+        return `${origin}${basePath}/${slug}`;
+    }
+
+    async copyCurrentTabLink() {
+        const url = this.getTabUrl(this.currentTab);
+        const tabLabels = {
+            'quote-builder': 'Tạo Báo Giá',
+            'documents': 'Kho Tài Liệu',
+            'callbot-hub': 'Callbot & Kịch Bản',
+            'history': 'Lịch Sử Báo Giá',
+            'settings': 'Cài Đặt',
+            'onboard': 'Cổng Onboard'
+        };
+        const label = tabLabels[this.currentTab] || 'Tab';
+        try {
+            if (typeof window !== 'undefined' && window.navigator?.clipboard?.writeText) {
+                await window.navigator.clipboard.writeText(url);
+                this.showNotification(`Đã copy link tab ${label}: ${url}`, 'success');
+                return;
+            }
+            if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+                window.prompt(`Copy đường dẫn tab ${label}:`, url);
+            }
+            this.showNotification(`Đã lấy link tab ${label}!`, 'success');
+        } catch (_) {
+            if (typeof window !== 'undefined' && typeof window.prompt === 'function') {
+                window.prompt(`Copy đường dẫn tab ${label}:`, url);
+            }
+            this.showNotification(`Đã lấy link tab ${label}!`, 'success');
+        }
     }
 
     setupNavigation() {
@@ -63,12 +226,13 @@ class SalesApp {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const targetTab = btn.getAttribute('data-tab-target');
-                this.switchTab(targetTab);
+                this.switchTab(targetTab, true, false);
             });
         });
     }
 
-    switchTab(tabId) {
+    switchTab(tabId, updateUrl = true, replaceUrl = false) {
+        if (!tabId) return;
         this.currentTab = tabId;
 
         // Cập nhật button nav: di chuyển nền trắng active sang tab được bấm
@@ -111,7 +275,11 @@ class SalesApp {
             this.renderCompanySettingsForm();
         }
 
-        lucide.createIcons();
+        if (updateUrl) {
+            this.updateAddressBar(tabId, replaceUrl);
+        }
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -150,7 +318,7 @@ class SalesApp {
                     </td>
                 </tr>
             `;
-            lucide.createIcons();
+            if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
             return;
         }
 
@@ -202,7 +370,7 @@ class SalesApp {
             `;
         }).join('');
 
-        lucide.createIcons();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
     }
 
     getStatusBadge(status) {
@@ -490,9 +658,9 @@ class SalesApp {
         }, { passive: false });
     }
 
-    showNotification(message, type = 'info') {
-        // Không hiện thông báo nổi cho các thao tác thường ngày, chỉ giữ thông báo lỗi
-        if (type !== 'error') return;
+    showNotification(message, type = 'info', force = false) {
+        // Hiển thị thông báo lỗi và thông báo thành công (copy link, lưu thành công)
+        if (!force && type !== 'error' && type !== 'success') return;
 
         const container = document.getElementById('toast-container');
         if (!container) return;
@@ -514,7 +682,7 @@ class SalesApp {
         `;
 
         container.appendChild(toast);
-        lucide.createIcons();
+        if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
 
         // Animate in
         setTimeout(() => {
@@ -549,6 +717,7 @@ class SalesApp {
 }
 
 // Global App Instance
+window.SalesApp = SalesApp;
 window.salesApp = new SalesApp();
 document.addEventListener('DOMContentLoaded', () => {
     window.salesApp.init();

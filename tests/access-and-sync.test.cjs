@@ -440,7 +440,95 @@ test('task drag-and-drop reorder and unified attachment modal with 2 tabs', asyn
     assert.equal(hrHub.attachModalTab, 'repo');
 });
 
+test('SalesApp tab routing maps /baogia, /khotailieu, /callbot, updates address bar and supports 404 routing', async () => {
+    let pushedState = null;
+    let replacedState = null;
+    const loc = new URL('https://nguyentien2202.github.io/etronhcmdocument/');
+    const mockHistory = {
+        pushState: (state, title, url) => { pushedState = { state, title, url }; loc.pathname = url; },
+        replaceState: (state, title, url) => { replacedState = { state, title, url }; loc.pathname = url; }
+    };
 
+    const domMock = {
+        querySelectorAll: () => [],
+        getElementById: () => null,
+        addEventListener: () => {}
+    };
 
+    let copiedText = '';
+    const context = vm.createContext({
+        window: {
+            location: loc,
+            history: mockHistory,
+            salesStore: { setupCloudSync() {}, getQuotes: () => [], getDocuments: () => [], getProducts: () => [] },
+            documentHub: { init() {}, renderDocumentsList() {} },
+            productCatalog: { init() {}, renderCatalogTable() {} },
+            callbotHub: { init() {}, render() {} },
+            onboardingViewer: { init() {}, render() {} },
+            quoteBuilder: { resetForm() {}, renderPreview() {} },
+            scrollTo() {},
+            navigator: {
+                clipboard: {
+                    writeText: async (t) => { copiedText = t; }
+                }
+            },
+            lucide: { createIcons: () => {} }
+        },
+        document: domMock,
+        URL,
+        URLSearchParams,
+        console
+    });
 
+    vm.runInContext(fs.readFileSync('js/app.js', 'utf8'), context);
+    const app = context.window.salesApp;
 
+    // 1. Verify slug mapping
+    assert.equal(app.getCanonicalSlugForTab('quote-builder'), 'baogia');
+    assert.equal(app.getCanonicalSlugForTab('documents'), 'khotailieu');
+    assert.equal(app.getCanonicalSlugForTab('callbot-hub'), 'callbot');
+
+    assert.equal(app.mapSlugToTabId('baogia'), 'quote-builder');
+    assert.equal(app.mapSlugToTabId('bao-gia'), 'quote-builder');
+    assert.equal(app.mapSlugToTabId('khotailieu'), 'documents');
+    assert.equal(app.mapSlugToTabId('kho-tai-lieu'), 'documents');
+    assert.equal(app.mapSlugToTabId('callbot'), 'callbot-hub');
+    assert.equal(app.mapSlugToTabId('kichban'), 'callbot-hub');
+
+    // 2. Verify resolving from pathname /etronhcmdocument/khotailieu
+    loc.pathname = '/etronhcmdocument/khotailieu';
+    assert.equal(app.resolveTabFromLocation(), 'documents');
+    loc.pathname = '/etronhcmdocument/';
+
+    // 3. Verify getTabUrl
+    const docUrl = app.getTabUrl('documents');
+    assert.equal(docUrl, 'https://nguyentien2202.github.io/etronhcmdocument/khotailieu');
+
+    const quoteUrl = app.getTabUrl('quote-builder');
+    assert.equal(quoteUrl, 'https://nguyentien2202.github.io/etronhcmdocument/baogia');
+
+    const callbotUrl = app.getTabUrl('callbot-hub');
+    assert.equal(callbotUrl, 'https://nguyentien2202.github.io/etronhcmdocument/callbot');
+
+    // 4. Verify switchTab updates address bar
+    app.switchTab('documents', true, false);
+    assert.ok(pushedState);
+    assert.equal(pushedState.url, '/etronhcmdocument/khotailieu');
+
+    app.switchTab('quote-builder', true, false);
+    assert.equal(pushedState.url, '/etronhcmdocument/baogia');
+
+    app.switchTab('callbot-hub', true, false);
+    assert.equal(pushedState.url, '/etronhcmdocument/callbot');
+
+    // 5. Verify copyCurrentTabLink
+    app.currentTab = 'documents';
+    await app.copyCurrentTabLink();
+    assert.equal(copiedText, 'https://nguyentien2202.github.io/etronhcmdocument/khotailieu');
+
+    // 6. Verify 404.html contains routing logic for all these slugs
+    const html404 = fs.readFileSync('404.html', 'utf8');
+    assert.ok(html404.includes("'baogia': 'quote-builder'"));
+    assert.ok(html404.includes("'khotailieu': 'documents'"));
+    assert.ok(html404.includes("'callbot': 'callbot-hub'"));
+});
