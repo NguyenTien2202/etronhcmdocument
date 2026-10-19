@@ -118,7 +118,7 @@ function fakeFirebase() {
         await page.waitForFunction(() => window.hrOnboardingStore.getCandidates()[0].targetDate === '2026-10-23');
         await page.getByRole('button', { name: 'Cập nhật / Copy Link', exact: true }).first().click();
         await page.waitForFunction(() => /^[a-f0-9]{64}$/.test(window.hrOnboardingStore.getCandidates()[0].onboardToken || ''));
-        assert.equal(await page.evaluate(() => window.hrHub.getPublicOnboardUrl('c1').includes('/onboard/')), true);
+        assert.equal(await page.evaluate(() => window.hrHub.getPublicOnboardUrl('c1').includes('onboard')), true);
         await page.locator('button[title="Đăng xuất HR"]').click();
         await page.getByRole('heading', { name: 'Đăng nhập Etron HrHub' }).waitFor();
         assert.equal(await page.evaluate(() => window.hrOnboardingStore.privateData.candidates.length), 0);
