@@ -34,7 +34,7 @@
     <!-- Lucide Icons -->
     <script src="js/lucide.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261018_v90">
+    <link rel="stylesheet" href="css/styles.css?v=20261020_v100">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -505,7 +505,8 @@
     <!-- ========================================== -->
     <!-- MODAL 1: THÊM / SỬA HỒ SƠ NHÂN SỰ MỚI      -->
     <!-- ========================================== -->
-    <div id="hr-candidate-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-candidate-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeCandidateModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <h3 id="hr-cand-modal-title" class="text-sm font-bold">Thêm Hồ Sơ Nhân Sự Mới</h3>
@@ -599,7 +600,8 @@
     <!-- ========================================== -->
     <!-- MODAL 2: CHỈNH SỬA NGÀY TRONG LỘ TRÌNH     -->
     <!-- ========================================== -->
-    <div id="hr-roadmap-day-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-roadmap-day-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeRoadmapDayModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <h3 id="hr-day-modal-title" class="text-sm font-bold">Chỉnh Sửa Ngày Onboard</h3>
@@ -678,7 +680,8 @@
     <!-- ========================================== -->
     <!-- MODAL 3: ĐÍNH KÈM TÀI LIỆU & LIÊN KẾT (HỢP NHẤT 2 TAB) -->
     <!-- ========================================== -->
-    <div id="hr-attach-doc-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-attach-doc-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeAttachDocModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <!-- Modal Header -->
             <div class="p-4 px-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between shrink-0">
@@ -817,7 +820,8 @@
     <!-- ========================================== -->
     <!-- MODAL 3B: THÊM LINK NGOÀI / GHI CHÚ TÀI LIỆU -->
     <!-- ========================================== -->
-    <div id="hr-add-link-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-add-link-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeAddLinkModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <div>
@@ -856,7 +860,8 @@
     <!-- ========================================== -->
     <!-- MODAL 3C: THÊM / CHỈNH SỬA NỘI DUNG HỌC TẬP -->
     <!-- ========================================== -->
-    <div id="hr-task-detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-task-detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeTaskDetailModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <div>
@@ -929,43 +934,38 @@
 
                     <!-- Thanh công cụ định dạng văn bản (Rich Text Toolbar) -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-500 transition-colors shadow-2xs">
-                        <div class="flex flex-wrap items-center justify-between gap-1 bg-slate-50/90 border-b border-slate-200 p-1.5 px-2 text-xs">
-                            <div class="flex flex-wrap items-center gap-1">
+                        <div class="flex items-center justify-between gap-1 bg-slate-50/90 border-b border-slate-200 p-1.5 px-2 text-xs">
+                            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
                                 <button type="button" title="In đậm (Ctrl+B / **đậm**)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'bold')"
-                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-extrabold border border-transparent hover:border-slate-200 transition-all">B</button>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-extrabold border border-transparent hover:border-slate-200 transition-all">B</button>
                                 <button type="button" title="In nghiêng (*nghiêng*)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'italic')"
-                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 italic font-serif font-bold border border-transparent hover:border-slate-200 transition-all">I</button>
-                                <button type="button" title="Gạch chân" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'underline')"
-                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 underline font-semibold border border-transparent hover:border-slate-200 transition-all">U</button>
-                                <button type="button" title="Làm nổi bật (Highlight)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'highlight')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-amber-100/70 text-amber-800 text-[11px] font-bold border border-amber-200/80 bg-amber-50/80 transition-all">
-                                    <i data-lucide="highlighter" class="w-3 h-3 text-amber-600"></i>
-                                    <span>Highlight</span>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 italic font-serif font-bold border border-transparent hover:border-slate-200 transition-all">I</button>
+                                <button type="button" title="Gạch chân (<u>gạch chân</u>)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'underline')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 underline font-semibold border border-transparent hover:border-slate-200 transition-all">U</button>
+                                <button type="button" title="Làm nổi bật (<mark>Highlight</mark>)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'highlight')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-amber-100 text-amber-800 border border-transparent hover:border-amber-200 bg-amber-50/70 transition-all">
+                                    <i data-lucide="highlighter" class="w-3.5 h-3.5 text-amber-600"></i>
                                 </button>
-                                <span class="w-px h-4 bg-slate-300 mx-0.5"></span>
+                                <span class="w-px h-4 bg-slate-300 mx-0.5 shrink-0"></span>
                                 <button type="button" title="Tạo danh sách chấm tròn (•)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'bullet')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-semibold border border-transparent hover:border-slate-200 transition-all">
-                                    <i data-lucide="list" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                    <span>Danh sách</span>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-indigo-700 border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="list" class="w-3.5 h-3.5"></i>
                                 </button>
                                 <button type="button" title="Đánh số các bước (1), (2)..." onclick="window.hrHub.formatTextSelection('hr-task-activity', 'number')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-semibold border border-transparent hover:border-slate-200 transition-all">
-                                    <i data-lucide="list-ordered" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                    <span>Các bước</span>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-indigo-700 border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="list-ordered" class="w-3.5 h-3.5"></i>
                                 </button>
-                                <button type="button" title="Chèn mũi tên chuyển trạng thái (➔)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'arrow')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-indigo-700 font-bold border border-transparent hover:border-slate-200 transition-all">
-                                    <span>➔ Quy trình</span>
+                                <button type="button" title="Chèn mũi tên quy trình (➔)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'arrow')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-indigo-700 font-bold border border-transparent hover:border-slate-200 transition-all">
+                                    <span class="text-sm leading-none">➔</span>
                                 </button>
-                                <span class="w-px h-4 bg-slate-300 mx-0.5"></span>
-                                <button type="button" title="Tự động bẻ dòng các ý bị dính chùm hoặc cách nhau bởi dấu chấm phẩy" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'autobreak')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80 transition-all">
-                                    <i data-lucide="wand-2" class="w-3 h-3 text-emerald-600"></i>
-                                    <span>Tách dòng</span>
+                                <button type="button" title="Tự động tách dòng / ngắt ý (Magic Wand)" onclick="window.hrHub.formatTextSelection('hr-task-activity', 'autobreak')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 transition-all">
+                                    <i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-600"></i>
                                 </button>
                             </div>
-                            <button type="button" onclick="window.hrHub.toggleTaskFieldPreview('hr-task-activity')"
-                                class="h-7 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 font-bold flex items-center gap-1 transition-all shadow-2xs">
+                            <button type="button" id="hr-task-activity-preview-btn" title="Xem trước kết quả" onclick="window.hrHub.toggleTaskFieldPreview('hr-task-activity')"
+                                class="h-7 px-2 shrink-0 rounded-lg border border-slate-200 bg-white hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 text-slate-600 font-bold flex items-center gap-1 transition-all shadow-2xs text-xs">
                                 <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                 <span id="hr-task-activity-preview-toggle-text">Xem trước</span>
                             </button>
@@ -988,29 +988,34 @@
 
                     <!-- Thanh công cụ định dạng văn bản cho Outcome -->
                     <div class="border border-slate-200 rounded-xl overflow-hidden focus-within:border-indigo-500 transition-colors shadow-2xs">
-                        <div class="flex flex-wrap items-center justify-between gap-1 bg-slate-50/90 border-b border-slate-200 p-1.5 px-2 text-xs">
-                            <div class="flex flex-wrap items-center gap-1">
+                        <div class="flex items-center justify-between gap-1 bg-slate-50/90 border-b border-slate-200 p-1.5 px-2 text-xs">
+                            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
                                 <button type="button" title="In đậm (Ctrl+B / **đậm**)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'bold')"
-                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-extrabold border border-transparent hover:border-slate-200 transition-all">B</button>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-extrabold border border-transparent hover:border-slate-200 transition-all">B</button>
                                 <button type="button" title="In nghiêng (*nghiêng*)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'italic')"
-                                    class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 italic font-serif font-bold border border-transparent hover:border-slate-200 transition-all">I</button>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 italic font-serif font-bold border border-transparent hover:border-slate-200 transition-all">I</button>
+                                <button type="button" title="Gạch chân (<u>gạch chân</u>)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'underline')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 underline font-semibold border border-transparent hover:border-slate-200 transition-all">U</button>
+                                <button type="button" title="Làm nổi bật (<mark>Highlight</mark>)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'highlight')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-amber-100 text-amber-800 border border-transparent hover:border-amber-200 bg-amber-50/70 transition-all">
+                                    <i data-lucide="highlighter" class="w-3.5 h-3.5 text-amber-600"></i>
+                                </button>
+                                <span class="w-px h-4 bg-slate-300 mx-0.5 shrink-0"></span>
                                 <button type="button" title="Tạo danh sách chấm tròn (•)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'bullet')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-slate-700 font-semibold border border-transparent hover:border-slate-200 transition-all">
-                                    <i data-lucide="list" class="w-3.5 h-3.5 text-emerald-600"></i>
-                                    <span>Danh sách</span>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-emerald-700 border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="list" class="w-3.5 h-3.5"></i>
                                 </button>
                                 <button type="button" title="Chèn dấu tick hoàn thành (✓)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'checkmark')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg hover:bg-white hover:shadow-2xs text-emerald-700 font-bold border border-transparent hover:border-slate-200 transition-all">
-                                    <span>✓ Mục tiêu</span>
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg hover:bg-white hover:shadow-2xs text-emerald-700 font-bold border border-transparent hover:border-slate-200 transition-all">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
                                 </button>
-                                <button type="button" title="Tự động bẻ dòng các tiêu chí" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'autobreak')"
-                                    class="h-7 px-2 flex items-center gap-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold border border-emerald-200/80 transition-all">
-                                    <i data-lucide="wand-2" class="w-3 h-3 text-emerald-600"></i>
-                                    <span>Tách dòng</span>
+                                <button type="button" title="Tự động tách dòng / ngắt ý (Magic Wand)" onclick="window.hrHub.formatTextSelection('hr-task-outcome', 'autobreak')"
+                                    class="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/80 transition-all">
+                                    <i data-lucide="wand-2" class="w-3.5 h-3.5 text-emerald-600"></i>
                                 </button>
                             </div>
-                            <button type="button" onclick="window.hrHub.toggleTaskFieldPreview('hr-task-outcome')"
-                                class="h-7 px-2.5 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-slate-600 font-bold flex items-center gap-1 transition-all shadow-2xs">
+                            <button type="button" id="hr-task-outcome-preview-btn" title="Xem trước kết quả" onclick="window.hrHub.toggleTaskFieldPreview('hr-task-outcome')"
+                                class="h-7 px-2 shrink-0 rounded-lg border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-slate-600 font-bold flex items-center gap-1 transition-all shadow-2xs text-xs">
                                 <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                 <span id="hr-task-outcome-preview-toggle-text">Xem trước</span>
                             </button>
@@ -1043,7 +1048,8 @@
     <!-- ========================================== -->
     <!-- MODAL 4: THÊM / SỬA MẪU EMAIL & TIN NHẮN   -->
     <!-- ========================================== -->
-    <div id="hr-template-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-template-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeTemplateModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <h3 id="hr-tpl-modal-title" class="text-sm font-bold">Thêm Mẫu Email / Tin Nhắn HR</h3>
@@ -1092,7 +1098,8 @@
     <!-- ========================================== -->
     <!-- MODAL 5: THÊM / SỬA GHI CHÚ MẬT HR         -->
     <!-- ========================================== -->
-    <div id="hr-note-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div id="hr-note-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs"
+        onclick="if(event.target === this) window.hrHub.closeNoteModal()">
         <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
             <div class="p-4 px-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                 <h3 id="hr-note-modal-title" class="text-sm font-bold">Thêm Ghi Chú Mật HR</h3>
@@ -1208,6 +1215,6 @@
         };
     </script>
     <script src="js/hr-auth.js?v=20261019_v99"></script>
-    <script src="js/hr-hub.js?v=20261019_v99"></script>
+    <script src="js/hr-hub.js?v=20261020_v100"></script>
 </body>
 </html>

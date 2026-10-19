@@ -404,7 +404,15 @@ body.modal-open-lock {
 #modal-callbot-template,
 #modal-callbot-media,
 #modal-callbot-group,
-#modal-callbot-industry-manager {
+#modal-callbot-industry-manager,
+#hr-candidate-modal,
+#hr-roadmap-day-modal,
+#hr-attach-doc-modal,
+#hr-add-link-modal,
+#hr-task-detail-modal,
+#hr-template-modal,
+#hr-note-modal,
+#submission-image-modal {
     overscroll-behavior: contain !important;
 }
 
