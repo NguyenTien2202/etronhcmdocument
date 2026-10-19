@@ -1427,17 +1427,21 @@ class OnboardingViewer {
         const escaped = this.escapeHtml(text);
         const lines = escaped.split('\n');
         return lines.map(line => {
-            const trimmed = line.trim();
+            let trimmed = line.trim();
             if (!trimmed) return '<div class="h-1"></div>';
+            let isBullet = false;
             if (/^[•\-\*]\s*/.test(trimmed)) {
-                const content = trimmed.replace(/^[•\-\*]\s*/, '');
-                return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed">•</span><span class="leading-relaxed text-slate-700">${content}</span></div>`;
+                isBullet = true;
+                trimmed = trimmed.replace(/^[•\-\*]\s*/, '');
             }
             const stepMatch = trimmed.match(/^(\(\d+\)|\d+\.|\bBước \d+[:\-]?|\(Trigger\b[^\)]*\)|\(Action \d+[^\)]*\)|\(Khối \d+[^\)]*\))/i);
             if (stepMatch) {
                 const prefix = stepMatch[0];
                 const rest = trimmed.slice(prefix.length).trim();
                 return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-700 font-bold shrink-0 text-xs bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/80 shadow-2xs">${prefix}</span><span class="leading-relaxed text-slate-700">${rest}</span></div>`;
+            }
+            if (isBullet) {
+                return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed">•</span><span class="leading-relaxed text-slate-700">${trimmed}</span></div>`;
             }
             return `<div class="leading-relaxed text-slate-700">${trimmed}</div>`;
         }).join('');
