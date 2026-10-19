@@ -83,7 +83,7 @@ function fakeFirebase() {
     const base = 'http://127.0.0.1:' + server.address().port;
     let browser;
     try {
-        browser = await chromium.launch(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE, headless: true } : { headless: true });
+        browser = await chromium.launch(process.env.BROWSER_EXECUTABLE ? { executablePath: process.env.BROWSER_EXECUTABLE, headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] } : { headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
         const context = await browser.newContext();
         context.setDefaultTimeout(10000);
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
@@ -92,6 +92,7 @@ function fakeFirebase() {
         const page = await context.newPage();
         const errors = []; page.on('pageerror', error => errors.push(error.message));
         await page.goto(base + '/index.html');
+        console.log('[Smoke] Step 1: index.html loaded');
         await page.waitForFunction(() => window.salesStore?.getDocuments().length === 1);
         assert.equal(await page.evaluate(() => window.__reads.some(p => /^hr_config\/(?!onboarding_roadmap)/.test(p))), false);
         await page.evaluate(() => window.salesApp.switchTab('documents'));
@@ -101,8 +102,10 @@ function fakeFirebase() {
         await page.getByRole('button', { name: 'Thùng rác', exact: true }).click();
         await page.getByRole('button', { name: 'Khôi phục', exact: true }).click();
         await page.waitForFunction(() => window.salesStore.getDocuments().length === 1);
+        console.log('[Smoke] Step 2: SalesHub documents deleted & restored');
 
         await page.goto(base + '/hr.html');
+        console.log('[Smoke] Step 3: hr.html loaded');
         await page.getByRole('heading', { name: 'Đăng nhập Etron HrHub' }).waitFor();
         assert.equal(await page.locator('#hr-private-content').isVisible(), false);
         assert.equal(await page.evaluate(() => window.__reads.some(p => p.includes('candidates_data'))), false);
@@ -111,17 +114,24 @@ function fakeFirebase() {
         await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
         await page.waitForFunction(() => window.hrOnboardingStore.getCandidates().length === 1);
         assert.equal(await page.locator('#hr-login-screen').isVisible(), false);
+        console.log('[Smoke] Step 4: HR login successful');
+
         await page.evaluate(() => window.hrHub.openCandidateModal('c1'));
         await page.locator('#hr-cand-start').fill('2026-10-19');
         await page.locator('#hr-cand-deadline').fill('2026-10-23');
         await page.getByRole('button', { name: 'Lưu Hồ Sơ', exact: true }).click();
         await page.waitForFunction(() => window.hrOnboardingStore.getCandidates()[0].targetDate === '2026-10-23');
+        console.log('[Smoke] Step 5: Candidate modal updated & saved');
+
         await page.locator('button[onclick*="copyCandidateOnboardLink"]').first().click();
         await page.waitForFunction(() => /^[a-f0-9]{64}$/.test(window.hrOnboardingStore.getCandidates()[0].onboardToken || ''));
         assert.equal(await page.evaluate(() => window.hrHub.getPublicOnboardUrl('c1').includes('onboard')), true);
+        console.log('[Smoke] Step 6: Candidate onboard link generated & verified');
+
         await page.locator('button[title="Đăng xuất HR"]').click();
         await page.getByRole('heading', { name: 'Đăng nhập Etron HrHub' }).waitFor();
         assert.equal(await page.evaluate(() => window.hrOnboardingStore.privateData.candidates.length), 0);
+        console.log('[Smoke] Step 7: HR logout successful');
 
         await page.evaluate(() => { window.__denyHr = true; });
         await page.locator('[name=email]').fill('other@example.invalid');
@@ -129,17 +139,25 @@ function fakeFirebase() {
         await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
         await page.waitForFunction(() => document.getElementById('hr-auth-error').textContent.includes('chưa được cấp quyền'));
         assert.equal(await page.locator('#hr-private-content').isVisible(), false);
+        console.log('[Smoke] Step 8: Denied HR role verified');
 
         await page.goto(base + '/onboard.html#key=' + 'a'.repeat(64));
         await page.getByText('Read', { exact: true }).waitFor();
         await page.getByRole('checkbox').first().check();
         await page.waitForFunction(() => window.hrOnboardingStore.personalProgress.t1 === true);
         assert.equal(await page.evaluate(() => window.__reads.some(p => p.includes('candidates_data'))), false);
+        console.log('[Smoke] Step 9: Candidate personal progress saved');
+
         await page.goto(base + '/onboard.html?id=c1');
         await page.getByText('Liên kết cũ đã ngừng dùng.', { exact: false }).waitFor();
         await page.setViewportSize({ width: 390, height: 844 });
         await page.goto(base + '/hr.html');
         assert.equal(await page.getByRole('button', { name: 'Đăng nhập', exact: true }).isVisible(), true);
+        console.log('[Smoke] Step 10: Legacy link & mobile login verified');
+
+        if (errors.length) {
+            console.error('[Smoke] Page errors caught:', errors);
+        }
         assert.deepEqual(errors, [], `Page errors captured during smoke test: ${errors.join('; ')}`);
         console.log('PASS: public SalesHub, trash/restore, HR login/logout/denied role, personal progress, legacy links, mobile login; no live Firebase requests.');
     } finally {
@@ -147,4 +165,7 @@ function fakeFirebase() {
         server.closeAllConnections();
         await new Promise(resolve => server.close(resolve));
     }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+})().catch(error => {
+    console.error('CRITICAL SMOKE TEST FAILURE:', error.stack || error);
+    process.exitCode = 1;
+});

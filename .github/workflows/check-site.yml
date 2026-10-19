@@ -61,4 +61,12 @@ jobs:
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - name: Test website with isolated Firebase fixtures
-        run: npm run test:browser
+        run: |
+          node tests/browser-smoke.cjs 2>&1 | tee /tmp/browser.log || {
+            echo "::error::Browser smoke test failed"
+            echo "## Browser Smoke Test Error Log" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat /tmp/browser.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            exit 1
+          }
