@@ -785,6 +785,63 @@ class HrOnboardingStore {
         this.ready = new Set();
         this._progressListeners = new Map();
     }
+    cleanActivityText(raw) {
+        if (!raw) return '';
+        let text = String(raw).trim();
+        text = text
+            .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
+            .replace(/;\s*\n\s*/g, '\n• ')
+            .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
+        const lines = text.split('\n');
+        if (lines.length <= 1) return text;
+        return lines.map((line, idx) => {
+            let trimmed = line.trim();
+            if (!trimmed) return '';
+            trimmed = trimmed.replace(/;\s*$/, '');
+            let isBullet = false;
+            if (/^[•\-\*]\s*/.test(trimmed)) {
+                isBullet = true;
+                trimmed = trimmed.replace(/^[•\-\*]\s*/, '');
+            }
+            if (trimmed.length > 0) {
+                trimmed = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+            }
+            const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && trimmed.length < 80 && !trimmed.includes('('));
+            if (isHeading) return trimmed;
+            return `• ${trimmed}`;
+        }).filter(Boolean).join('\n');
+    }
+
+    cleanOutcomeText(raw) {
+        if (!raw) return '';
+        let text = String(raw).trim();
+        text = text
+            .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/;\s*\n\s*/g, '\n• ')
+            .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
+        const lines = text.split('\n');
+        if (lines.length <= 1) return text;
+        return lines.map((line, idx) => {
+            let trimmed = line.trim();
+            if (!trimmed) return '';
+            trimmed = trimmed.replace(/;\s*$/, '');
+            let isBullet = false;
+            if (/^[•\-\*✓✔]\s*/.test(trimmed)) {
+                isBullet = true;
+                trimmed = trimmed.replace(/^[•\-\*✓✔]\s*/, '');
+            }
+            if (trimmed.length > 0) {
+                trimmed = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+            }
+            const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && trimmed.length < 80 && !trimmed.includes('('));
+            if (isHeading) return trimmed;
+            return `• ${trimmed}`;
+        }).filter(Boolean).join('\n');
+    }
+
     sanitizeRoadmap(days) {
         if (!Array.isArray(days) || days.length === 0) {
             return JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
@@ -795,6 +852,8 @@ class HrOnboardingStore {
             if (!Array.isArray(d.customLinks)) d.customLinks = [];
             d.tasks.forEach(t => {
                 if (!Array.isArray(t.links)) t.links = [];
+                if (t.activity) t.activity = this.cleanActivityText(t.activity);
+                if (t.outcome) t.outcome = this.cleanOutcomeText(t.outcome);
             });
         });
         return days;

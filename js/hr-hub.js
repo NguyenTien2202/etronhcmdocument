@@ -3947,52 +3947,92 @@ class HrHubApp {
 
     formatActivityHtml(rawText, placeholder = 'Chưa có mô tả hoạt động. Bấm để thêm nội dung...') {
         if (!rawText) return `<span class="italic text-slate-400">${placeholder}</span>`;
-        let text = String(rawText);
-        if (!text.includes('\n')) {
-            text = text
-                .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
-                .replace(/\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
-                .replace(/;\s+(?=•)/g, '\n')
-                .replace(/;\s+(?=[A-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ])/g, ';\n• ');
-        }
-        const escaped = this.escapeHtml(text);
-        const lines = escaped.split('\n');
-        return lines.map(line => {
+        let text = String(rawText).trim();
+
+        text = text
+            .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/\s+(?=\((Trigger|Action\s*\d+|Condition|Khối\s*\d+)\b)/gi, '\n• ')
+            .replace(/;\s*\n\s*/g, '\n• ')
+            .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
+
+        const rawLines = text.split('\n');
+        const isMultiItem = rawLines.length > 1;
+
+        return rawLines.map((line, idx) => {
             let trimmed = line.trim();
             if (!trimmed) return '<div class="h-1"></div>';
+
+            trimmed = trimmed.replace(/;\s*$/, '');
+
             let isBullet = false;
             if (/^[•\-\*]\s*/.test(trimmed)) {
                 isBullet = true;
                 trimmed = trimmed.replace(/^[•\-\*]\s*/, '');
             }
+
+            if (trimmed.length > 0) {
+                trimmed = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+            }
+
             const stepMatch = trimmed.match(/^(\(\d+\)|\d+\.|\bBước \d+[:\-]?|\(Trigger\b[^\)]*\)|\(Action \d+[^\)]*\)|\(Khối \d+[^\)]*\))/i);
             if (stepMatch) {
-                const prefix = stepMatch[0];
-                const rest = trimmed.slice(prefix.length).trim();
+                const prefix = this.escapeHtml(stepMatch[0]);
+                const rest = this.escapeHtml(trimmed.slice(stepMatch[0].length).trim());
                 return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-700 font-bold shrink-0 text-xs bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200/80 shadow-2xs">${prefix}</span><span class="leading-relaxed text-slate-700">${rest}</span></div>`;
             }
-            if (isBullet) {
-                return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed">•</span><span class="leading-relaxed text-slate-700">${trimmed}</span></div>`;
+
+            const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && isMultiItem && trimmed.length < 80 && !trimmed.includes(';') && !trimmed.includes('('));
+            if (isHeading) {
+                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.escapeHtml(trimmed)}</div>`;
             }
-            return `<div class="leading-relaxed text-slate-700">${trimmed}</div>`;
+
+            if (!isMultiItem && !isBullet) {
+                return `<div class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</div>`;
+            }
+
+            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-indigo-500 font-bold shrink-0 leading-relaxed select-none">•</span><span class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</span></div>`;
         }).join('');
     }
 
     formatOutcomeHtml(rawText, placeholder = 'Chưa có kết quả cần đạt. Bấm để thêm mục tiêu...') {
         if (!rawText) return `<span class="italic text-slate-400">${placeholder}</span>`;
-        let text = String(rawText);
-        if (!text.includes('\n')) {
-            text = text.replace(/\s+(?=\([1-9]\d*\))/g, '\n• ');
-        }
-        const escaped = this.escapeHtml(text);
-        const lines = escaped.split('\n');
-        return lines.map(line => {
-            const trimmed = line.trim();
+        let text = String(rawText).trim();
+
+        text = text
+            .replace(/;\s*(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/\s+(?=\([1-9]\d*\))/g, '\n• ')
+            .replace(/;\s*\n\s*/g, '\n• ')
+            .replace(/;\s+(?=[a-zđáàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵA-ZĐÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÍÌỈĨỊÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢÚÙỦŨỤƯỨỪỬỮỰÝỲỶỸỴ0-9])/g, ';\n• ');
+
+        const rawLines = text.split('\n');
+        const isMultiItem = rawLines.length > 1;
+
+        return rawLines.map((line, idx) => {
+            let trimmed = line.trim();
             if (!trimmed) return '<div class="h-1"></div>';
-            if (/^[•\-\*]\s*/.test(trimmed)) {
-                return `<div class="flex items-start gap-2 pt-0.5"><span class="text-emerald-500 font-bold shrink-0 leading-relaxed">✓</span><span class="leading-relaxed text-slate-700">${trimmed.replace(/^[•\-\*]\s*/, '')}</span></div>`;
+            trimmed = trimmed.replace(/;\s*$/, '');
+
+            let isBullet = false;
+            if (/^[•\-\*✓✔]\s*/.test(trimmed)) {
+                isBullet = true;
+                trimmed = trimmed.replace(/^[•\-\*✓✔]\s*/, '');
             }
-            return `<div class="leading-relaxed text-slate-700">${trimmed}</div>`;
+
+            if (trimmed.length > 0) {
+                trimmed = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+            }
+
+            const isHeading = trimmed.endsWith(':') || (!isBullet && idx === 0 && isMultiItem && trimmed.length < 80 && !trimmed.includes(';') && !trimmed.includes('('));
+            if (isHeading) {
+                return `<div class="font-bold text-slate-800 pt-0.5 leading-relaxed">${this.escapeHtml(trimmed)}</div>`;
+            }
+
+            if (!isMultiItem && !isBullet) {
+                return `<div class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</div>`;
+            }
+
+            return `<div class="flex items-start gap-2 pt-0.5"><span class="text-emerald-500 font-bold shrink-0 leading-relaxed select-none">✓</span><span class="leading-relaxed text-slate-700">${this.escapeHtml(trimmed)}</span></div>`;
         }).join('');
     }
 }
