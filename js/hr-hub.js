@@ -1706,11 +1706,16 @@ class HrHubApp {
                                                             <i data-lucide="link-2" class="w-3.5 h-3.5 text-indigo-600"></i>
                                                             <span>Tài liệu & Link đính kèm (${taskLinks.length}):</span>
                                                         </span>
+                                                        <button type="button" onclick="window.hrHub.openAttachDocModal('${day.id}', '${task.id}')"
+                                                            class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 hover:underline">
+                                                            <i data-lucide="paperclip" class="w-3 h-3"></i>
+                                                            <span>+ Đính kèm thêm</span>
+                                                        </button>
                                                     </div>
 
                                                     ${taskLinks.length === 0 ? `
                                                         <div class="p-2.5 rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 pl-5 flex items-center justify-between gap-2 flex-wrap">
-                                                            <span>Chưa có tài liệu đính kèm riêng cho mục này. Dùng 2 icon kho tài liệu hoặc link ở trên để thêm.</span>
+                                                            <span>Chưa có tài liệu đính kèm cho mục này. Bấm icon kẹp ghim [📎] ở trên để thêm từ kho hoặc liên kết ngoài.</span>
                                                             ${this.hasTaskDefaultLinks(day.id, task.id) ? `
                                                                 <button type="button" onclick="window.hrHub.restoreTaskDefaultLinks('${day.id}', '${task.id}')"
                                                                     class="px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[11px] font-bold inline-flex items-center gap-1 transition-colors shadow-2xs">
