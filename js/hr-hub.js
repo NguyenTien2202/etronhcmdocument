@@ -125,24 +125,27 @@ class HrHubApp {
             .replace(/[^a-z0-9]/g, '');
     }
 
-    getPublicOnboardUrl(candidateId = null) {
+    getPublicOnboardUrl(candidateId = null, preferPretty = true) {
         try {
-            const url = new URL('onboard.html', window.location.href);
-            if (candidateId) {
-                const cand = window.hrOnboardingStore?.getCandidates?.()?.find(c => c.id === candidateId);
-                const token = cand?.onboardToken;
-                const slug = this.toCandidateSlug(cand?.fullName);
-                const candSlug = slug ? `nhansu${slug}` : 'nhansu';
-                if (token) {
-                    url.searchParams.set('k', token);
-                    url.hash = candSlug;
-                } else if (slug) {
-                    url.search = candSlug;
-                }
+            const cand = candidateId ? window.hrOnboardingStore?.getCandidates?.()?.find(c => c.id === candidateId) : null;
+            const slug = this.toCandidateSlug(cand?.fullName);
+            const candSlug = slug ? `nhansu${slug}` : 'nhansu';
+
+            let base = window.location.href;
+            if (base.includes('/hr.html')) {
+                base = base.split('/hr.html')[0];
+            } else if (base.endsWith('/')) {
+                base = base.slice(0, -1);
+            } else {
+                base = base.substring(0, base.lastIndexOf('/'));
             }
-            return url.href;
+
+            if (preferPretty) {
+                return `${base}/onboard/${candSlug}`;
+            }
+            return `${base}/onboard.html?${candSlug}`;
         } catch (e) {
-            return 'https://nguyentien2202.github.io/etronhcmdocument/onboard.html';
+            return 'https://nguyentien2202.github.io/etronhcmdocument/onboard/' + (candidateId || 'nhansu');
         }
     }
 
@@ -828,7 +831,7 @@ class HrHubApp {
                                                 <a href="${this.escapeHtml(this.getPublicOnboardUrl(cand.id))}" target="_blank" onclick="event.stopPropagation()"
                                                     class="text-[11px] text-emerald-700 hover:text-emerald-900 font-semibold truncate flex items-center gap-1.5 underline" title="Bấm để mở xem Cổng Onboard dành cho ${this.escapeHtml(cand.fullName || 'nhân sự')}">
                                                     <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0 text-emerald-600"></i>
-                                                    <span class="truncate">onboard.html?${this.toCandidateSlug(cand.fullName) ? 'nhansu' + this.toCandidateSlug(cand.fullName) : 'nhansu'}</span>
+                                                    <span class="truncate">onboard/${this.toCandidateSlug(cand.fullName) ? 'nhansu' + this.toCandidateSlug(cand.fullName) : 'nhansu'}</span>
                                                 </a>
                                                 <span class="text-[9px] text-emerald-600 font-mono block truncate mt-0.5 opacity-80">(Mã bảo mật: ••••${cand.onboardToken.slice(-6)})</span>
                                             ` : `

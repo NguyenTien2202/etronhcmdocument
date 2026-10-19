@@ -311,6 +311,53 @@ class OnboardingViewer {
             .replace(/[^a-z0-9]/g, '');
     }
 
+    extractCandidateSlug(loc = window.location) {
+        if (!loc) return '';
+        // 1. Kiểm tra path dạng /onboard/nhansudothitruclinh
+        const path = loc.pathname || '';
+        if (path.includes('/onboard/')) {
+            const after = path.split('/onboard/')[1] || '';
+            const slugPart = after.split('/')[0].replace(/\.html$/i, '').trim();
+            if (slugPart) return slugPart;
+        }
+
+        // 2. Kiểm tra query param: ?nhansudothitruclinh hoặc ?nhansu=dothitruclinh
+        const search = loc.search || '';
+        if (search) {
+            const searchParams = new URLSearchParams(search);
+            if (searchParams.has('nhansu') && searchParams.get('nhansu')) {
+                return 'nhansu' + searchParams.get('nhansu');
+            }
+            if (searchParams.has('nhan-su') && searchParams.get('nhan-su')) {
+                return 'nhansu' + this.toCandidateSlug(searchParams.get('nhan-su'));
+            }
+            for (const k of searchParams.keys()) {
+                if (k.startsWith('nhansu') && k.length >= 6) {
+                    return k;
+                }
+            }
+            const raw = search.replace(/^\?/, '').split('&')[0];
+            if (raw.startsWith('nhansu') && !raw.includes('=')) {
+                return raw;
+            }
+        }
+
+        // 3. Kiểm tra hash: #nhansudothitruclinh
+        const hash = (loc.hash || '').replace(/^#/, '').trim();
+        if (hash.startsWith('nhansu')) {
+            return hash;
+        }
+
+        return '';
+    }
+
+    resolveTokenForSlug(slug) {
+        if (!slug || !window.hrOnboardingStore) return null;
+        const slugTokens = window.hrOnboardingStore.slugTokens || {};
+        const rawSlug = slug.replace(/^nhansu/, '');
+        return slugTokens[slug] || slugTokens[rawSlug] || slugTokens['nhansu' + rawSlug] || null;
+    }
+
     cleanAddressBarUrl() {
         try {
             if (typeof window === 'undefined' || !window.history || !window.history.replaceState) return;
@@ -319,13 +366,21 @@ class OnboardingViewer {
                 ? window.hrOnboardingStore.getCandidateById(this.candidateId)
                 : window.hrOnboardingStore?.publicCandidate;
             const candName = cand?.fullName || currentUrl.searchParams.get('nhan-su') || currentUrl.searchParams.get('nhansu') || currentUrl.searchParams.get('name') || currentUrl.searchParams.get('uv') || '';
-            const slug = this.toCandidateSlug(candName);
-            const cleanSlugParam = slug ? `nhansu${slug}` : 'nhansu';
+            const slug = this.candidateSlug || (candName ? ('nhansu' + this.toCandidateSlug(candName)) : 'nhansu');
 
-            // Clean address bar: no secret keys or hash, just /onboard.html?nhansudothitruclinh
-            const cleanUrlString = currentUrl.pathname + '?' + cleanSlugParam;
-            if (window.location.pathname + window.location.search + window.location.hash !== cleanUrlString) {
-                window.history.replaceState(null, document.title, cleanUrlString);
+            if (window.location.protocol === 'file:') return;
+            let basePath = '';
+            if (currentUrl.pathname.includes('/onboard/')) {
+                basePath = currentUrl.pathname.split('/onboard/')[0];
+            } else if (currentUrl.pathname.includes('/onboard.html')) {
+                basePath = currentUrl.pathname.split('/onboard.html')[0];
+            } else {
+                basePath = currentUrl.pathname.substring(0, currentUrl.pathname.lastIndexOf('/'));
+            }
+
+            const cleanPath = `${basePath}/onboard/${slug}`;
+            if (window.location.pathname + window.location.search + window.location.hash !== cleanPath) {
+                window.history.replaceState(null, document.title, cleanPath);
             }
         } catch (_) {}
     }
@@ -354,15 +409,24 @@ class OnboardingViewer {
             if (match) token = match[0];
         }
 
-        // 4. Khôi phục từ storage nếu URL có chứa thông tin nhân sự (?nhansudothitruclinh, ?nhansu=..., ?nhan-su=...)
-        const hasCandInSearch = Array.from(searchParams.keys()).some(k => k.startsWith('nhansu')) ||
-            searchParams.has('nhansu') || searchParams.has('nhan-su') || searchParams.has('name') || searchParams.has('uv');
-        const hasCandInHash = (window.location.hash || '').toLowerCase().includes('nhansu');
+        // 4. Trích xuất slug ứng viên (/onboard/nhansudothitruclinh hoặc ?nhansudothitruclinh)
+        const slug = this.extractCandidateSlug(window.location);
+        this.candidateSlug = slug;
 
-        if (!token && (hasCandInSearch || hasCandInHash)) {
+        // 5. Khôi phục từ storage nếu URL có chứa thông tin nhân sự
+        if (!token && slug) {
             try {
-                token = sessionStorage.getItem('etron_onboard_token') || localStorage.getItem('etron_onboard_token');
+                const storedSlug = sessionStorage.getItem('etron_onboard_slug') || localStorage.getItem('etron_onboard_slug');
+                const storedToken = sessionStorage.getItem('etron_onboard_token') || localStorage.getItem('etron_onboard_token');
+                if (storedToken && (!storedSlug || storedSlug === slug)) {
+                    token = storedToken;
+                }
             } catch (_) {}
+        }
+
+        // 6. Tra cứu token từ slugTokens (được Cloud Onboarding Roadmap phân phối công khai)
+        if (!token && slug) {
+            token = this.resolveTokenForSlug(slug);
         }
 
         const legacyId = searchParams.get('id');
@@ -374,12 +438,28 @@ class OnboardingViewer {
             try {
                 sessionStorage.setItem('etron_onboard_token', token);
                 localStorage.setItem('etron_onboard_token', token);
+                if (slug) {
+                    sessionStorage.setItem('etron_onboard_slug', slug);
+                    localStorage.setItem('etron_onboard_slug', slug);
+                }
             } catch (_) {}
         }
 
         if (window.hrOnboardingStore) {
             window.hrOnboardingStore.setupCloudSync();
             window.hrOnboardingStore.onChange(() => {
+                // Nếu ban đầu chưa có token (do mạng đang tải snapshot), thử giải mã lại từ slugTokens
+                if (!this.candidateId && this.candidateSlug) {
+                    const resolved = this.resolveTokenForSlug(this.candidateSlug);
+                    if (resolved) {
+                        this.candidateId = resolved;
+                        try {
+                            sessionStorage.setItem('etron_onboard_token', resolved);
+                            localStorage.setItem('etron_onboard_token', resolved);
+                            window.hrOnboardingStore.openPersonalLink(resolved);
+                        } catch (_) {}
+                    }
+                }
                 this.cleanAddressBarUrl();
                 this.render();
             });
@@ -389,7 +469,7 @@ class OnboardingViewer {
             catch (_) { window.hrOnboardingStore.personalUnavailable = true; }
         }
 
-        // Tự động ẩn hash và hiển thị URL sạch sẽ trên thanh địa chỉ (?nhansudothitruclinh)
+        // Tự động ẩn hash và hiển thị URL sạch sẽ trên thanh địa chỉ (/onboard/nhansudothitruclinh)
         this.cleanAddressBarUrl();
 
         if (typeof document !== 'undefined' && document.addEventListener) {

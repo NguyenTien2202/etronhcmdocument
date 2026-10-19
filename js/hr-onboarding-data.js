@@ -741,6 +741,11 @@ class HrOnboardingStore {
         this.publicCandidate = null;
         this.personalProgress = {};
         this.personalSubmissions = {};
+        this.slugTokens = {};
+        try {
+            const cachedSlugs = localStorage.getItem('etron_onboard_slug_tokens');
+            if (cachedSlugs) this.slugTokens = JSON.parse(cachedSlugs) || {};
+        } catch (_) {}
         this.ready = new Set();
         this._progressListeners = new Map();
     }
@@ -765,6 +770,49 @@ class HrOnboardingStore {
         if (!this.isHr() || !this.ready.has(key)) throw new Error('Dữ liệu HR chưa sẵn sàng. Hãy chờ đồng bộ trước khi lưu.');
     }
     getRoadmap() { return this.roadmap; }
+    toCandidateSlug(fullName) {
+        if (!fullName) return '';
+        return String(fullName)
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd')
+            .replace(/Đ/g, 'd')
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, '');
+    }
+
+    getSlugTokensMap() {
+        const map = {};
+        const candidates = this.isHr() ? this.privateData.candidates : [];
+        (candidates || []).forEach(c => {
+            if (c.onboardToken && c.fullName) {
+                const rawSlug = this.toCandidateSlug(c.fullName);
+                if (rawSlug) {
+                    map[rawSlug] = c.onboardToken;
+                    map['nhansu' + rawSlug] = c.onboardToken;
+                }
+            }
+        });
+        return map;
+    }
+
+    async syncSlugTokensToCloud() {
+        if (!this.isHr() || !window.firebaseDb) return;
+        try {
+            const map = this.getSlugTokensMap();
+            if (Object.keys(map).length === 0) return;
+            const days = this.roadmap;
+            const now = Date.now();
+            await window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({
+                days,
+                updatedAt: now,
+                slugTokens: map
+            });
+        } catch (err) {
+            console.warn('[HrOnboardingStore] Lỗi sync slugTokens:', err);
+        }
+    }
+
     saveRoadmap(list) {
         if (!this.isHr()) throw new Error('Chỉ tài khoản HR mới có quyền cập nhật lộ trình đào tạo.');
         const days = this.sanitizeRoadmap(list);
@@ -775,7 +823,12 @@ class HrOnboardingStore {
             localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(now));
         } catch (_) {}
         if (window.firebaseDb) {
-            window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({ days, updatedAt: now })
+            const payload = { days, updatedAt: now };
+            const slugMap = this.getSlugTokensMap();
+            if (slugMap && Object.keys(slugMap).length > 0) {
+                payload.slugTokens = slugMap;
+            }
+            window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set(payload)
                 .catch(err => {
                     console.error('[HrOnboardingStore] Lỗi lưu roadmap lên Firebase:', err);
                     if (window.hrHub?.showToast) {
@@ -796,6 +849,9 @@ class HrOnboardingStore {
             localStorage.setItem('etron_hr_cached_candidates', JSON.stringify(list));
         } catch (_) {}
         this.watchProgress(list);
+        if (this.isHr()) {
+            this.syncSlugTokensToCloud();
+        }
         window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: list, updatedAt: Date.now() })
             .catch(err => {
                 console.error('[HrOnboardingStore] Lỗi lưu danh sách ứng viên lên Cloud:', err);
@@ -960,26 +1016,36 @@ class HrOnboardingStore {
         const db = window.firebaseDb;
         const listen = (ref, cb) => this._unsubscribers.push(ref.onSnapshot(cb, () => this.notifyChange('sync_error')));
         listen(db.collection('hr_config').doc('onboarding_roadmap'), doc => {
-            if (doc.exists && Array.isArray(doc.data().days)) {
+            if (doc.exists) {
                 const cloudData = doc.data();
-                const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
-                let localUpdatedAt = 0;
-                try {
-                    localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
-                } catch (_) {}
-
-                const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
-                if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
-                    this.roadmap = this.sanitizeRoadmap(cloudData.days);
+                if (cloudData && typeof cloudData === 'object' && cloudData.slugTokens && typeof cloudData.slugTokens === 'object') {
+                    this.slugTokens = cloudData.slugTokens;
+                    try { localStorage.setItem('etron_onboard_slug_tokens', JSON.stringify(cloudData.slugTokens)); } catch (_) {}
+                    this.notifyChange('slugTokens');
+                }
+                if (Array.isArray(cloudData.days)) {
+                    const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
+                    let localUpdatedAt = 0;
                     try {
-                        localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
-                        if (cloudUpdatedAt) {
-                            localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
-                        }
+                        localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
                     } catch (_) {}
+
+                    const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
+                    if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
+                        this.roadmap = this.sanitizeRoadmap(cloudData.days);
+                        try {
+                            localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
+                            if (cloudUpdatedAt) {
+                                localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
+                            }
+                        } catch (_) {}
+                    }
                 }
             } else if (!doc.exists && this.isHr()) {
-                db.collection('hr_config').doc('onboarding_roadmap').set({ days: this.roadmap, updatedAt: Date.now() }).catch(() => {});
+                const map = this.getSlugTokensMap();
+                const payload = { days: this.roadmap, updatedAt: Date.now() };
+                if (Object.keys(map).length > 0) payload.slugTokens = map;
+                db.collection('hr_config').doc('onboarding_roadmap').set(payload).catch(() => {});
             }
             this.ready.add('roadmap');
             this.notifyChange('roadmap');
@@ -999,7 +1065,10 @@ class HrOnboardingStore {
                 }
                 // Never seed/overwrite cloud data automatically on an empty snapshot.
                 if (!doc.metadata?.fromCache) this.ready.add(key);
-                if (key === 'candidates') this.watchProgress(this.privateData.candidates);
+                if (key === 'candidates') {
+                    this.watchProgress(this.privateData.candidates);
+                    this.syncSlugTokensToCloud();
+                }
                 this.notifyChange(key);
             });
         }

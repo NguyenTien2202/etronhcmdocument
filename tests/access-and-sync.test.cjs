@@ -248,8 +248,9 @@ test('getPublicOnboardUrl includes candidate name, cleanAddressBarUrl hides toke
     vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
     const hrHub = context.window.hrHub;
     const url = hrHub.getPublicOnboardUrl('c-test');
-    assert.ok(url.includes('nhansunguyenvana'));
-    assert.ok(url.includes('k=' + 'a'.repeat(64)));
+    assert.ok(url.includes('onboard/nhansunguyenvana') || url.includes('nhansunguyenvana'));
+    assert.ok(!url.includes('k='));
+    assert.ok(!url.includes('key='));
 
     // Run onboarding viewer cleanAddressBarUrl
     vm.runInContext(fs.readFileSync('js/onboarding-viewer.js', 'utf8'), context);
