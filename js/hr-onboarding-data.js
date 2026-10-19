@@ -594,13 +594,13 @@ Phòng Nhân sự ETRON
         categoryLabel: 'Từ chối / Cảm ơn',
         title: '[ETRON] Thư cảm ơn & Kết quả phỏng vấn không phù hợp (RỚT)',
         subject: '[ETRON] THƯ CẢM ƠN',
-        content: `Thân chào {{ten_ung_vien}},  
-Chúng mình xin chân thành cảm ơn vì bạn đã quan tâm và ứng tuyển vào vị trí {{vi_tri}} của CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON. 
-Chúng mình đánh giá cao sự nhiệt tình cũng như kinh nghiệm của bạn đối với vị trí này. Tuy nhiên, ở thời điểm hiện tại, bạn chưa thật sự phù hợp với những yêu cầu mà công ty chúng mình đang tìm kiếm. 
-Vậy nên chúng mình sẽ lưu thông tin của bạn để trong tương lai sẽ giới thiệu những cơ hội phù hợp hơn. ETRON cảm ơn sự tham gia của bạn vào buổi phỏng vấn của công ty. Chúc bạn sẽ đạt được nhiều thành công trong cuộc sống và hy vọng trong tương lai có cơ hội được hợp tác với bạn. 
+        content: `Thân chào {{ten_ung_vien}},
+Chúng mình xin chân thành cảm ơn vì bạn đã quan tâm và ứng tuyển vào vị trí {{vi_tri}} của CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON.
+Chúng mình đánh giá cao sự nhiệt tình cũng như kinh nghiệm của bạn đối với vị trí này. Tuy nhiên, ở thời điểm hiện tại, bạn chưa thật sự phù hợp với những yêu cầu mà công ty chúng mình đang tìm kiếm.
+Vậy nên chúng mình sẽ lưu thông tin của bạn để trong tương lai sẽ giới thiệu những cơ hội phù hợp hơn. ETRON cảm ơn sự tham gia của bạn vào buổi phỏng vấn của công ty. Chúc bạn sẽ đạt được nhiều thành công trong cuộc sống và hy vọng trong tương lai có cơ hội được hợp tác với bạn.
 
-Trân trọng cảm ơn! 
-Phòng Nhân sự 
+Trân trọng cảm ơn!
+Phòng Nhân sự
 Nguyễn Nhật Mai`,
         updatedAt: Date.now()
     },
