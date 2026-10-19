@@ -2169,7 +2169,7 @@ class HrHubApp {
             : (isInserting ? `Chèn Thêm Ngày Mới (Vị Trí ${targetNumber})` : 'Thêm Ngày / Giai Đoạn Onboard Mới');
 
         document.getElementById('hr-day-number').value = day ? (day.dayNumber || '') : targetNumber;
-        
+
         let initialDate = '';
         if (day) {
             initialDate = day.date || '';
@@ -3894,11 +3894,20 @@ class HrHubApp {
         // Tuyệt đối KHÔNG tự động ghi đè roadmap hoặc mẫu tin nếu người dùng đã có dữ liệu tùy chỉnh.
         if (store.ready.has('roadmap')) {
             const roadmap = store.getRoadmap();
-            if ((!Array.isArray(roadmap) || roadmap.length === 0) && !this._roadmapAutoSynced) {
+            const isLegacy = Array.isArray(roadmap) && roadmap.some(d => d.id === 'day-3' && (
+                d.title === 'Phần Mềm Adahub CRM: Tổng quan, tính năng và lợi ích' ||
+                !d.tasks?.some(t => t.id === 'm-306')
+            ));
+            if (((!Array.isArray(roadmap) || roadmap.length === 0) || isLegacy) && !this._roadmapAutoSynced) {
                 this._roadmapAutoSynced = true;
                 try {
-                    const defaultRoadmap = JSON.parse(JSON.stringify(window.DEFAULT_ONBOARDING_ROADMAP));
-                    store.saveRoadmap(defaultRoadmap);
+                    const defaultMap = new Map((window.DEFAULT_ONBOARDING_ROADMAP || []).map(d => [d.id, d]));
+                    const next = Array.isArray(roadmap) && roadmap.length > 0
+                        ? roadmap.map(d => (d.id === 'day-3' || d.id === 'day-4' || d.id === 'day-5') ? JSON.parse(JSON.stringify(defaultMap.get(d.id) || d)) : d)
+                        : JSON.parse(JSON.stringify(window.DEFAULT_ONBOARDING_ROADMAP || []));
+                    store.saveRoadmap(next);
+                    this.renderRoadmapTab();
+                    console.log('[HrHub] Đã tự động nâng cấp và đồng bộ Lộ trình Ngày 3, 4, 5 mới lên Cloud!');
                 } catch (e) {
                     console.warn('[HrHub] Lỗi khởi tạo roadmap mặc định:', e);
                 }
