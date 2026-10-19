@@ -176,6 +176,108 @@ class DocumentHub {
         ];
     }
 
+    parseFileSizeToBytes(sizeStr) {
+        if (typeof sizeStr === 'number' && !isNaN(sizeStr)) return sizeStr;
+        if (!sizeStr || typeof sizeStr !== 'string') return 0;
+        const match = sizeStr.trim().match(/^([0-9.]+)\s*(GB|MB|KB|B)?$/i);
+        if (!match) return 0;
+        const val = parseFloat(match[1]);
+        if (isNaN(val)) return 0;
+        const unit = (match[2] || 'B').toUpperCase();
+        if (unit === 'GB') return val * 1024 * 1024 * 1024;
+        if (unit === 'MB') return val * 1024 * 1024;
+        if (unit === 'KB') return val * 1024;
+        return val;
+    }
+
+    getCloudStorageUsage() {
+        const docs = (window.salesStore && typeof window.salesStore.getDocuments === 'function')
+            ? window.salesStore.getDocuments()
+            : [];
+
+        let cloudFilesBytes = 0;
+        let cloudFilesCount = 0;
+        const cloudFilesList = [];
+
+        for (const doc of docs) {
+            const isCloudSynced = doc.hasCloudFile === true || (doc.cloudChunkCount && doc.cloudChunkCount > 0);
+            if (isCloudSynced) {
+                cloudFilesCount++;
+                let bytes = 0;
+                if (typeof doc.fileSizeBytes === 'number' && doc.fileSizeBytes > 0) {
+                    bytes = doc.fileSizeBytes;
+                } else if (doc.fileSize) {
+                    bytes = this.parseFileSizeToBytes(doc.fileSize);
+                }
+
+                if (bytes <= 0 && doc.cloudChunkCount) {
+                    bytes = doc.cloudChunkCount * 480 * 1024;
+                }
+
+                cloudFilesBytes += bytes;
+                cloudFilesList.push({
+                    id: doc.id,
+                    title: doc.title || 'Tài liệu không tên',
+                    fileType: doc.fileType || 'file',
+                    sizeBytes: bytes,
+                    sizeFormatted: doc.fileSize || this.formatFileSize(bytes),
+                    category: doc.category || 'Chung',
+                    chunkCount: doc.cloudChunkCount || Math.ceil(bytes / 650000) || 1
+                });
+            }
+        }
+
+        cloudFilesList.sort((a, b) => b.sizeBytes - a.sizeBytes);
+
+        // Dung lượng nền cơ sở dữ liệu Firestore ước tính (báo giá, khách hàng, lộ trình đào tạo, templates: ~5MB)
+        const BASE_DB_OVERHEAD_BYTES = 5 * 1024 * 1024;
+        const totalUsedBytes = cloudFilesBytes + BASE_DB_OVERHEAD_BYTES;
+
+        // Firebase Spark Plan (Gói Miễn Phí vĩnh viễn): 1 GiB = 1024 MB
+        const MAX_STORAGE_MB = 1024;
+        const MAX_STORAGE_BYTES = MAX_STORAGE_MB * 1024 * 1024;
+
+        const totalUsedMB = (totalUsedBytes / (1024 * 1024)).toFixed(1);
+        const cloudFilesMB = (cloudFilesBytes / (1024 * 1024)).toFixed(1);
+        const baseDbMB = (BASE_DB_OVERHEAD_BYTES / (1024 * 1024)).toFixed(1);
+        const remainingMB = Math.max(0, MAX_STORAGE_MB - parseFloat(totalUsedMB)).toFixed(1);
+        const percent = Math.min(100, Math.round((totalUsedBytes / MAX_STORAGE_BYTES) * 1000) / 10);
+
+        let status = 'safe';
+        let statusText = 'An toàn';
+        let statusBadgeBg = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        let barColor = 'bg-gradient-to-r from-emerald-500 to-teal-500';
+
+        if (percent >= 85) {
+            status = 'danger';
+            statusText = 'Gần đầy (>85%)';
+            statusBadgeBg = 'bg-rose-50 text-rose-700 border-rose-200';
+            barColor = 'bg-gradient-to-r from-amber-500 to-rose-500';
+        } else if (percent >= 70) {
+            status = 'warning';
+            statusText = 'Cần lưu ý (>70%)';
+            statusBadgeBg = 'bg-amber-50 text-amber-700 border-amber-200';
+            barColor = 'bg-gradient-to-r from-teal-500 to-amber-500';
+        }
+
+        return {
+            totalUsedBytes,
+            totalUsedMB,
+            cloudFilesMB,
+            baseDbMB,
+            MAX_STORAGE_MB,
+            remainingMB,
+            percent,
+            status,
+            statusText,
+            statusBadgeBg,
+            barColor,
+            cloudFilesCount,
+            totalDocs: docs.length,
+            cloudFilesList
+        };
+    }
+
     renderStats() {
         const statsEl = document.getElementById('doc-hub-stats');
         if (!statsEl) return;
@@ -186,6 +288,13 @@ class DocumentHub {
         const sheetsCount = docs.filter(d => ['xlsx', 'xls', 'gsheet'].includes(d.fileType)).length;
         const mediaCount = docs.filter(d => d.type === 'image' || d.type === 'video' || ['png', 'jpg', 'mp4', 'youtube'].includes(d.fileType)).length;
         const cloudCount = docs.filter(d => d.type === 'link').length;
+
+        const usage = this.getCloudStorageUsage();
+        const usageBadgeColor = usage.status === 'danger'
+            ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+            : usage.status === 'warning'
+                ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                : 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100';
 
         statsEl.innerHTML = `
             <div class="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar flex-nowrap sm:flex-wrap py-0.5">
@@ -213,9 +322,165 @@ class DocumentHub {
                     <span class="w-2 h-2 rounded-full bg-sky-500"></span>
                     ${cloudCount} Cloud
                 </span>
+                <button type="button" onclick="window.documentHub.showCloudStorageInfo()"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${usageBadgeColor} font-bold border shrink-0 text-[11px] sm:text-xs transition-all hover:scale-102 cursor-pointer shadow-2xs"
+                    title="Bấm để xem chi tiết dung lượng lưu trữ Cloud và giới hạn miễn phí của Firebase">
+                    <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
+                    <span>Cloud: <b>${usage.totalUsedMB} MB</b> / 1 GB (${usage.percent}%)</span>
+                    <i data-lucide="info" class="w-3 h-3 opacity-70"></i>
+                </button>
             </div>
         `;
         lucide.createIcons();
+    }
+
+    showCloudStorageInfo() {
+        let modal = document.getElementById('cloud-storage-info-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'cloud-storage-info-modal';
+            modal.className = 'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 hidden';
+            document.body.appendChild(modal);
+        }
+
+        const usage = this.getCloudStorageUsage();
+
+        const topFilesHtml = usage.cloudFilesList && usage.cloudFilesList.length > 0
+            ? usage.cloudFilesList.slice(0, 6).map((file, i) => {
+                const badge = this.getFileBadge(file.fileType);
+                return `
+                    <div class="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span class="w-5 h-5 rounded-full bg-slate-100 text-slate-500 font-mono text-[10px] flex items-center justify-center font-bold shrink-0">${i + 1}</span>
+                            <div class="w-7 h-7 rounded-lg ${badge.bg} ${badge.color} font-bold text-[10px] flex items-center justify-center shrink-0">
+                                ${badge.label}
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-bold text-slate-800 text-xs truncate" title="${this.escapeHtml(file.title)}">${this.escapeHtml(file.title)}</p>
+                                <p class="text-[10px] text-slate-400 truncate">${this.escapeHtml(file.category)} • ${file.chunkCount} chunks</p>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-xs font-bold text-slate-700 font-mono">${file.sizeFormatted}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            : '<div class="py-4 text-center text-slate-400 text-xs">Chưa có tệp nào được tải trực tiếp lên Firebase Cloud.</div>';
+
+        modal.innerHTML = `
+            <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+                <!-- Modal Header -->
+                <div class="p-4 px-5 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 flex items-center justify-center font-bold text-xs shrink-0">
+                            <i data-lucide="cloud" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Dung Lượng Lưu Trữ Firebase Cloud</h3>
+                            <p class="text-[11px] text-slate-300">Gói Spark Plan Miễn Phí (Google Firebase)</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.documentHub.closeCloudStorageInfo()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-5 overflow-y-auto space-y-4 text-xs flex-1 bg-slate-50/50">
+                    <!-- Gauge Box -->
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium">Tổng đã sử dụng</span>
+                                <div class="text-xl font-black text-slate-900 mt-0.5">
+                                    ${usage.totalUsedMB} <span class="text-xs font-semibold text-slate-500">MB</span>
+                                    <span class="text-xs font-normal text-slate-400">/ 1,024 MB (1 GB)</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="px-2.5 py-1 rounded-full border text-[11px] font-bold ${usage.statusBadgeBg}">
+                                    ${usage.statusText}
+                                </span>
+                                <div class="text-[11px] text-slate-500 mt-1">Còn trống <b>${usage.remainingMB} MB</b></div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div>
+                            <div class="w-full h-3 rounded-full bg-slate-100 overflow-hidden relative border border-slate-200/50">
+                                <div class="h-full rounded-full ${usage.barColor} transition-all duration-500" style="width: ${Math.max(usage.percent, 2)}%;"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1.5 font-medium">
+                                <span>0 MB</span>
+                                <span class="font-bold text-slate-700">${usage.percent}% dung lượng</span>
+                                <span>1,024 MB (1 GB)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Breakdown Cards -->
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-100/90 shadow-2xs">
+                            <div class="flex items-center gap-1.5 text-indigo-700 font-bold mb-1 text-[11px]">
+                                <i data-lucide="file-up" class="w-3.5 h-3.5"></i>
+                                <span>Tệp tải lên Cloud</span>
+                            </div>
+                            <div class="text-base font-extrabold text-slate-800">${usage.cloudFilesMB} MB</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">${usage.cloudFilesCount} tệp đồng bộ Cloud</div>
+                        </div>
+                        <div class="p-3.5 rounded-xl bg-sky-50/70 border border-sky-100/90 shadow-2xs">
+                            <div class="flex items-center gap-1.5 text-sky-700 font-bold mb-1 text-[11px]">
+                                <i data-lucide="database" class="w-3.5 h-3.5"></i>
+                                <span>Dữ liệu bảng & Báo giá</span>
+                            </div>
+                            <div class="text-base font-extrabold text-slate-800">~${usage.baseDbMB} MB</div>
+                            <div class="text-[10px] text-slate-500 mt-0.5">Báo giá, khách hàng, nhân sự</div>
+                        </div>
+                    </div>
+
+                    <!-- Top Files Section -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Tệp lưu trên Cloud</span>
+                            <span class="text-[11px] text-slate-400">${usage.cloudFilesCount} tệp</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-44 overflow-y-auto no-scrollbar">
+                            ${topFilesHtml}
+                        </div>
+                    </div>
+
+                    <!-- Alert & Tips Box -->
+                    <div class="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-900 space-y-1.5">
+                        <div class="font-bold flex items-center gap-1.5 text-[11px] text-amber-900">
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+                            <span>Làm sao biết khi nào Cloud sắp đầy?</span>
+                        </div>
+                        <ul class="text-[11px] list-disc list-inside space-y-1 text-amber-800/90 pl-0.5 leading-relaxed">
+                            <li><b>Thông báo email tự động:</b> Google Firebase sẽ tự động gửi email cảnh báo về hòm thư quản trị viên khi đạt <b>80%</b> và <b>100%</b> quota.</li>
+                            <li><b>Thanh đo trực quan:</b> Nút <b>Cloud trên thanh thống kê</b> sẽ tự đổi màu sang <b>Cam (>70%)</b> hoặc <b>Đỏ (>85%)</b> để nhận biết ngay lập tức.</li>
+                            <li><b>Mẹo tiết kiệm quota:</b> Với tệp dung lượng lớn (video, slide > 35MB), bạn nên lưu trên Google Drive công ty rồi chọn tab <b>"Liên kết Cloud"</b> để dán link vào. Cách này hoàn toàn <b>không tốn 1 byte nào</b> của Firebase!</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="p-3 px-5 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">
+                    <span class="text-[11px] text-slate-400">Firebase Spark • 1,024 MB miễn phí</span>
+                    <button type="button" onclick="window.documentHub.closeCloudStorageInfo()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors shadow-xs">
+                        Đã hiểu
+                    </button>
+                </div>
+            </div>
+        `;
+
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    closeCloudStorageInfo() {
+        const modal = document.getElementById('cloud-storage-info-modal');
+        if (modal) modal.classList.add('hidden');
     }
 
     renderQuickAccess() {
@@ -2147,6 +2412,7 @@ class DocumentHub {
                 targetDoc.fileType = ext;
                 targetDoc.fileName = file.name;
                 targetDoc.fileSize = this.formatFileSize(file.size);
+                targetDoc.fileSizeBytes = file.size;
                 targetDoc.mimeType = file.type || (ext === 'pdf' ? 'application/pdf' : '');
                 delete targetDoc.fileUrl;
                 delete targetDoc.content;
@@ -2368,10 +2634,12 @@ class DocumentHub {
             if (doc) {
                 doc.hasCloudFile = true;
                 doc.cloudChunkCount = totalChunks;
+                doc.fileSizeBytes = fileOrBlob.size || 0;
                 if (mimeType || fileOrBlob.type) {
                     doc.mimeType = mimeType || fileOrBlob.type;
                 }
                 window.salesStore.saveDocument(doc);
+                this.renderStats();
             }
             this.syncingDocIds.delete(docId);
             return true;

@@ -2502,10 +2502,42 @@ class HrHubApp {
         if (modal) modal.classList.add('hidden');
     }
 
+    renderDocPickerStorageIndicator() {
+        const el = document.getElementById('hr-doc-picker-storage-indicator');
+        if (!el) return;
+        if (!window.documentHub || typeof window.documentHub.getCloudStorageUsage !== 'function') {
+            el.innerHTML = '';
+            return;
+        }
+
+        const usage = window.documentHub.getCloudStorageUsage();
+        const badgeClass = usage.status === 'danger'
+            ? 'bg-rose-50 text-rose-700 border-rose-200'
+            : usage.status === 'warning'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+
+        el.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 font-medium text-slate-600">
+                <i data-lucide="cloud" class="w-3.5 h-3.5 text-indigo-500"></i>
+                <span>Dung lượng Cloud: <b>${usage.totalUsedMB} MB</b> / 1 GB</span>
+            </span>
+            <button type="button" onclick="if (window.documentHub) window.documentHub.showCloudStorageInfo()"
+                class="px-2 py-0.5 rounded-full border text-[10px] font-bold ${badgeClass} hover:opacity-80 transition-all inline-flex items-center gap-1 cursor-pointer"
+                title="Bấm để xem chi tiết dung lượng lưu trữ Cloud">
+                <span>${usage.percent}% (${usage.statusText})</span>
+                <i data-lucide="info" class="w-3 h-3"></i>
+            </button>
+        `;
+        if (window.lucide) lucide.createIcons();
+    }
+
     renderAttachDocModalList() {
         const listEl = document.getElementById('hr-doc-picker-list');
         const subtitleEl = document.getElementById('hr-doc-picker-subtitle');
         if (!listEl) return;
+
+        this.renderDocPickerStorageIndicator();
 
         const roadmap = window.hrOnboardingStore.getRoadmap();
         const day = roadmap.find(d => d.id === this.attachingDayId);

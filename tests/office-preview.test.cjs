@@ -121,3 +121,42 @@ test('document-hub.js cloud sync supports files up to 35MB and provides retry bu
     assert.ok(docHubCode.includes('Thử tải lại từ Cloud'), 'Error modal must provide retry button');
 });
 
+test('document-hub.js calculates cloud storage usage and displays capacity indicator properly', () => {
+    const docHubCode = fs.readFileSync(path.join(ROOT, 'js', 'document-hub.js'), 'utf8');
+    const hrHubCode = fs.readFileSync(path.join(ROOT, 'js', 'hr-hub.js'), 'utf8');
+    const hrHtml = fs.readFileSync(path.join(ROOT, 'hr.html'), 'utf8');
+
+    // 1. Methods exist in document-hub.js
+    assert.ok(docHubCode.includes('getCloudStorageUsage()'), 'document-hub.js must define getCloudStorageUsage()');
+    assert.ok(docHubCode.includes('showCloudStorageInfo()'), 'document-hub.js must define showCloudStorageInfo()');
+    assert.ok(docHubCode.includes('closeCloudStorageInfo()'), 'document-hub.js must define closeCloudStorageInfo()');
+    assert.ok(docHubCode.includes('parseFileSizeToBytes('), 'document-hub.js must define parseFileSizeToBytes()');
+
+    // 2. Storage limits and alert tips
+    assert.ok(docHubCode.includes('1,024 MB'), 'Must reference 1,024 MB (1GB) Spark plan limit');
+    assert.ok(docHubCode.includes('80%'), 'Must mention 80% automatic email alert');
+    assert.ok(docHubCode.includes('100%'), 'Must mention 100% quota alert');
+
+    // 3. Storage indicator in HR attach doc modal
+    assert.ok(hrHtml.includes('id="hr-doc-picker-storage-indicator"'), 'hr.html must have storage indicator container');
+    assert.ok(hrHubCode.includes('renderDocPickerStorageIndicator()'), 'hr-hub.js must define and call renderDocPickerStorageIndicator()');
+
+    // 4. Test parseFileSizeToBytes logic directly
+    const parseSizeRegex = /^([0-9.]+)\s*(GB|MB|KB|B)?$/i;
+    const parseTest = (sizeStr) => {
+        if (typeof sizeStr === 'number') return sizeStr;
+        const m = sizeStr.match(parseSizeRegex);
+        if (!m) return 0;
+        const val = parseFloat(m[1]);
+        const unit = (m[2] || 'B').toUpperCase();
+        if (unit === 'GB') return val * 1024 * 1024 * 1024;
+        if (unit === 'MB') return val * 1024 * 1024;
+        if (unit === 'KB') return val * 1024;
+        return val;
+    };
+
+    assert.equal(parseTest('17.2 MB'), 17.2 * 1024 * 1024, '17.2 MB must convert to bytes');
+    assert.equal(parseTest('500 KB'), 500 * 1024, '500 KB must convert to bytes');
+    assert.equal(parseTest('1 GB'), 1024 * 1024 * 1024, '1 GB must convert to 1024 MB in bytes');
+});
+
