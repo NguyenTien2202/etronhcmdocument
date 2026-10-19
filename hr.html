@@ -329,10 +329,16 @@
                         aria-label="Thu gọn hoặc mở rộng toàn bộ các ngày học">
                         <i data-lucide="fold-vertical" class="w-4 h-4 text-slate-600"></i>
                     </button>
+                    <button type="button" onclick="window.hrHub.restoreLastBackup()"
+                        class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+                        title="Khôi phục từ Bản sao lưu gần nhất trên máy"
+                        aria-label="Khôi phục từ Bản sao lưu gần nhất trên máy">
+                        <i data-lucide="history" class="w-4 h-4 text-slate-600"></i>
+                    </button>
                     <button type="button" onclick="window.hrHub.resetRoadmapToDefault()"
                         class="w-9 h-9 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
-                        title="Khôi phục hoặc Cập nhật Lộ trình Chuẩn Etron (Bao gồm 5 Module CRM mới)"
-                        aria-label="Khôi phục hoặc Cập nhật Lộ trình Chuẩn Etron">
+                        title="Khôi phục toàn bộ Lộ trình 8 Ngày Chuẩn Etron"
+                        aria-label="Khôi phục toàn bộ Lộ trình 8 Ngày Chuẩn Etron">
                         <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-600"></i>
                     </button>
                     <button type="button" onclick="window.hrHub.openRoadmapDayModal()"
@@ -1111,7 +1117,7 @@
     <!-- Scripts -->
     <script src="js/store.js?v=20261018_v89"></script>
     <script src="js/document-hub.js?v=20261018_v90"></script>
-    <script src="js/hr-onboarding-data.js?v=20261019_v96"></script>
+    <script src="js/hr-onboarding-data.js?v=20261019_v97"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -1121,7 +1127,7 @@
             }
         };
     </script>
-    <script src="js/hr-auth.js?v=20261019_v96"></script>
-    <script src="js/hr-hub.js?v=20261019_v96"></script>
+    <script src="js/hr-auth.js?v=20261019_v97"></script>
+    <script src="js/hr-hub.js?v=20261019_v97"></script>
 </body>
 </html>

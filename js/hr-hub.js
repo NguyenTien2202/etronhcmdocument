@@ -2328,13 +2328,24 @@ class HrHubApp {
     }
 
     async resetRoadmapToDefault() {
-        if (!confirm('Bạn có chắc muốn khôi phục Lộ trình Onboard về 8 ngày đào tạo chuẩn của Etron (Hội nhập, Callbot AI, Adahub CRM, Tổng đài VoIP, Bảng giá & Lập báo giá, Quy trình bán hàng & Gọi điện, Kỹ năng Meeting & HDSD, Nghiên cứu tài liệu & CSKH)?')) return;
+        if (!confirm('Bạn có chắc muốn khôi phục Lộ trình Onboard về 8 ngày đào tạo chuẩn của Etron? Thao tác này sẽ đặt lại toàn bộ các ngày về bản gốc. Bản sao lưu trước đó vẫn được lưu an toàn trong máy.')) return;
         try {
             await window.hrOnboardingStore.saveRoadmap(DEFAULT_ONBOARDING_ROADMAP);
             this.renderRoadmapTab();
-            this.showToast('Đã khôi phục và đồng bộ Lộ trình 8 ngày chuẩn của Etron lên Cloud!', 'success');
+            this.showToast('Đã khôi phục Lộ trình 8 ngày chuẩn của Etron! Bản cũ đã được sao lưu an toàn.', 'success');
         } catch (e) {
             this.showToast('Chưa lưu được lộ trình. Vui lòng kiểm tra kết nối mạng!', 'error');
+        }
+    }
+
+    async restoreLastBackup() {
+        if (!confirm('Bạn có chắc muốn khôi phục lại Lộ trình từ Bản sao lưu gần nhất trên máy này?')) return;
+        try {
+            window.hrOnboardingStore.restoreLastRoadmapBackup();
+            this.renderRoadmapTab();
+            this.showToast('Đã khôi phục thành công lộ trình từ bản sao lưu gần nhất!', 'success');
+        } catch (e) {
+            this.showToast('Không thể khôi phục: ' + e.message, 'error');
         }
     }
 
@@ -3894,20 +3905,13 @@ class HrHubApp {
         // Tuyệt đối KHÔNG tự động ghi đè roadmap hoặc mẫu tin nếu người dùng đã có dữ liệu tùy chỉnh.
         if (store.ready.has('roadmap')) {
             const roadmap = store.getRoadmap();
-            const isLegacy = Array.isArray(roadmap) && roadmap.some(d => d.id === 'day-3' && (
-                d.title === 'Phần Mềm Adahub CRM: Tổng quan, tính năng và lợi ích' ||
-                !d.tasks?.some(t => t.id === 'm-306')
-            ));
-            if (((!Array.isArray(roadmap) || roadmap.length === 0) || isLegacy) && !this._roadmapAutoSynced) {
+            if ((!Array.isArray(roadmap) || roadmap.length === 0) && !this._roadmapAutoSynced) {
                 this._roadmapAutoSynced = true;
                 try {
-                    const defaultMap = new Map((window.DEFAULT_ONBOARDING_ROADMAP || []).map(d => [d.id, d]));
-                    const next = Array.isArray(roadmap) && roadmap.length > 0
-                        ? roadmap.map(d => (d.id === 'day-3' || d.id === 'day-4' || d.id === 'day-5') ? JSON.parse(JSON.stringify(defaultMap.get(d.id) || d)) : d)
-                        : JSON.parse(JSON.stringify(window.DEFAULT_ONBOARDING_ROADMAP || []));
-                    store.saveRoadmap(next);
+                    const defaultDays = JSON.parse(JSON.stringify(window.DEFAULT_ONBOARDING_ROADMAP || []));
+                    store.saveRoadmap(defaultDays);
                     this.renderRoadmapTab();
-                    console.log('[HrHub] Đã tự động nâng cấp và đồng bộ Lộ trình Ngày 3, 4, 5 mới lên Cloud!');
+                    console.log('[HrHub] Đã khởi tạo Lộ trình đào tạo chuẩn ban đầu!');
                 } catch (e) {
                     console.warn('[HrHub] Lỗi khởi tạo roadmap mặc định:', e);
                 }

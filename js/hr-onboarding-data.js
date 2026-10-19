@@ -737,20 +737,18 @@ class HrOnboardingStore {
         // Nạp dữ liệu cache cục bộ an toàn nếu có (chống mất mát khi rớt mạng hoặc chưa đồng bộ xong)
         try {
             const cachedRoadmap = localStorage.getItem('etron_hr_cached_roadmap');
-            const cachedVersion = Number(localStorage.getItem('etron_hr_cached_roadmap_version')) || 0;
             if (cachedRoadmap) {
                 const parsed = JSON.parse(cachedRoadmap);
-                const isLegacy = !cachedVersion || cachedVersion < CURRENT_ROADMAP_VERSION || (
-                    Array.isArray(parsed) && parsed.some(d => d.id === 'day-3' && (
-                        d.title === 'Phần Mềm Adahub CRM: Tổng quan, tính năng và lợi ích' ||
-                        !d.tasks?.some(t => t.id === 'm-306')
-                    ))
-                );
-                if (!isLegacy && Array.isArray(parsed) && parsed.length > 0) {
+                if (Array.isArray(parsed) && parsed.length > 0) {
                     this.roadmap = this.sanitizeRoadmap(parsed);
-                } else {
-                    localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
-                    localStorage.setItem('etron_hr_cached_roadmap_version', String(CURRENT_ROADMAP_VERSION));
+                }
+            } else {
+                const backupRoadmap = localStorage.getItem('etron_hr_roadmap_backup_last');
+                if (backupRoadmap) {
+                    const parsed = JSON.parse(backupRoadmap);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        this.roadmap = this.sanitizeRoadmap(parsed);
+                    }
                 }
             }
         } catch (_) {}
@@ -858,9 +856,23 @@ class HrOnboardingStore {
         this.roadmap = days;
         const now = Date.now();
         try {
+            // Lưu bản backup an toàn trước khi ghi đè
+            const prev = localStorage.getItem('etron_hr_cached_roadmap');
+            if (prev) {
+                localStorage.setItem('etron_hr_roadmap_backup_last', prev);
+                localStorage.setItem('etron_hr_roadmap_backup_last_time', String(now));
+            }
             localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(days));
             localStorage.setItem('etron_hr_cached_roadmap_version', String(CURRENT_ROADMAP_VERSION));
             localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(now));
+
+            // Lưu lịch sử 5 lần sửa đổi gần nhất
+            try {
+                const history = JSON.parse(localStorage.getItem('etron_hr_roadmap_history') || '[]');
+                history.unshift({ time: now, count: days.length, days });
+                if (history.length > 5) history.length = 5;
+                localStorage.setItem('etron_hr_roadmap_history', JSON.stringify(history));
+            } catch (_) {}
         } catch (_) {}
         if (window.firebaseDb) {
             const payload = {
@@ -881,6 +893,16 @@ class HrOnboardingStore {
                 });
         }
         this.notifyChange('roadmap');
+    }
+
+    restoreLastRoadmapBackup() {
+        if (!this.isHr()) throw new Error('Chỉ tài khoản HR mới có quyền khôi phục lộ trình.');
+        const backup = localStorage.getItem('etron_hr_roadmap_backup_last');
+        if (!backup) throw new Error('Chưa có bản sao lưu trước đó trong bộ nhớ máy này.');
+        const parsed = JSON.parse(backup);
+        if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('Bản sao lưu không hợp lệ.');
+        this.saveRoadmap(parsed);
+        return true;
     }
     getCandidates() { return this.isHr() ? this.privateData.candidates : []; }
     getCandidateById(id) {
@@ -1067,50 +1089,22 @@ class HrOnboardingStore {
                     try { localStorage.setItem('etron_onboard_slug_tokens', JSON.stringify(cloudData.slugTokens)); } catch (_) {}
                     this.notifyChange('slugTokens');
                 }
-                if (Array.isArray(cloudData.days)) {
-                    const cloudVersion = Number(cloudData.roadmapVersion) || 0;
-                    const isLegacyCloudData = cloudVersion < CURRENT_ROADMAP_VERSION &&
-                        cloudData.days.some(d => d.id === 'day-3' && (
-                            d.title === 'Phần Mềm Adahub CRM: Tổng quan, tính năng và lợi ích' ||
-                            !d.tasks?.some(t => t.id === 'm-306')
-                        ));
+                if (Array.isArray(cloudData.days) && cloudData.days.length > 0) {
+                    const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
+                    let localUpdatedAt = 0;
+                    try {
+                        localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
+                    } catch (_) {}
 
-                    if (isLegacyCloudData) {
-                        const defaultMap = new Map(DEFAULT_ONBOARDING_ROADMAP.map(d => [d.id, d]));
-                        const upgradedDays = cloudData.days.map(d => {
-                            if (d.id === 'day-3' || d.id === 'day-4' || d.id === 'day-5') {
-                                return JSON.parse(JSON.stringify(defaultMap.get(d.id) || d));
-                            }
-                            return d;
-                        });
-                        this.roadmap = this.sanitizeRoadmap(upgradedDays);
-                        const now = Date.now();
+                    const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
+                    if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
+                        this.roadmap = this.sanitizeRoadmap(cloudData.days);
                         try {
                             localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
-                            localStorage.setItem('etron_hr_cached_roadmap_version', String(CURRENT_ROADMAP_VERSION));
-                            localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(now));
+                            if (cloudUpdatedAt) {
+                                localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
+                            }
                         } catch (_) {}
-                        if (this.isHr()) {
-                            this.saveRoadmap(this.roadmap);
-                        }
-                    } else {
-                        const cloudUpdatedAt = Number(cloudData.updatedAt) || 0;
-                        let localUpdatedAt = 0;
-                        try {
-                            localUpdatedAt = Number(localStorage.getItem('etron_hr_cached_roadmap_updated_at')) || 0;
-                        } catch (_) {}
-
-                        const isStaleCloudSnapshot = localUpdatedAt > 0 && cloudUpdatedAt > 0 && cloudUpdatedAt < localUpdatedAt;
-                        if (!doc.metadata?.hasPendingWrites && !isStaleCloudSnapshot) {
-                            this.roadmap = this.sanitizeRoadmap(cloudData.days);
-                            try {
-                                localStorage.setItem('etron_hr_cached_roadmap', JSON.stringify(this.roadmap));
-                                localStorage.setItem('etron_hr_cached_roadmap_version', String(cloudVersion || CURRENT_ROADMAP_VERSION));
-                                if (cloudUpdatedAt) {
-                                    localStorage.setItem('etron_hr_cached_roadmap_updated_at', String(cloudUpdatedAt));
-                                }
-                            } catch (_) {}
-                        }
                     }
                 }
             } else if (!doc.exists && this.isHr()) {
