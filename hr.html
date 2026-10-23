@@ -34,7 +34,7 @@
     <!-- Lucide Icons -->
     <script src="js/lucide.min.js"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261020_v100">
+    <link rel="stylesheet" href="css/styles.css?v=20261023_v101">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -297,51 +297,39 @@
                 <div class="space-y-1">
                     <h2 class="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
                         <i data-lucide="map" class="w-5 h-5 text-indigo-600"></i>
-                        <span>Thiết Kế Lộ Trình & Gắn Tài Liệu Onboard Cho Nhân Sự Mới</span>
+                        <span>Lộ Trình Chung (Khung Mẫu Onboard)</span>
                     </h2>
                     <p class="text-xs text-slate-500">
-                        Mọi thay đổi và tài liệu bạn gắn tại đây sẽ tự động cập nhật ngay lập tức trên trang <strong>Cổng Onboard của Nhân sự mới</strong>.
+                        Đây là lộ trình mẫu. Mỗi hồ sơ nhân sự <strong>tạo mới</strong> sẽ tự sao chép lộ trình này, sau đó bạn có thể chỉnh riêng cho từng bạn trong hồ sơ. Sửa ở đây <strong>không ảnh hưởng</strong> lộ trình của các bạn đã tạo trước đó.
                     </p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 shrink-0">
-                    <button type="button" onclick="window.hrHub.autoFillRoadmapDates()"
-                        class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
-                        title="Tự động điền ngày đào tạo (Thứ 2 đến Thứ 6)"
-                        aria-label="Tự động điền ngày đào tạo (Thứ 2 đến Thứ 6)">
-                        <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-600"></i>
-                    </button>
-                    <button type="button" onclick="window.hrHub.clearRoadmapDates()"
-                        class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
-                        title="Xóa các ngày cố định"
-                        aria-label="Xóa các ngày cố định">
-                        <i data-lucide="calendar-x" class="w-4 h-4"></i>
-                    </button>
                     <a href="onboard.html" target="_blank"
                         class="w-9 h-9 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
                         title="Xem trước giao diện Onboard mẫu"
                         aria-label="Xem trước giao diện Onboard mẫu">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </a>
-                    <button type="button" onclick="window.hrHub.toggleAllRoadmapDays()"
+                    <button type="button" onclick="window.hrHub.withScope(null).toggleAllRoadmapDays()"
                         class="w-9 h-9 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
                         title="Thu gọn hoặc mở rộng toàn bộ các ngày học"
                         aria-label="Thu gọn hoặc mở rộng toàn bộ các ngày học">
                         <i data-lucide="fold-vertical" class="w-4 h-4 text-slate-600"></i>
                     </button>
-                    <button type="button" onclick="window.hrHub.restoreLastBackup()"
+                    <button type="button" onclick="window.hrHub.withScope(null).restoreLastBackup()"
                         class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
                         title="Khôi phục từ Bản sao lưu gần nhất trên máy"
                         aria-label="Khôi phục từ Bản sao lưu gần nhất trên máy">
                         <i data-lucide="history" class="w-4 h-4 text-slate-600"></i>
                     </button>
-                    <button type="button" onclick="window.hrHub.resetRoadmapToDefault()"
+                    <button type="button" onclick="window.hrHub.withScope(null).resetRoadmapToDefault()"
                         class="w-9 h-9 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
                         title="Khôi phục toàn bộ Lộ trình 8 Ngày Chuẩn Etron"
                         aria-label="Khôi phục toàn bộ Lộ trình 8 Ngày Chuẩn Etron">
                         <i data-lucide="rotate-ccw" class="w-4 h-4 text-amber-600"></i>
                     </button>
-                    <button type="button" onclick="window.hrHub.openRoadmapDayModal()"
+                    <button type="button" onclick="window.hrHub.withScope(null).openRoadmapDayModal()"
                         class="h-9 px-2.5 sm:px-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 shrink-0"
                         title="Thêm Ngày Onboard"
                         aria-label="Thêm Ngày Onboard">
@@ -532,9 +520,9 @@
                             <i data-lucide="calendar" class="w-3.5 h-3.5 text-emerald-600"></i>
                             <span>Ngày bắt đầu Onboard *</span>
                         </label>
-                        <input type="date" id="hr-cand-start" required onchange="window.hrHub.handleCandStartDateChange(this.value)"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium">
-                        <p class="text-[10px] text-slate-400 mt-1">ETRON HCM làm việc Thứ 2 – Thứ 6 (trừ T7 & CN)</p>
+                        <input type="date" id="hr-cand-start" required onclick="window.hrHub.openDatePicker(this)" onchange="window.hrHub.handleCandStartDateChange(this.value)"
+                            class="hr-date-input w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium cursor-pointer">
+                        <p class="text-[10px] text-slate-400 mt-1">Lịch onboard gợi ý theo ngày này (T2 – T6), có thể chỉnh từng ngày trong hồ sơ.</p>
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-1">
@@ -543,15 +531,16 @@
                                 <i data-lucide="sparkles" class="w-3 h-3"></i> Tự tính
                             </button>
                         </div>
-                        <input type="date" id="hr-cand-deadline" class="w-full px-3 py-2 border border-slate-200 rounded-xl">
+                        <input type="date" id="hr-cand-deadline" onclick="window.hrHub.openDatePicker(this)" onchange="this.dataset.autoFilled='false'"
+                            class="hr-date-input w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium cursor-pointer">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1.5">
                             <i data-lucide="cake" class="w-3.5 h-3.5 text-pink-500"></i>
                             <span>Ngày tháng năm sinh (Sinh nhật)</span>
                         </label>
-                        <input type="date" id="hr-cand-dob"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium">
+                        <input type="date" id="hr-cand-dob" onclick="window.hrHub.openDatePicker(this)"
+                            class="hr-date-input w-full px-3 py-2 border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-500 font-medium cursor-pointer">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Số điện thoại / Zalo</label>
@@ -610,19 +599,11 @@
                 </button>
             </div>
             <form onsubmit="window.hrHub.handleSaveRoadmapDay(event)" class="p-5 overflow-y-auto space-y-3.5 text-xs flex-1">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Nhãn Ngày *</label>
                         <input type="text" id="hr-day-number" required placeholder="VD: Ngày 1"
                             class="w-full px-3 py-2 border border-slate-200 rounded-xl font-bold">
-                    </div>
-                    <div>
-                        <label class="block font-bold text-slate-700 mb-1 flex items-center gap-1 text-slate-700">
-                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
-                            <span>Ngày cụ thể (Lịch)</span>
-                        </label>
-                        <input type="date" id="hr-day-date"
-                            class="w-full px-3 py-2 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
                         <label class="block font-bold text-slate-700 mb-1">Khung thời gian</label>
@@ -1204,7 +1185,7 @@
     <!-- Scripts -->
     <script src="js/store.js?v=20261018_v89"></script>
     <script src="js/document-hub.js?v=20261018_v90"></script>
-    <script src="js/hr-onboarding-data.js?v=20261019_v99"></script>
+    <script src="js/hr-onboarding-data.js?v=20261023_v101"></script>
     <script>
         window.salesApp = {
             showNotification(msg, type = 'info') {
@@ -1215,6 +1196,6 @@
         };
     </script>
     <script src="js/hr-auth.js?v=20261019_v99"></script>
-    <script src="js/hr-hub.js?v=20261020_v100"></script>
+    <script src="js/hr-hub.js?v=20261023_v101"></script>
 </body>
 </html>

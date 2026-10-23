@@ -203,7 +203,8 @@ class OnboardingViewer {
         const sub = submissions[taskId];
         if (!sub) return;
 
-        const roadmap = this.getRoadmap();
+        const viewerCandidate = this.candidateId ? window.hrOnboardingStore?.getCandidateById(this.candidateId) : null;
+        const roadmap = this.getEffectiveRoadmap(viewerCandidate);
         const allTasks = roadmap.flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
         const match = allTasks.find(x => x.task.id === taskId);
         const taskTitle = match ? match.task.title : taskId;
@@ -261,15 +262,13 @@ class OnboardingViewer {
     }
 
     getEffectiveRoadmap(candidate) {
-        const liveRoadmap = window.hrOnboardingStore?.getRoadmap() || [];
-        // Ưu tiên hiển thị lộ trình chung mới nhất từ Cloud để mọi cập nhật của HR hiển thị ngay lập tức
-        if (Array.isArray(liveRoadmap) && liveRoadmap.length > 0) {
-            return liveRoadmap;
-        }
+        // Link cá nhân: luôn ưu tiên lộ trình riêng HR đã thiết kế cho nhân sự này
         if (candidate && Array.isArray(candidate.customRoadmap) && candidate.customRoadmap.length > 0) {
             return candidate.customRoadmap;
         }
-        return [];
+        // Không có lộ trình riêng (trang Onboard chung / link cũ): dùng Lộ trình chung mới nhất từ Cloud
+        const liveRoadmap = window.hrOnboardingStore?.getRoadmap() || [];
+        return Array.isArray(liveRoadmap) ? liveRoadmap : [];
     }
 
     toggleAllDays(collapseAll = false) {

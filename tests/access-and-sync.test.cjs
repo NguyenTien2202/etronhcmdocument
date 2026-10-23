@@ -269,12 +269,39 @@ test('getPublicOnboardUrl includes candidate name, cleanAddressBarUrl hides toke
     assert.equal(cand.checklist[0].title, 'Nộp CCCD 2 mặt kèm thẻ BHYT');
 });
 
-test('moveTaskUp, moveTaskDown, moveRoadmapDayUp, moveRoadmapDayDown and insert day in middle work and recalculate dates', () => {
+function hrHubHarness(store, extraWindow = {}) {
+    const mockStorage = new Map();
+    const context = vm.createContext({
+        window: {
+            location: new URL('http://localhost/hr.html'),
+            history: { replaceState() {} },
+            hrOnboardingStore: store,
+            sessionStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
+            localStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
+            lucide: { createIcons: () => {} },
+            ...extraWindow,
+        },
+        document: { addEventListener: () => {}, getElementById: () => null },
+        confirm: () => true,
+        alert: () => {},
+        URL,
+        URLSearchParams,
+        Intl,
+        console
+    });
+    vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
+    const hrHub = context.window.hrHub;
+    hrHub.showToast = () => {};
+    hrHub.renderRoadmapTab = () => {};
+    hrHub.renderCandidatesTab = () => {};
+    return { hrHub, context };
+}
+
+test('shared roadmap: move tasks/days and insert day renumber days and never keep fixed dates', () => {
     const { store } = storeHarness(true);
     store.ready.add('roadmap');
 
-    // Setup initial 3 days starting on Monday 2026-10-19
-    const initialDays = [
+    store.roadmap = [
         { id: 'day-1', dayNumber: 'Ngày 1', date: '2026-10-19', title: 'Hội nhập', tasks: [
             { id: 'task-1', title: 'Văn hóa Etron' },
             { id: 'task-2', title: 'Quy trình công ty' },
@@ -287,67 +314,37 @@ test('moveTaskUp, moveTaskDown, moveRoadmapDayUp, moveRoadmapDayDown and insert 
             { id: 'task-31', title: 'Quản lý Lead' }
         ] }
     ];
-    store.roadmap = initialDays;
+    const { hrHub, context } = hrHubHarness(store);
 
-    const mockStorage = new Map();
-    const context = vm.createContext({
-        window: {
-            location: new URL('http://localhost/hr.html'),
-            history: { replaceState() {} },
-            hrOnboardingStore: store,
-            sessionStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
-            localStorage: { getItem: k => mockStorage.get(k) || null, setItem: (k, v) => mockStorage.set(k, v) },
-            lucide: { createIcons: () => {} }
-        },
-        document: { addEventListener: () => {}, getElementById: () => null },
-        URL,
-        URLSearchParams,
-        console
-    });
-
-    vm.runInContext(fs.readFileSync('js/hr-hub.js', 'utf8'), context);
-    const hrHub = context.window.hrHub;
-    hrHub.showToast = () => {};
-    hrHub.renderRoadmapTab = () => {};
-
-    // 1. Test moveTaskDown: Move task-1 down
+    // 1. moveTaskDown / moveTaskUp
     hrHub.moveTaskDown('day-1', 'task-1');
-    const day1Tasks = store.getRoadmap().find(d => d.id === 'day-1').tasks;
+    let day1Tasks = store.getRoadmap().find(d => d.id === 'day-1').tasks;
     assert.equal(day1Tasks[0].id, 'task-2');
     assert.equal(day1Tasks[1].id, 'task-1');
-
-    // 2. Test moveTaskUp: Move task-1 back up
     hrHub.moveTaskUp('day-1', 'task-1');
-    const day1TasksAfterUp = store.getRoadmap().find(d => d.id === 'day-1').tasks;
-    assert.equal(day1TasksAfterUp[0].id, 'task-1');
-    assert.equal(day1TasksAfterUp[1].id, 'task-2');
+    day1Tasks = store.getRoadmap().find(d => d.id === 'day-1').tasks;
+    assert.equal(day1Tasks[0].id, 'task-1');
+    assert.equal(day1Tasks[1].id, 'task-2');
 
-    // 3. Test moveRoadmapDayDown: Move Day 1 down
+    // 2. moveRoadmapDayDown renumbers; shared roadmap is a template without fixed dates
     hrHub.moveRoadmapDayDown('day-1');
-    const roadmapAfterDayMove = store.getRoadmap();
-    assert.equal(roadmapAfterDayMove[0].id, 'day-2');
-    assert.equal(roadmapAfterDayMove[0].dayNumber, 'Ngày 1');
-    assert.equal(roadmapAfterDayMove[0].date, '2026-10-19'); // Monday
+    const afterMove = store.getRoadmap();
+    assert.equal(afterMove[0].id, 'day-2');
+    assert.equal(afterMove[0].dayNumber, 'Ngày 1');
+    assert.equal(afterMove[1].id, 'day-1');
+    assert.equal(afterMove[1].dayNumber, 'Ngày 2');
+    assert.ok(afterMove.every(d => !d.date));
 
-    assert.equal(roadmapAfterDayMove[1].id, 'day-1');
-    assert.equal(roadmapAfterDayMove[1].dayNumber, 'Ngày 2');
-    assert.equal(roadmapAfterDayMove[1].date, '2026-10-20'); // Tuesday
+    // 3. reindexRoadmapDays helper still skips weekends when given a start date
+    const sample = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+    hrHub.reindexRoadmapDays(sample, '2026-10-23');
+    assert.deepEqual(sample.map(d => d.date), ['2026-10-23', '2026-10-26', '2026-10-27']);
 
-    // 4. Test reindexRoadmapDays with weekend skipping
-    // Start on Friday 2026-10-23
-    store.roadmap[0].date = '2026-10-23';
-    hrHub.reindexRoadmapDays(store.roadmap);
-    assert.equal(store.roadmap[0].date, '2026-10-23'); // Friday
-    assert.equal(store.roadmap[1].date, '2026-10-26'); // Next Monday (skips Sat 24, Sun 25)
-    assert.equal(store.roadmap[2].date, '2026-10-27'); // Next Tuesday
-
-    // 5. Test inserting day in middle (between index 0 and 1)
+    // 4. Insert a day in the middle
     hrHub.insertRoadmapDayIndex = 1;
-    // Mock modal form values
     const domValues = {
         'hr-day-number': 'Ngày 2',
         'hr-day-title': 'Chuyên đề AI đặc biệt',
-        'hr-day-date': '',
         'hr-day-duration': '08:30 – 17:30',
         'hr-day-trainer': 'Nguyễn Thủy Tiên',
         'hr-day-goal': 'Hiểu AI',
@@ -355,22 +352,72 @@ test('moveTaskUp, moveTaskDown, moveRoadmapDayUp, moveRoadmapDayDown and insert 
         'hr-day-note': '',
         'hr-day-tasks': 'Thực hành Prompt Engineering'
     };
-    context.document.getElementById = (id) => ({
-        value: domValues[id] || '',
-        classList: { add() {}, remove() {} }
-    });
+    context.document.getElementById = (id) => ({ value: domValues[id] || '', classList: { add() {}, remove() {} } });
     hrHub.closeRoadmapDayModal = () => {};
     hrHub.handleSaveRoadmapDay({ preventDefault() {} });
 
-    const roadmapAfterInsert = store.getRoadmap();
-    assert.equal(roadmapAfterInsert.length, 4);
-    assert.equal(roadmapAfterInsert[1].title, 'Chuyên đề AI đặc biệt');
-    assert.equal(roadmapAfterInsert[1].dayNumber, 'Ngày 2');
-    assert.equal(roadmapAfterInsert[1].date, '2026-10-26'); // Monday
-    assert.equal(roadmapAfterInsert[2].dayNumber, 'Ngày 3');
-    assert.equal(roadmapAfterInsert[2].date, '2026-10-27'); // Tuesday
-    assert.equal(roadmapAfterInsert[3].dayNumber, 'Ngày 4');
-    assert.equal(roadmapAfterInsert[3].date, '2026-10-28'); // Wednesday
+    const afterInsert = store.getRoadmap();
+    assert.equal(afterInsert.length, 4);
+    assert.equal(afterInsert[1].title, 'Chuyên đề AI đặc biệt');
+    assert.deepEqual(afterInsert.map(d => d.dayNumber), ['Ngày 1', 'Ngày 2', 'Ngày 3', 'Ngày 4']);
+    assert.ok(afterInsert.every(d => !d.date));
+});
+
+const assertSame = (actual, expected) => assert.deepEqual(JSON.parse(JSON.stringify(actual)), expected);
+test('personal roadmap: edits stay with one candidate, dates follow position and are stored outside candidates_data', () => {
+    const { store, listeners, writes } = storeHarness(true);
+    store.setupCloudSync();
+    store.ready.add('roadmap');
+    store.roadmap = [
+        { id: 'day-1', dayNumber: 'Ngày 1', title: 'Hội nhập', tasks: [{ id: 'task-1', title: 'Văn hóa' }] },
+        { id: 'day-2', dayNumber: 'Ngày 2', title: 'Callbot', tasks: [{ id: 'task-2', title: 'Kịch bản' }] },
+    ];
+    listeners.find(l => l.id === 'candidates_data').next({ exists: true, metadata: { fromCache: false }, data: () => ({ items: [
+        { id: 'c1', fullName: 'Learner One', startDate: '2026-10-22', taskProgress: {} },
+        { id: 'c2', fullName: 'Learner Two', startDate: '2026-10-26', taskProgress: {} },
+    ] }) });
+    // Per-candidate roadmap documents are watched separately
+    const c1Listener = listeners.find(l => l.id === 'cand_roadmap_c1');
+    assert.ok(c1Listener);
+    c1Listener.next({ exists: false, metadata: { fromCache: false } });
+    listeners.find(l => l.id === 'cand_roadmap_c2').next({ exists: false, metadata: { fromCache: false } });
+    assert.ok(store.isCandidateRoadmapReady('c1'));
+
+    const { hrHub } = hrHubHarness(store);
+
+    // Old candidates get a snapshot of the shared roadmap with Mon–Fri dates from their start date
+    hrHub.ensurePersonalRoadmaps();
+    const c1 = store.getCandidates().find(c => c.id === 'c1');
+    assertSame(c1.customRoadmap.map(d => d.date), ['2026-10-22', '2026-10-23']);
+    assert.ok(writes.some(w => w.name === 'hr_config' && w.id === 'cand_roadmap_c1'));
+
+    // Moving days inside a personal roadmap keeps dates attached to positions
+    hrHub.withScope('c1').moveRoadmapDayDown('day-1');
+    assertSame(c1.customRoadmap.map(d => d.id), ['day-2', 'day-1']);
+    assertSame(c1.customRoadmap.map(d => d.date), ['2026-10-22', '2026-10-23']);
+    // Shared roadmap is untouched
+    assertSame(store.getRoadmap().map(d => d.id), ['day-1', 'day-2']);
+
+    // Changing one date can shift the following days (confirm = true), skipping the weekend
+    hrHub.withScope('c1').handleQuickDayDateChange('day-2', '2026-10-23');
+    assertSame(c1.customRoadmap.map(d => d.date), ['2026-10-23', '2026-10-26']);
+
+    // Copy roadmap from another candidate; dates re-suggested from this candidate's start date
+    const c2 = store.getCandidates().find(c => c.id === 'c2');
+    hrHub.copyRoadmapToCandidate('c2', 'c1');
+    assertSame(c2.customRoadmap.map(d => d.id), ['day-2', 'day-1']);
+    assertSame(c2.customRoadmap.map(d => d.date), ['2026-10-26', '2026-10-27']);
+    assert.notEqual(c2.customRoadmap, c1.customRoadmap);
+
+    // candidates_data never stores the heavy personal roadmap or submissions
+    c1.taskSubmissions = { 'task-1': { fileData: 'data:image/png;base64,AAAA' } };
+    store.saveCandidates(store.getCandidates());
+    const saved = writes.filter(w => w.id === 'candidates_data').pop();
+    assert.ok(saved.data.items.every(item => !('customRoadmap' in item) && !('taskSubmissions' in item)));
+
+    // A fresh candidates snapshot keeps the in-memory personal roadmap
+    listeners.find(l => l.id === 'candidates_data').next({ exists: true, metadata: { fromCache: false }, data: () => ({ items: saved.data.items }) });
+    assertSame(store.getCandidates().find(c => c.id === 'c1').customRoadmap.map(d => d.id), ['day-2', 'day-1']);
 });
 
 test('task drag-and-drop reorder and unified attachment modal with 2 tabs', async () => {

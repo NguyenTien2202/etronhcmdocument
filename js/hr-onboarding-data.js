@@ -784,6 +784,13 @@ class HrOnboardingStore {
         } catch (_) {}
         this.ready = new Set();
         this._progressListeners = new Map();
+        // Lộ trình riêng của từng nhân sự: lưu ở tài liệu riêng hr_config/cand_roadmap_{id}
+        // (tránh vượt giới hạn 1MB của tài liệu candidates_data khi số nhân sự tăng lên)
+        this.personalRoadmaps = {};
+        this.personalRoadmapReady = new Set();
+        this._roadmapListeners = new Map();
+        // Bộ nhớ đệm tiến độ học để gắn lại sau mỗi snapshot candidates_data
+        this._progressCache = {};
     }
     cleanActivityText(raw) {
         if (!raw) return '';
@@ -900,6 +907,10 @@ class HrOnboardingStore {
         try {
             const map = this.getSlugTokensMap();
             if (Object.keys(map).length === 0) return;
+            // Chỉ ghi khi bảng slug thực sự thay đổi (tránh ghi lặp mỗi lần nhận snapshot)
+            const mapJson = JSON.stringify(map);
+            if (mapJson === this._lastSyncedSlugJson) return;
+            this._lastSyncedSlugJson = mapJson;
             const days = this.roadmap;
             const now = Date.now();
             await window.firebaseDb.collection('hr_config').doc('onboarding_roadmap').set({
@@ -909,6 +920,7 @@ class HrOnboardingStore {
                 slugTokens: map
             });
         } catch (err) {
+            this._lastSyncedSlugJson = null;
             console.warn('[HrOnboardingStore] Lỗi sync slugTokens:', err);
         }
     }
@@ -971,17 +983,29 @@ class HrOnboardingStore {
     getCandidateById(id) {
         return this.isHr() ? this.getCandidates().find(c => c.id === id) : this.publicCandidate;
     }
+    // Bỏ các trường lớn/đồng bộ từ nơi khác ra khỏi tài liệu candidates_data:
+    // - customRoadmap: lưu riêng tại hr_config/cand_roadmap_{id}
+    // - taskSubmissions: nguồn gốc nằm ở onboarding_progress/{token}
+    toStoredCandidates(list) {
+        return (list || []).map(c => {
+            if (!c || typeof c !== 'object') return c;
+            const { customRoadmap, taskSubmissions, ...rest } = c;
+            return rest;
+        });
+    }
     saveCandidates(list) {
         this.requireHr('candidates');
         this.privateData.candidates = list;
+        const stored = this.toStoredCandidates(list);
         try {
-            localStorage.setItem('etron_hr_cached_candidates', JSON.stringify(list));
+            localStorage.setItem('etron_hr_cached_candidates', JSON.stringify(stored));
         } catch (_) {}
         this.watchProgress(list);
+        this.watchPersonalRoadmaps(list);
         if (this.isHr()) {
             this.syncSlugTokensToCloud();
         }
-        window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: list, updatedAt: Date.now() })
+        window.firebaseDb.collection('hr_config').doc('candidates_data').set({ items: stored, updatedAt: Date.now() })
             .catch(err => {
                 console.error('[HrOnboardingStore] Lỗi lưu danh sách ứng viên lên Cloud:', err);
                 if (window.hrHub?.showToast) {
@@ -1199,7 +1223,9 @@ class HrOnboardingStore {
                 // Never seed/overwrite cloud data automatically on an empty snapshot.
                 if (!doc.metadata?.fromCache) this.ready.add(key);
                 if (key === 'candidates') {
+                    this.rehydrateCandidates(this.privateData.candidates);
                     this.watchProgress(this.privateData.candidates);
+                    this.watchPersonalRoadmaps(this.privateData.candidates);
                     this.syncSlugTokensToCloud();
                 }
                 this.notifyChange(key);
@@ -1216,6 +1242,12 @@ class HrOnboardingStore {
             if (!token || this._progressListeners.has(token)) continue;
             const unsubscribe = window.firebaseDb.collection('onboarding_progress').doc(token).onSnapshot(doc => {
                 const current = this.getCandidates().find(c => c.onboardToken === token);
+                if (doc.exists) {
+                    this._progressCache[token] = {
+                        completedTasks: doc.data().completedTasks || {},
+                        taskSubmissions: doc.data().taskSubmissions || {},
+                    };
+                }
                 if (current && doc.exists) {
                     current.taskProgress = doc.data().completedTasks || {};
                     current.taskSubmissions = doc.data().taskSubmissions || {};
@@ -1226,6 +1258,88 @@ class HrOnboardingStore {
             this._progressListeners.set(token, unsubscribe);
         }
     }
+    // Gắn lại dữ liệu chỉ có trong bộ nhớ (lộ trình riêng, tiến độ, bài nộp) sau khi
+    // danh sách nhân sự được thay mới từ snapshot candidates_data.
+    rehydrateCandidates(candidates) {
+        (candidates || []).forEach(c => {
+            if (!c) return;
+            if (Array.isArray(this.personalRoadmaps[c.id])) c.customRoadmap = this.personalRoadmaps[c.id];
+            const cached = c.onboardToken ? this._progressCache[c.onboardToken] : null;
+            if (cached) {
+                c.taskProgress = cached.completedTasks;
+                c.taskSubmissions = cached.taskSubmissions;
+            }
+        });
+    }
+    personalRoadmapDocId(candidateId) {
+        return 'cand_roadmap_' + String(candidateId).replace(/[^A-Za-z0-9_-]/g, '_');
+    }
+    watchPersonalRoadmaps(candidates) {
+        if (!this.isHr() || !window.firebaseDb) return;
+        const active = new Set((candidates || []).map(c => c && c.id).filter(Boolean));
+        for (const [id, unsubscribe] of this._roadmapListeners) {
+            if (!active.has(id)) {
+                unsubscribe();
+                this._roadmapListeners.delete(id);
+                this.personalRoadmapReady.delete(id);
+                delete this.personalRoadmaps[id];
+            }
+        }
+        for (const candidate of candidates || []) {
+            const id = candidate && candidate.id;
+            if (!id || this._roadmapListeners.has(id)) continue;
+            const ref = window.firebaseDb.collection('hr_config').doc(this.personalRoadmapDocId(id));
+            const unsubscribe = ref.onSnapshot(doc => {
+                const current = this.getCandidates().find(c => c.id === id);
+                const days = doc.exists ? doc.data().days : null;
+                if (Array.isArray(days)) {
+                    this.personalRoadmaps[id] = days;
+                    if (current) current.customRoadmap = days;
+                } else if (current && Array.isArray(current.customRoadmap) && current.customRoadmap.length && !doc.metadata?.fromCache) {
+                    // Dữ liệu cũ còn nằm trong candidates_data: chuyển sang tài liệu riêng
+                    this.personalRoadmaps[id] = current.customRoadmap;
+                    ref.set({ days: current.customRoadmap, updatedAt: Date.now() }).catch(() => {});
+                }
+                if (!doc.metadata?.fromCache) this.personalRoadmapReady.add(id);
+                this.notifyChange('candidate_roadmap');
+            }, () => this.notifyChange('sync_error'));
+            this._roadmapListeners.set(id, unsubscribe);
+        }
+    }
+    isCandidateRoadmapReady(candidateId) {
+        return this.personalRoadmapReady.has(candidateId);
+    }
+    getCandidateRoadmap(candidateId) {
+        const cand = this.getCandidates().find(c => c.id === candidateId);
+        return cand && Array.isArray(cand.customRoadmap) ? cand.customRoadmap : null;
+    }
+    saveCandidateRoadmap(candidateId, days) {
+        this.requireHr('candidates');
+        const cand = this.getCandidates().find(c => c.id === candidateId);
+        if (!cand) throw new Error('Không tìm thấy hồ sơ nhân sự.');
+        const list = Array.isArray(days) ? days : [];
+        cand.customRoadmap = list;
+        this.personalRoadmaps[candidateId] = list;
+        this.personalRoadmapReady.add(candidateId);
+        const write = window.firebaseDb.collection('hr_config').doc(this.personalRoadmapDocId(candidateId))
+            .set({ days: list, updatedAt: Date.now() });
+        if (write && typeof write.catch === 'function') {
+            write.catch(err => {
+                console.error('[HrOnboardingStore] Lỗi lưu lộ trình riêng:', err);
+                if (window.hrHub?.showToast) window.hrHub.showToast('Không thể lưu lộ trình riêng lên Cloud (kiểm tra mạng).', 'error');
+            });
+        }
+        this.notifyChange('candidate_roadmap');
+        return write;
+    }
+    deleteCandidateRoadmap(candidateId) {
+        if (!this.isHr() || !window.firebaseDb) return;
+        delete this.personalRoadmaps[candidateId];
+        this.personalRoadmapReady.delete(candidateId);
+        const unsubscribe = this._roadmapListeners.get(candidateId);
+        if (unsubscribe) { unsubscribe(); this._roadmapListeners.delete(candidateId); }
+        return window.firebaseDb.collection('hr_config').doc(this.personalRoadmapDocId(candidateId)).delete().catch(() => {});
+    }
     stopPrivateSync() {
         this._unsubscribers.forEach(unsubscribe => unsubscribe());
         this._unsubscribers = [];
@@ -1233,6 +1347,12 @@ class HrOnboardingStore {
         this.ready.clear();
         this._progressListeners.forEach(unsubscribe => unsubscribe());
         this._progressListeners.clear();
+        this._roadmapListeners.forEach(unsubscribe => unsubscribe());
+        this._roadmapListeners.clear();
+        this.personalRoadmaps = {};
+        this.personalRoadmapReady.clear();
+        this._progressCache = {};
+        this._lastSyncedSlugJson = null;
         this.privateData = { candidates: [], templates: DEFAULT_HR_TEMPLATES, notes: [] };
         this.personalSubmissions = {};
         this.notifyChange('logout');
