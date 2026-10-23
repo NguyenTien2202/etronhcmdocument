@@ -50,7 +50,8 @@ jobs:
         run: npm run test:rules
 
   browser:
-    runs-on: ubuntu-latest
+    # Ghim Ubuntu 24.04: ubuntu-latest đang chuyển sang Ubuntu 26, Playwright 1.56 chưa hỗ trợ cài deps trên bản này
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
