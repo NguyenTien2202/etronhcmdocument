@@ -25,6 +25,99 @@ class PdfExporter {
         return `${clean}_${ymd}.pdf`;
     }
 
+    // Làm sạch tên file do người dùng nhập (giữ tiếng Việt, bỏ ký tự cấm trên Windows/Mac)
+    sanitizeFilename(name, fallback) {
+        let clean = String(name || '')
+            .replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .replace(/\.pdf$/i, '')
+            .replace(/[. ]+$/, '');
+        if (!clean) clean = String(fallback || 'Bao_Gia_Etron').replace(/\.pdf$/i, '');
+        if (clean.length > 150) clean = clean.slice(0, 150).trim();
+        return clean + '.pdf';
+    }
+
+    // Hộp thoại đặt tên file PDF trước khi tải (Enter = Tải, Esc = Hủy)
+    askFilename(defaultName) {
+        return new Promise(resolve => {
+            const old = document.getElementById('pdf-name-dialog');
+            if (old) old.remove();
+            const base = String(defaultName || '').replace(/\.pdf$/i, '');
+            const overlay = document.createElement('div');
+            overlay.id = 'pdf-name-dialog';
+            overlay.className = 'no-print';
+            overlay.style.cssText = 'position:fixed; inset:0; z-index:90; background:rgba(2,6,23,0.55); display:flex; align-items:center; justify-content:center; padding:16px;';
+            overlay.innerHTML = `
+                <form style="background:#fff; border-radius:18px; padding:20px; width:100%; max-width:440px; box-shadow:0 20px 50px rgba(0,0,0,.3); font-family:inherit;">
+                    <div style="font-weight:800; font-size:15px; color:#0f172a;">Đặt tên file PDF</div>
+                    <div style="font-size:12px; color:#64748b; margin:4px 0 12px;">Nhập tên file bạn muốn lưu (không cần gõ .pdf).</div>
+                    <div style="display:flex; align-items:center; border:1px solid #cbd5e1; border-radius:12px; overflow:hidden;">
+                        <input id="pdf-name-input" type="text" autocomplete="off" spellcheck="false"
+                            style="flex:1; min-width:0; padding:11px 12px; font-size:14px; border:none; outline:none; color:#0f172a;">
+                        <span style="padding:0 12px; font-size:13px; font-weight:700; color:#64748b; background:#f8fafc; align-self:stretch; display:flex; align-items:center; border-left:1px solid #e2e8f0;">.pdf</span>
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+                        <button type="button" id="pdf-name-cancel" style="padding:10px 16px; border-radius:12px; background:#f1f5f9; color:#334155; font-weight:700; font-size:13px; border:none; cursor:pointer;">Hủy</button>
+                        <button type="submit" style="padding:10px 18px; border-radius:12px; background:#059669; color:#fff; font-weight:700; font-size:13px; border:none; cursor:pointer;">Tải PDF</button>
+                    </div>
+                </form>`;
+            const input = overlay.querySelector('#pdf-name-input');
+            input.value = base;
+            const finish = (value) => {
+                document.removeEventListener('keydown', onKey, true);
+                overlay.remove();
+                resolve(value);
+            };
+            const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); finish(null); } };
+            overlay.querySelector('form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                finish(this.sanitizeFilename(input.value, base));
+            });
+            overlay.querySelector('#pdf-name-cancel').addEventListener('click', () => finish(null));
+            overlay.addEventListener('click', (e) => { if (e.target === overlay) finish(null); });
+            document.addEventListener('keydown', onKey, true);
+            document.body.appendChild(overlay);
+            setTimeout(() => { input.focus(); input.select(); }, 30);
+        });
+    }
+
+    /**
+     * Kẻ lưới bảng đúng 0.5pt cho file PDF.
+     * Trình duyệt luôn làm tròn viền nhỏ hơn 1px lên 1px (= 0.75pt), nên khi xuất PDF ta ẩn màu viền
+     * (giữ nguyên bố cục) và vẽ từng đường kẻ bằng thẻ mỏng 0.667px (= 0.5pt) nằm giữa dải viền cũ.
+     * Mỗi cạnh chỉ vẽ 1 lần theo quy ước CSS (phải + dưới, cột đầu thêm trái, dòng đầu thêm trên) → nét đều nhau.
+     */
+    applyHairlineGrid(container, lineWidthPx = 2 / 3) {
+        if (!container) return;
+        if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
+        const cRect = container.getBoundingClientRect();
+        const lines = [];
+        const cells = Array.from(container.querySelectorAll('table th, table td'));
+        cells.forEach(cell => {
+            const cs = getComputedStyle(cell);
+            const r = cell.getBoundingClientRect();
+            const L = r.left - cRect.left, T = r.top - cRect.top, R = r.right - cRect.left, B = r.bottom - cRect.top;
+            const w = side => (cs[`border${side}Style`] !== 'none' ? parseFloat(cs[`border${side}Width`]) || 0 : 0);
+            const top = w('Top'), right = w('Right'), bottom = w('Bottom'), left = w('Left');
+            const half = lineWidthPx / 2;
+            if (right) lines.push([R - right / 2 - half, T, lineWidthPx, B - T]);
+            if (left) lines.push([L + left / 2 - half, T, lineWidthPx, B - T]);
+            if (bottom) lines.push([L, B - bottom / 2 - half, R - L, lineWidthPx]);
+            if (top) lines.push([L, T + top / 2 - half, R - L, lineWidthPx]);
+        });
+        if (!lines.length) return;
+        cells.forEach(cell => cell.style.setProperty('border-color', 'transparent', 'important'));
+        const layer = document.createElement('div');
+        layer.style.cssText = 'position:absolute; left:0; top:0; width:0; height:0; pointer-events:none;';
+        lines.forEach(([x, y, lw, lh]) => {
+            const d = document.createElement('div');
+            d.style.cssText = `position:absolute; left:${x}px; top:${y}px; width:${lw}px; height:${lh}px; background:#000000;`;
+            layer.appendChild(d);
+        });
+        container.appendChild(layer);
+    }
+
     // Tạo tờ A4 sạch dành riêng cho xuất PDF (đặt trong khung tạm nằm ngoài màn hình)
     createExportSheet() {
         const host = document.createElement('div');
@@ -127,7 +220,8 @@ class PdfExporter {
             return;
         }
 
-        const filename = this.buildFilename(quoteNumber);
+        const filename = await this.askFilename(this.buildFilename(quoteNumber));
+        if (!filename) return; // Người dùng bấm Hủy
         const mobile = this.isMobileDevice();
         this.isExporting = true;
         this.setBusy(true);
@@ -148,12 +242,18 @@ class PdfExporter {
                 new Promise(res => setTimeout(res, 150))
             ]);
 
+            // Độ nét: chụp ở độ phân giải cao để nét kẻ 0.5pt sắc và đều (giới hạn theo bộ nhớ, điện thoại thấp hơn)
+            const cssW = sheet.offsetWidth || 794;
+            const cssH = Math.max(sheet.scrollHeight || 0, 1123);
+            const maxPixels = mobile ? 16000000 : 48000000;
+            const renderScale = Math.max(2, Math.min(4, Math.sqrt(maxPixels / (cssW * cssH))));
+
             const opt = {
                 margin: [10, 0, 12, 0], // mm: trên, phải, dưới, trái
                 filename: filename,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: {
-                    scale: 2,
+                    scale: renderScale,
                     useCORS: true,
                     logging: false,
                     backgroundColor: '#ffffff',
@@ -166,6 +266,17 @@ class PdfExporter {
             };
 
             const worker = window.html2pdf().set(opt).from(sheet);
+            // Sau khi html2pdf chèn khoảng đệm ngắt trang (thẻ div ngay trước dòng bị đẩy sang trang mới),
+            // đánh dấu dòng đó để vẽ thêm cạnh trên → bảng ở trang mới luôn có viền trên
+            await worker.toContainer();
+            const container = worker.prop && worker.prop.container;
+            if (container) {
+                container.querySelectorAll('tr').forEach(tr => {
+                    const prev = tr.previousElementSibling;
+                    if (prev && prev.tagName === 'DIV') tr.classList.add('pdf-page-start');
+                });
+                this.applyHairlineGrid(container);
+            }
             if (mobile) {
                 // Điện thoại chặn tự tải sau khi xử lý lâu -> tạo file trước, người dùng bấm tải sau
                 const blob = await worker.outputPdf('blob');

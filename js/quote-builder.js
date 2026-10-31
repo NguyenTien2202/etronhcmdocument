@@ -2216,9 +2216,10 @@ class QuoteBuilder {
             `<img src="${logoSrc}" alt="Etron Solutions" style="height: 46px; width: auto; max-width: 190px; object-fit: contain; display: block;">` : 
             `<div style="font-size: 26px; font-weight: 900; color: #1e3a8a; letter-spacing: -0.5px;">etron</div>`;
 
-        // ===== Bộ style chuẩn: Times New Roman 12pt, viền đen mảnh 1px (0.75pt), dòng thoáng =====
+        // ===== Bộ style chuẩn: Times New Roman 12pt, viền đen 0.5pt, dòng thoáng =====
+        // Mỗi ô chỉ vẽ cạnh phải + dưới (cạnh trái/trên của bảng do CSS .a4-sheet bổ sung) → nét đều nhau
         const FONT = `font-family: 'Times New Roman', Times, serif; color: #000000;`;
-        const BORDER = `border: 1px solid #000000;`;
+        const BORDER = `border-right: 0.5pt solid #000000; border-bottom: 0.5pt solid #000000;`;
         const TH = `${BORDER} padding: 7px 8px; text-align: center; vertical-align: middle; font-weight: bold;`;
         const TD = `${BORDER} padding: 6px 8px; vertical-align: middle; font-weight: normal; line-height: 1.4;`;
         const TF_LABEL = `${BORDER} padding: 7px 8px; text-align: right; font-weight: bold; vertical-align: middle;`;
@@ -2397,7 +2398,7 @@ class QuoteBuilder {
                 ${renderFullHeader()}
                 ${renderTitleAndCustomer()}
                 <div style="margin-bottom: 4px;">
-                    <table style="width: 100%; border-collapse: collapse; border: none; font-size: 12pt; ${FONT}">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; border: none; font-size: 12pt; ${FONT}">
                         ${renderTableHeader()}
                         <tbody>
                             ${renderItemRows(items, 0)}

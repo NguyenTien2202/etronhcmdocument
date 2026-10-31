@@ -77,19 +77,35 @@ body {
     flex-shrink: 0;           /* giấy trắng luôn cao theo nội dung, không bị ép về 297mm */
 }
 
-/* Viền bảng: đen, mảnh 1px (= 0.75pt) */
+/* Viền bảng: đen 0.5pt, đều nhau tuyệt đối.
+   Mỗi đường kẻ chỉ được vẽ ĐÚNG 1 LẦN (trước đây cạnh chung giữa 2 ô bị vẽ 2 lần nên nét trong đậm hơn viền ngoài):
+   - Mọi ô: cạnh phải + cạnh dưới
+   - Cột đầu: thêm cạnh trái; dòng đầu bảng: thêm cạnh trên
+   - Dòng đầu tiên của trang mới khi xuất PDF (.pdf-page-start): thêm cạnh trên để bảng không bị hở */
 .a4-sheet table {
-    border-collapse: collapse !important;
-    border: none !important; /* viền ngoài do các ô tự tạo, tránh khung trống khi ngắt trang PDF */
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    border: none !important;
     width: 100% !important;
     font-family: 'Times New Roman', Times, serif !important;
 }
 
-.a4-sheet th, 
+.a4-sheet th,
 .a4-sheet td {
-    border: 1px solid #000000 !important;
+    border: 0 !important;
+    border-right: 0.5pt solid #000000 !important;
+    border-bottom: 0.5pt solid #000000 !important;
     color: #000000 !important;
     font-family: 'Times New Roman', Times, serif !important;
+}
+
+.a4-sheet tr > :first-child {
+    border-left: 0.5pt solid #000000 !important;
+}
+
+.a4-sheet table > :first-child > tr:first-child > *,
+.a4-sheet tr.pdf-page-start > * {
+    border-top: 0.5pt solid #000000 !important;
 }
 
 .a4-sheet hr,
