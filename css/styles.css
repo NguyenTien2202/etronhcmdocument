@@ -542,3 +542,57 @@ body.modal-open-lock {
     background-color: #f5f7ff !important;
 }
 
+/* ===== Thông báo pastel ở giữa phía trên màn hình (js/toast.js) ===== */
+.pastel-toast-stack {
+    position: fixed;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2147483000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: min(460px, calc(100vw - 24px));
+    pointer-events: none;
+}
+.pastel-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+    padding: 9px 10px 9px 12px;
+    border-radius: 14px;
+    border: 1px solid;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    box-shadow: 0 10px 28px -12px rgba(15, 23, 42, 0.25), 0 2px 6px -2px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    transform: translateY(-12px) scale(0.98);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.pastel-toast.is-visible { opacity: 1; transform: translateY(0) scale(1); }
+.pastel-toast__icon {
+    width: 24px; height: 24px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.pastel-toast__text { flex: 1; min-width: 0; word-break: break-word; }
+.pastel-toast__close {
+    flex-shrink: 0; width: 22px; height: 22px; border-radius: 8px; border: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; color: inherit; opacity: 0.55; cursor: pointer;
+}
+.pastel-toast__close:hover { opacity: 1; background: rgba(255, 255, 255, 0.6); }
+.pastel-toast--success { background: rgba(236, 253, 245, 0.96); border-color: #a7f3d0; color: #065f46; }
+.pastel-toast--success .pastel-toast__icon { background: #d1fae5; color: #059669; }
+.pastel-toast--error { background: rgba(255, 241, 242, 0.97); border-color: #fecdd3; color: #9f1239; }
+.pastel-toast--error .pastel-toast__icon { background: #ffe4e6; color: #e11d48; }
+.pastel-toast--warning { background: rgba(255, 251, 235, 0.97); border-color: #fde68a; color: #92400e; }
+.pastel-toast--warning .pastel-toast__icon { background: #fef3c7; color: #d97706; }
+.pastel-toast--info { background: rgba(238, 242, 255, 0.97); border-color: #c7d2fe; color: #3730a3; }
+.pastel-toast--info .pastel-toast__icon { background: #e0e7ff; color: #4f46e5; }
+@media print { .pastel-toast-stack { display: none !important; } }

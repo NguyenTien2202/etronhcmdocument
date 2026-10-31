@@ -37,13 +37,18 @@ const CALLBOT_DISCOUNT_LABELS = {
 
 // Mức ưu đãi, chiết khấu (đ/block 6s) — gói từ CB5 trở lên bắt đầu được chiết khấu
 const CALLBOT_PACKAGES = {
-    cb2:   { code: 'CB-2',   name: 'CB2',   tier: 'Sale',       price: 2000000,   duration: '45 ngày',  months: 1,  scripts: 0, recordings: 0, crmAccounts: 1,  firstTwoOnly: false, discounts: { call: 0,   voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
+    cb2:   { code: 'CB-2',   name: 'CB2',   tier: 'Sale',       price: 2000000,   duration: '2 tháng',  months: 2,  scripts: 0, recordings: 0, crmAccounts: 1,  firstTwoOnly: false, discounts: { call: 0,   voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
     cb5:   { code: 'CB-5',   name: 'CB5',   tier: 'Sale',       price: 5000000,   duration: '3 tháng',  months: 3,  scripts: 1, recordings: 1, crmAccounts: 1,  firstTwoOnly: true,  discounts: { call: -10, voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
     cb20:  { code: 'CB-20',  name: 'CB20',  tier: 'Business',   price: 20000000,  duration: '6 tháng',  months: 6,  scripts: 2, recordings: 2, crmAccounts: 2,  firstTwoOnly: false, discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
     cb50:  { code: 'CB-50',  name: 'CB50',  tier: 'Business',   price: 50000000,  duration: '6 tháng',  months: 6,  scripts: 4, recordings: 4, crmAccounts: 4,  firstTwoOnly: false, discounts: { call: -30, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
     cb100: { code: 'CB-100', name: 'CB100', tier: 'Enterprise', price: 100000000, duration: '12 tháng', months: 12, scripts: 6, recordings: 6, crmAccounts: 8,  firstTwoOnly: false, discounts: { call: -40, voice: -10, intent: -5, agent: -5, prompt: -5 } },
     cb200: { code: 'CB-200', name: 'CB200', tier: 'Enterprise', price: 200000000, duration: '12 tháng', months: 12, scripts: 8, recordings: 8, crmAccounts: 16, firstTwoOnly: false, discounts: { call: -50, voice: -10, intent: -5, agent: -5, prompt: -5 } }
 };
+
+// Số tháng Sale được TẶNG THÊM thời hạn sử dụng theo từng gói Callbot (chính sách Etron)
+// CB2, CB5: +1 tháng · CB10, CB20: +3 tháng · CB50: +4 tháng · CB100: +5 tháng · CB200: +6 tháng
+const CALLBOT_BONUS_MONTHS = { cb2: 1, cb5: 1, cb10: 3, cb20: 3, cb50: 4, cb100: 5, cb200: 6 };
+const CALLBOT_PACKAGE_LABELS = { cb2: 'CB2', cb5: 'CB5', cb10: 'CB10', cb20: 'CB20', cb50: 'CB50', cb100: 'CB100', cb200: 'CB200' };
 
 // Tổng chiết khấu (số dương, đ/block) của một phiên bản bot trong một gói
 function getCallbotDiscount(pkg, version) {
@@ -157,6 +162,7 @@ class QuoteBuilder {
         const combined = `${item.productId || ''} ${item.code || ''} ${item.name || ''}`.toLowerCase();
         if (combined.includes('cb200') || combined.includes('cb-200')) return 'cb200';
         if (combined.includes('cb100') || combined.includes('cb-100')) return 'cb100';
+        if (combined.includes('cb10') || combined.includes('cb-10')) return 'cb10';
         if (combined.includes('cb50') || combined.includes('cb-50')) return 'cb50';
         if (combined.includes('cb20') || combined.includes('cb-20')) return 'cb20';
         if (combined.includes('cb5') || combined.includes('cb-5')) return 'cb5';
@@ -226,7 +232,7 @@ class QuoteBuilder {
             blocksCount,
             blocksStr,
             gifts,
-            summary: `Callbot ${pkg.name} (${configParts.join(' - ')}): ${priceText}, tương đương ${blocksStr} block, thời hạn ${pkg.duration}. Tặng kèm: ${gifts}.`
+            summary: `Callbot ${pkg.name} (${configParts.join(' - ')}): ${priceText}, tương đương ${blocksStr} block, thời hạn ${item.duration || pkg.duration}${this.isCallbotBonusActive(item) ? ` (tặng thêm ${item.bonusMonths} tháng, tổng ${this.getCallbotTotalDuration(item)})` : ''}. Tặng kèm: ${gifts}.`
         };
     }
 
@@ -604,8 +610,8 @@ class QuoteBuilder {
                         numberType: 'chung_codinh',
                         unitPriceDisplay: '2.000.000₫',
                         price: 2000000,
-                        duration: '45 ngày',
-                        months: 1,
+                        duration: '2 tháng',
+                        months: 2,
                         quantity: 1,
                         unit: 'gói',
                         discountPercent: 0,
@@ -1018,6 +1024,117 @@ class QuoteBuilder {
                unit.includes('tài khoản');
     }
 
+    // ==========================================
+    // TẶNG THÊM THỜI HẠN SỬ DỤNG THEO GÓI CALLBOT
+    // ==========================================
+    getCallbotBonusDefault(item) {
+        const key = this.getCallbotPackageKey(item);
+        return key ? (CALLBOT_BONUS_MONTHS[key] || 0) : 0;
+    }
+
+    isCallbotBonusActive(item) {
+        return !!(item && this.isCallbotItem(item) && item.bonusEnabled && Number(item.bonusMonths) > 0);
+    }
+
+    // Tổng thời hạn sau khi cộng phần tặng (VD: "2 tháng" + 1 = "3 tháng"; đơn vị khác: "45 ngày + 1 tháng")
+    getCallbotTotalDuration(item) {
+        const bonus = Number(item.bonusMonths) || 0;
+        const dur = this.splitDuration(item.duration);
+        if (!dur) return `${item.duration || ''} + ${bonus} tháng`.trim();
+        const unit = dur.unit.toLowerCase();
+        if (unit.startsWith('tháng')) return `${dur.num + bonus} tháng`;
+        if (unit.startsWith('năm')) return `${dur.num * 12 + bonus} tháng`;
+        return `${dur.num} ${dur.unit} + ${bonus} tháng`;
+    }
+
+    toggleCallbotBonus(idx, checked) {
+        const item = this.currentQuote.items[idx];
+        if (!item) return;
+        item.bonusEnabled = !!checked;
+        if (checked && !(Number(item.bonusMonths) > 0)) item.bonusMonths = this.getCallbotBonusDefault(item) || 1;
+        if (typeof this.syncPackageDetails === 'function') this.syncPackageDetails();
+        this.renderItemsList();
+        this.renderPreview();
+    }
+
+    setCallbotBonusMonths(idx, value) {
+        const item = this.currentQuote.items[idx];
+        if (!item) return;
+        item.bonusMonths = Math.max(1, Math.min(36, parseInt(value, 10) || 1));
+        item.bonusEnabled = true;
+        if (typeof this.syncPackageDetails === 'function') this.syncPackageDetails();
+        this.renderItemsList();
+        this.renderPreview();
+    }
+
+    resetCallbotBonusMonths(idx) {
+        const item = this.currentQuote.items[idx];
+        if (!item) return;
+        item.bonusMonths = this.getCallbotBonusDefault(item) || 1;
+        item.bonusEnabled = true;
+        if (typeof this.syncPackageDetails === 'function') this.syncPackageDetails();
+        this.renderItemsList();
+        this.renderPreview();
+    }
+
+    renderCallbotBonusControl(item, idx) {
+        if (!this.isCallbotItem(item)) return '';
+        const key = this.getCallbotPackageKey(item);
+        const def = this.getCallbotBonusDefault(item);
+        const active = this.isCallbotBonusActive(item);
+        const months = Number(item.bonusMonths) > 0 ? Number(item.bonusMonths) : (def || 1);
+        const pkgLabel = key ? CALLBOT_PACKAGE_LABELS[key] : 'gói này';
+        return `
+            <div class="mt-2.5 pt-2.5 border-t border-amber-200/70">
+                <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg px-3 py-2 border ${active ? 'bg-emerald-50/80 border-emerald-300/80' : 'bg-white/70 border-amber-200/80'}">
+                    <label class="flex items-center gap-2 text-xs text-slate-800 cursor-pointer select-none">
+                        <input type="checkbox" ${active ? 'checked' : ''}
+                            onchange="window.quoteBuilder.toggleCallbotBonus(${idx}, this.checked)"
+                            class="w-4 h-4 rounded border-emerald-400 text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
+                        <span>
+                            <b class="text-slate-900">🎁 Tặng thêm thời hạn sử dụng</b>
+                            <span class="text-slate-500">${def ? `(chính sách ${pkgLabel}: +${def} tháng)` : '(tự nhập số tháng tặng)'}</span>
+                        </span>
+                    </label>
+                    ${active ? `
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="text-xs text-slate-600">+</span>
+                            <input type="number" min="1" max="36" step="1" value="${months}"
+                                onchange="window.quoteBuilder.setCallbotBonusMonths(${idx}, this.value)"
+                                class="w-12 text-xs text-center font-bold text-slate-800 bg-white border border-emerald-300 rounded-md py-1 px-1.5 focus:outline-none focus:border-emerald-500" />
+                            <span class="text-xs text-slate-600 font-medium">tháng</span>
+                            <span class="text-[11px] text-emerald-800 font-bold bg-white/80 border border-emerald-200 rounded-md px-1.5 py-0.5">Tổng: ${this.escapeHtml(this.getCallbotTotalDuration({ ...item, bonusMonths: months }))}</span>
+                            ${def && months !== def ? `<button type="button" onclick="window.quoteBuilder.resetCallbotBonusMonths(${idx})" class="text-[11px] font-bold text-emerald-700 hover:underline">Về mặc định</button>` : ''}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    // Dòng "Tặng thêm thời hạn" chỉ hiển thị trên báo giá (không tính tiền), nằm ngay dưới gói Callbot tương ứng
+    expandCallbotBonusItems(items) {
+        const out = [];
+        (items || []).forEach(item => {
+            out.push(item);
+            if (this.isCallbotBonusActive(item)) {
+                const key = this.getCallbotPackageKey(item);
+                out.push({
+                    id: `${item.id || 'cb'}-bonus`,
+                    isCallbotBonus: true,
+                    productId: null,
+                    category: item.category || 'Callbot',
+                    name: `Tặng thêm thời hạn sử dụng${key ? ` gói ${CALLBOT_PACKAGE_LABELS[key]}` : ''} (tổng thời hạn ${this.getCallbotTotalDuration(item)})`,
+                    bonusMonths: Number(item.bonusMonths),
+                    quantity: 1,
+                    price: 0,
+                    amount: 0
+                });
+            }
+        });
+        return out;
+    }
+
     parseMonths(durationStr) {
         if (!durationStr) return 0;
         const str = String(durationStr).toLowerCase();
@@ -1214,6 +1331,7 @@ class QuoteBuilder {
     }
 
     formatItemUnitPrice(item) {
+        if (item.isCallbotBonus) return 'Tặng kèm';
         const priceStr = window.formatNumber(item.price);
         const pid = item.productId || '';
         if (pid === 'srv-dang-ky-brandname') return `${priceStr}₫/tên`;
@@ -1225,7 +1343,7 @@ class QuoteBuilder {
             return `${priceStr}₫/user/tháng`;
         }
         if (this.isCallbotItem(item)) {
-            return `${priceStr}₫/${item.unit || 'gói'}`;
+            return `${priceStr}₫/${this.getDisplayUnit(item.unit || 'gói')}`;
         }
         if (this.isTelecomAirtime(item)) {
             return `${priceStr}₫/lần nạp`;
@@ -1249,6 +1367,7 @@ class QuoteBuilder {
     }
 
     formatItemQuantity(item) {
+        if (item.isCallbotBonus) return `+${item.bonusMonths} tháng`;
         const pid = item.productId || '';
         if (pid === 'srv-dang-ky-brandname') return `${item.quantity || 1} tên`;
         if (pid === 'srv-duy-tri-ten-brandname') {
@@ -1267,12 +1386,13 @@ class QuoteBuilder {
         if (this.isCrmItem(item)) {
             const users = item.quantity || 1;
             const months = item.months || this.parseMonths(item.duration) || 12;
-            return `${users} user × ${months} tháng`;
+            const userUnit = item.unitEdited ? this.getDisplayUnit(item.unit) : 'user';
+            return `${users} ${userUnit} × ${months} tháng`;
         }
         if (this.isCallbotItem(item)) {
             const qty = item.quantity || 1;
             const dur = item.duration || '3 tháng';
-            return `${qty} gói · thời hạn ${dur}`;
+            return `${qty} ${this.getDisplayUnit(item.unit || 'gói')} · thời hạn ${dur}`;
         }
         if (this.isTelecomAirtime(item)) {
             return `${item.quantity || 1} lần nạp`;
@@ -1356,8 +1476,8 @@ class QuoteBuilder {
             unit = 'tài khoản';
             quantity = 1;
         } else if (product.id === 'callbot-cb2') {
-            duration = '45 ngày';
-            months = 1;
+            duration = '2 tháng';
+            months = 2;
             unit = 'gói';
         } else if (product.id === 'callbot-cb5') {
             duration = '3 tháng';
@@ -1830,7 +1950,7 @@ class QuoteBuilder {
                             return `
                         <div class="flex items-center justify-center gap-1.5">
                             ${this.renderStepper(idx, 'duration', dur.num)}
-                            ${this.isCustomItem(item) ? this.renderUnitInput(idx, 'duration', dur.unit) : `<span class="text-xs text-slate-600 w-10 text-left whitespace-nowrap">${this.escapeHtml(dur.unit)}</span>`}
+                            ${this.renderUnitInput(idx, 'duration', dur.unit)}
                         </div>`;
                         })()}
                         ${isCrm ? `
@@ -1852,7 +1972,7 @@ class QuoteBuilder {
                 <td class="qb-c-qty py-2 px-2 w-36 align-middle" data-label="Số lượng">
                     <div class="flex items-center gap-1.5">
                         ${this.renderStepper(idx, 'quantity', item.quantity || 1)}
-                        ${this.isCustomItem(item) ? this.renderUnitInput(idx, 'unit', item.unit || 'gói') : `<span class="text-xs text-slate-600 whitespace-nowrap">${this.escapeHtml(this.getDisplayUnit(item.unit || (isCrm ? 'tài khoản' : 'gói')))}</span>`}
+                        ${this.renderUnitInput(idx, 'unit', this.getDisplayUnit(item.unit || (isCrm ? 'tài khoản' : 'gói')))}
                     </div>
                 </td>
                 <td class="qb-c-amt py-2 px-3 w-36 text-right align-middle" data-label="Thành tiền">
@@ -2016,10 +2136,11 @@ class QuoteBuilder {
                         ` : ''}
                         `;
             })() + `
+                        ${this.renderCallbotBonusControl(item, idx)}
                         ${cbDetails ? `
                         <div class="qb-cb-quota mt-2 text-[11px] text-amber-900/90 font-medium flex items-center gap-2 bg-white/70 px-2.5 py-1.5 rounded-lg border border-amber-200/50">
                             <span class="font-bold text-amber-950">Định mức gói:</span>
-                            <span>Đơn giá <b>${cbDetails.rate}₫</b>/block 6s${cbDetails.discount > 0 ? ` <span class="text-emerald-700">(giá gốc ${cbDetails.baseRate}₫, chiết khấu -${cbDetails.discount}₫)</span>` : ''} · <b>${cbDetails.blocksStr}</b> block · Thời hạn ${cbDetails.pkg.duration} · Tặng ${cbDetails.gifts}</span>
+                            <span>Đơn giá <b>${cbDetails.rate}₫</b>/block 6s${cbDetails.discount > 0 ? ` <span class="text-emerald-700">(giá gốc ${cbDetails.baseRate}₫, chiết khấu -${cbDetails.discount}₫)</span>` : ''} · <b>${cbDetails.blocksStr}</b> block · Thời hạn ${this.escapeHtml(item.duration || cbDetails.pkg.duration)}${this.isCallbotBonusActive(item) ? ` <b class="text-emerald-700">+ tặng ${item.bonusMonths} tháng</b>` : ''} · Tặng ${cbDetails.gifts}</span>
                         </div>
                         ` : ''}
                     </div>
@@ -2295,7 +2416,7 @@ class QuoteBuilder {
                 `;
             }
 
-            const grouped = this.groupItemsByCategory(itemsList);
+            const grouped = this.groupItemsByCategory(this.expandCallbotBonusItems(itemsList));
             let currentStt = startIdx + 1;
             let rowsHtml = '';
 
@@ -2313,7 +2434,7 @@ class QuoteBuilder {
                             <td style="${TD} text-align: left;">${this.escapeHtml(this.getPrintableName(item.name))}</td>
                             <td style="${TD} text-align: center;">${this.formatItemUnitPrice(item)}</td>
                             <td style="${TD} text-align: center;">${this.formatItemQuantity(item)}</td>
-                            <td style="${TD} text-align: right; white-space: nowrap;">${window.formatNumber(item.amount)}₫</td>
+                            <td style="${TD} text-align: right; white-space: nowrap;">${item.isCallbotBonus ? 'Miễn phí' : `${window.formatNumber(item.amount)}₫`}</td>
                         </tr>
                     `;
                 });

@@ -138,11 +138,11 @@ const DEFAULT_PRODUCTS = [
     {
         id: 'callbot-cb2',
         code: 'CB-2',
-        name: 'Gói Callbot AI UCALL CB2 (2 Triệu / 45 ngày)',
+        name: 'Gói Callbot AI UCALL CB2 (2 Triệu / 2 tháng)',
         category: 'Callbot',
-        unit: 'Gói (45 ngày)',
+        unit: 'Gói (2 tháng)',
         price: 2000000,
-        description: 'Thời hạn 45 ngày. Giá gốc (chưa chiết khấu) - Giá block 6s: Standard 230₫ (8.695 block), Advanced 270₫ (7.407 block), AI Call Agent 330₫ (6.060 block). Tặng 1 tài khoản CRM.',
+        description: 'Thời hạn 2 tháng. Giá gốc (chưa chiết khấu) - Giá block 6s: Standard 230₫ (8.695 block), Advanced 270₫ (7.407 block), AI Call Agent 330₫ (6.060 block). Tặng 1 tài khoản CRM.',
         warranty: 'Theo gói cước'
     },
     {
@@ -747,6 +747,16 @@ class SalesStore {
                 updated = true;
             }
             products = products.map(p => {
+                // Gói CB2 đổi thời hạn 45 ngày -> 2 tháng
+                if (p.id === 'callbot-cb2' && /45 ngày/.test(`${p.name || ''} ${p.unit || ''} ${p.description || ''}`)) {
+                    updated = true;
+                    p = {
+                        ...p,
+                        name: String(p.name || '').replace(/45 ngày/g, '2 tháng'),
+                        unit: String(p.unit || '').replace(/45 ngày/g, '2 tháng'),
+                        description: String(p.description || '').replace(/45 ngày/g, '2 tháng')
+                    };
+                }
                 if (p.category && catMap[p.category]) {
                     updated = true;
                     return { ...p, category: catMap[p.category] };

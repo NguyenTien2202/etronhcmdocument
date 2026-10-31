@@ -660,6 +660,12 @@ class SalesApp {
         // Hiển thị thông báo lỗi và thông báo thành công (copy link, lưu thành công)
         if (!force && type !== 'error' && type !== 'success') return;
 
+        // Thông báo pastel ở giữa phía trên màn hình (không che khu xem trước)
+        if (typeof window.showPastelToast === 'function') {
+            window.showPastelToast(message, type);
+            return;
+        }
+
         const container = document.getElementById('toast-container');
         if (!container) return;
 

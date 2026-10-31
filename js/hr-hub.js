@@ -4166,6 +4166,11 @@ class HrHubApp {
     // 7. MOBILE MODAL SCROLL LOCK & TOAST
     // ==========================================
     showToast(message, type = 'success') {
+        // Thông báo pastel ở giữa phía trên màn hình (không che khu xem trước)
+        if (typeof window.showPastelToast === 'function') {
+            window.showPastelToast(message, type);
+            return;
+        }
         const container = document.getElementById('toast-container');
         if (!container) return;
         const toast = document.createElement('div');

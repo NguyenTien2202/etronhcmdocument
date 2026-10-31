@@ -33,8 +33,10 @@
     </script>
     <!-- Lucide Icons -->
     <script src="js/lucide.min.js"></script>
+    <!-- Thông báo pastel phía trên -->
+    <script src="js/toast.js?v=20261031_v106"></script>
     <!-- Custom Stylesheet -->
-    <link rel="stylesheet" href="css/styles.css?v=20261031_v105">
+    <link rel="stylesheet" href="css/styles.css?v=20261031_v106">
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
 
@@ -127,7 +129,7 @@
     <script src="js/firebase-config.js?v=20261018_v87"></script>
 
     <!-- Core Scripts for Document Preview & Onboarding Roadmap -->
-    <script src="js/store.js?v=20261018_v89"></script>
+    <script src="js/store.js?v=20261031_v106"></script>
     <script src="js/document-hub.js?v=20261018_v90"></script>
     <script src="js/hr-onboarding-data.js?v=20261031_v104"></script>
     <script src="js/onboarding-viewer.js?v=20261031_v104"></script>
@@ -135,6 +137,7 @@
         // Minimal salesApp shim for notifications & mobile modal scroll lock on standalone onboard.html
         window.salesApp = {
             showNotification(msg, type = 'info') {
+                if (typeof window.showPastelToast === 'function') { window.showPastelToast(msg, type); return; }
                 const container = document.getElementById('toast-container');
                 if (!container) return;
                 const toast = document.createElement('div');
