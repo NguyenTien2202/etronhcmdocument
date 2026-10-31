@@ -501,8 +501,7 @@ class QuoteBuilder {
             packageDetails: [], // Mặc định để trống, chỉ tự thêm khi cần
             terms: [
                 `Báo giá có hiệu lực đến ngày ${this.formatDateVi(endOfMonthStr)}.`,
-                'Phần mềm CRM, Callbot và dịch vụ đi kèm chưa bao gồm thuế VAT 8%.',
-                'Thông tin thanh toán: Ngân hàng TMCP Quân đội (MBBank) - Số TK: 999998887777 - CONG TY CP GIAI PHAP ETRON.'
+                'Phần mềm CRM, Callbot và dịch vụ đi kèm chưa bao gồm thuế VAT 8%.'
             ],
             notes: ''
         };
@@ -903,7 +902,6 @@ class QuoteBuilder {
         const validityTerm = `Báo giá có hiệu lực đến ngày ${this.formatDateVi(endOfMonthStr)}.`;
         const vatRate = this.currentQuote.vatRate !== undefined ? this.currentQuote.vatRate : 8;
         const vatTerm = `Phần mềm CRM, Callbot, phí kết nối và dịch vụ đi kèm chưa bao gồm thuế VAT ${vatRate}%. Phí khởi tạo và duy trì đầu số đã bao gồm VAT 10%.`;
-        const paymentTerm = 'Thông tin thanh toán: Ngân hàng TMCP Quân đội (MBBank) - Số TK: 999998887777 - CONG TY CP GIAI PHAP ETRON.';
 
         const callbotItems = this.currentQuote.items.filter(item => this.isCallbotItem(item));
         const hasCallbot = callbotItems.length > 0;
@@ -1010,7 +1008,6 @@ class QuoteBuilder {
             newTerms.push(pbxRatesTerm);
         }
         customTerms.forEach(ct => newTerms.push(ct));
-        newTerms.push(paymentTerm);
 
         this.currentQuote.terms = newTerms;
         const termsEl = document.getElementById('qb-terms');

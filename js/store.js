@@ -95,8 +95,7 @@ const DEFAULT_COMPANY = {
         'Phần mềm CRM tính theo user/tháng, thanh toán theo năm. Thời hạn dưới 12 tháng áp dụng đơn giá riêng (Tổng đài: 50.000₫, Standard: 100.000₫, Advanced: 250.000₫/user/tháng).',
         'Callbot tính theo block 6 giây theo loại bot (Standard, Advanced, AI Call Agent). Cước gọi đầu số chung cố định 70đ/block; đầu số riêng di động 80đ/block; đầu số riêng cố định 70đ/block; Brandname 70đ/block; đầu số khách tự chuẩn bị 0đ/block (khách tự thanh toán với nhà mạng). Trong vòng 90 ngày sau khi hết hạn gói, có thể: (1) Gia hạn thêm 1 tháng (gói CB2, CB5, CB10) hoặc 3 tháng (gói CB20, CB50, CB100, CB200), tối đa 1 lần, với phí bằng 30% số dư còn lại; hoặc (2) Mua gói mới để sử dụng tiếp 70% số tiền còn lại của gói.',
         'Cước gọi tổng đài trừ vào ví cước: Đầu số chung cố định 700đ/phút; Đầu số riêng cố định 660đ/phút; Đầu số riêng di động 720đ/phút; Đầu số Brandname 660đ/phút (đã gồm VAT 10%).',
-        'Đầu số và cước viễn thông thanh toán trả trước vào ví cước (tối thiểu 1.000.000₫, đã gồm VAT 10%), phí khởi tạo/duy trì đầu số và cước cuộc gọi thực tế trừ dần vào ví cước.',
-        'Thông tin thanh toán: Ngân hàng TMCP Quân đội (MBBank) - Số TK: 999998887777 - CONG TY CP GIAI PHAP ETRON.'
+        'Đầu số và cước viễn thông thanh toán trả trước vào ví cước (tối thiểu 1.000.000₫, đã gồm VAT 10%), phí khởi tạo/duy trì đầu số và cước cuộc gọi thực tế trừ dần vào ví cước.'
     ]
 };
 
