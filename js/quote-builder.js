@@ -2516,22 +2516,30 @@ class QuoteBuilder {
         `;
 
         const qrSrc = window.ETRON_PAYMENT_QR_BASE64 || 'assets/qr_mbbank_etron.png';
+        const bankShort = String(company.bankName || 'Ngân hàng TMCP Quân đội').replace(/^Ngân\s+hàng\s+/i, '');
         const renderSignature = () => `
-            <!-- Mã QR thanh toán & Chữ ký -->
-            <div class="signature-section" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; page-break-inside: avoid !important; break-inside: avoid !important;">
-                <div style="text-align: center; width: 340px; font-size: 12pt; line-height: 1.5;">
-                    <div>${this.escapeHtml(company.bankName || 'Ngân hàng TMCP Quân đội')}</div>
-                    <div style="margin-top: 2px; white-space: nowrap;">${this.escapeHtml((company.bankAccount || '999998887777') + ' ' + (company.bankAccountName || 'CONG TY CP GIAI PHAP ETRON'))}</div>
-                    <div style="margin-top: 6px; display: flex; justify-content: center;">
-                        <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 116px; height: 116px; object-fit: contain; display: block; border: 0.5pt solid #64748b; padding: 2px; background: #ffffff;">
+            <!-- Thông tin thanh toán (trái) & Chữ ký (phải) -->
+            <div class="signature-section" style="margin-top: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; page-break-inside: avoid !important; break-inside: avoid !important;">
+                <div style="text-align: left; font-size: 12pt; line-height: 1.5;">
+                    <div style="${SECTION_TITLE}">Thông tin thanh toán:</div>
+                    <div style="display: flex; align-items: center; gap: 12px; margin-top: 6px;">
+                        <div style="flex-shrink: 0; border: 0.5pt solid #000000; padding: 3px; background: #ffffff;">
+                            <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 92px; height: 92px; object-fit: contain; display: block;">
+                        </div>
+                        <div style="font-size: 11pt; line-height: 1.6; white-space: nowrap;">
+                            <div><b>Ngân hàng:</b> ${this.escapeHtml(bankShort)} (MBBank)</div>
+                            <div><b>Số tài khoản:</b> <span style="font-weight: bold;">${this.escapeHtml(company.bankAccount || '999998887777')}</span></div>
+                            <div><b>Chủ TK:</b> ${this.escapeHtml(company.bankAccountName || 'CONG TY CP GIAI PHAP ETRON')}</div>
+                            <div style="font-size: 10.5pt; font-style: italic; color: #333333;">(Quét mã VietQR để thanh toán nhanh)</div>
+                        </div>
                     </div>
                 </div>
-                <div style="text-align: center; width: 300px; font-size: 12pt; line-height: 1.5;">
+                <div style="text-align: center; width: 285px; flex-shrink: 0; font-size: 12pt; line-height: 1.5; white-space: nowrap;">
                     <div style="font-style: italic;">Hà Nội, ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${d.getFullYear()}</div>
                     <div style="font-weight: bold; text-transform: uppercase; margin-top: 2px;">CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON</div>
                     <div style="font-weight: bold;">${this.escapeHtml(q.salesRep?.title || 'Giám đốc kinh doanh')}</div>
-                    <div style="height: 80px; display: flex; align-items: center; justify-content: center;">
-                        ${company.stampUrl ? `<img src="${company.stampUrl}" alt="Dấu mộc" style="max-height: 76px; object-fit: contain;">` : ''}
+                    <div style="height: 62px; display: flex; align-items: center; justify-content: center;">
+                        ${company.stampUrl ? `<img src="${company.stampUrl}" alt="Dấu mộc" style="max-height: 60px; object-fit: contain;">` : ''}
                     </div>
                     <div style="font-weight: bold;">${this.escapeHtml(q.salesRep?.name || 'Đỗ Thị Thùy Liên')}</div>
                 </div>
