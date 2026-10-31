@@ -21,11 +21,14 @@ class OnboardingViewer {
     // NỘP BÀI: NHIỀU LINK + NHIỀU TỆP
     // ==========================================
     getSubmissionLimits() {
+        const cloudFiles = !!window.hrOnboardingStore?.canUploadSubmissionFiles?.(this.candidateId);
         return {
             maxLinks: 10,
-            maxFiles: 6,
-            maxFileBytes: 700 * 1024,      // tệp không phải ảnh (ảnh được nén tự động)
-            docBudgetChars: 900 * 1024     // tổng bài nộp của 1 nhân sự (tài liệu Firestore tối đa 1MB)
+            maxFiles: 8,
+            cloudFiles,
+            // Có liên kết Onboard: tệp được lưu riêng từng mảnh nên cho phép tới 15MB/tệp
+            maxFileBytes: cloudFiles ? 15 * 1024 * 1024 : 700 * 1024,
+            docBudgetChars: 900 * 1024     // phần nội dung lưu trong tài liệu tiến độ (link, ghi chú, tệp kiểu cũ)
         };
     }
 
@@ -161,7 +164,7 @@ class OnboardingViewer {
             }
             const isImage = (file.type || '').startsWith('image/');
             if (!isImage && file.size > maxFileBytes) {
-                skipped.push(`${file.name} (lớn hơn ${Math.round(maxFileBytes / 1024)}KB)`);
+                skipped.push(`${file.name} (lớn hơn ${maxFileBytes >= 1024 * 1024 ? Math.round(maxFileBytes / 1024 / 1024) + 'MB' : Math.round(maxFileBytes / 1024) + 'KB'})`);
                 continue;
             }
             try {
@@ -216,7 +219,48 @@ class OnboardingViewer {
             return;
         }
 
-        const payload = { links, files, note, submittedAt: Date.now() };
+        const store0 = window.hrOnboardingStore;
+        const previousFiles = this.normalizeSubmission(this.getCurrentSubmissions()[taskId]).files;
+        let uploadedFiles = files;
+        if (files.some(f => !f.fileId && f.fileData) && store0?.canUploadSubmissionFiles?.(this.candidateId)) {
+            this.savingSubmissions = this.savingSubmissions || {};
+            const pending = files.filter(f => !f.fileId && f.fileData).length;
+            let finished = 0;
+            this.savingSubmissions[taskId] = `Đang tải tệp lên (0/${pending})...`;
+            this.render();
+            try {
+                uploadedFiles = [];
+                for (const f of files) {
+                    if (f.fileId || !f.fileData) { uploadedFiles.push(f); continue; }
+                    const ref = await store0.uploadSubmissionFile(f, this.candidateId, (done, total) => {
+                        this.setSavingLabel(taskId, `Đang tải tệp ${finished + 1}/${pending} (${Math.round((done / total) * 100)}%)...`);
+                    });
+                    finished++;
+                    uploadedFiles.push(ref);
+                    // Ghi nhớ ngay vào bản nháp để lỡ lỗi giữa chừng thì không phải tải lại tệp đã lên xong
+                    const draftIdx = draft.files.indexOf(f);
+                    if (draftIdx >= 0) draft.files[draftIdx] = ref;
+                }
+            } catch (err) {
+                console.error('[OnboardingViewer] Lỗi tải tệp:', err);
+                delete this.savingSubmissions[taskId];
+                // Dự phòng: kho tệp riêng chưa sẵn sàng (VD: chưa cập nhật quyền) → lưu kiểu cũ nếu còn vừa dung lượng
+                const inlineTry = { links, files, note, submittedAt: Date.now() };
+                const others0 = { ...this.getCurrentSubmissions() };
+                delete others0[taskId];
+                const fitsInline = store0.estimateSubmissionsSize({ ...others0, [taskId]: inlineTry }) <= this.getSubmissionLimits().docBudgetChars;
+                if (fitsInline) {
+                    uploadedFiles = draft.files.slice();
+                } else {
+                    this.render();
+                    alert('Chưa tải được tệp lên hệ thống. Vui lòng kiểm tra mạng rồi bấm nộp lại! (Nếu vẫn lỗi, bạn có thể gửi link Google Drive thay cho tệp.)');
+                    return;
+                }
+            }
+            delete this.savingSubmissions[taskId];
+        }
+
+        const payload = { links, files: uploadedFiles, note, submittedAt: Date.now() };
 
         // Kiểm tra dung lượng tổng (tất cả bài nộp của bạn nằm trong 1 tài liệu tối đa 1MB)
         const store = window.hrOnboardingStore;
@@ -233,6 +277,9 @@ class OnboardingViewer {
 
         try {
             await store.saveTaskSubmission(taskId, payload, this.candidateId);
+            const keptIds = new Set(uploadedFiles.map(f => f.fileId).filter(Boolean));
+            const removed = previousFiles.filter(f => f.fileId && !keptIds.has(f.fileId));
+            if (removed.length && store.deleteSubmissionFiles) store.deleteSubmissionFiles(removed, this.candidateId);
             this.clearSubmissionDraft(taskId);
             this.editingSubmissions.delete(taskId);
             if (window.salesApp?.showNotification) {
@@ -249,7 +296,9 @@ class OnboardingViewer {
     async deleteSubmission(taskId) {
         if (!confirm('Bạn có chắc muốn xóa bài nộp này không?')) return;
         try {
+            const oldFiles = this.normalizeSubmission(this.getCurrentSubmissions()[taskId]).files;
             await window.hrOnboardingStore.deleteTaskSubmission(taskId, this.candidateId);
+            if (window.hrOnboardingStore.deleteSubmissionFiles) window.hrOnboardingStore.deleteSubmissionFiles(oldFiles, this.candidateId);
             this.clearSubmissionDraft(taskId);
             this.editingSubmissions.delete(taskId);
             this.render();
@@ -282,10 +331,45 @@ class OnboardingViewer {
     }
 
     // Xem trước tệp: fileIdx = vị trí tệp trong bài nộp; draft = true khi xem tệp đang soạn (chưa nộp)
-    previewSubmissionFile(taskId, fileIdx = 0, draft = false) {
-        const file = draft
+    getSubmissionFileAt(taskId, fileIdx = 0, draft = false) {
+        return draft
             ? this.getSubmissionDraft(taskId).files[fileIdx]
             : this.normalizeSubmission(this.getCurrentSubmissions()[taskId]).files[fileIdx];
+    }
+
+    async resolveSubmissionFile(file) {
+        if (!file) return null;
+        if (file.fileData) return file;
+        if (window.salesApp?.showNotification) window.salesApp.showNotification('Đang tải tệp...', 'info');
+        try {
+            const fileData = await window.hrOnboardingStore.loadSubmissionFile(file, this.candidateId);
+            return { ...file, fileData };
+        } catch (err) {
+            alert('Không mở được tệp: ' + (err?.message || 'Vui lòng thử lại.'));
+            return null;
+        }
+    }
+
+    async downloadSubmissionFile(taskId, fileIdx = 0, draft = false) {
+        const file = await this.resolveSubmissionFile(this.getSubmissionFileAt(taskId, fileIdx, draft));
+        if (!file) return;
+        const a = document.createElement('a');
+        a.href = file.fileData;
+        a.download = file.fileName || 'bai-nop';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    setSavingLabel(taskId, label) {
+        this.savingSubmissions = this.savingSubmissions || {};
+        this.savingSubmissions[taskId] = label;
+        const el = document.getElementById(`sub-saving-${taskId}`);
+        if (el) el.textContent = label;
+    }
+
+    async previewSubmissionFile(taskId, fileIdx = 0, draft = false) {
+        const file = await this.resolveSubmissionFile(this.getSubmissionFileAt(taskId, fileIdx, draft));
         if (!file) return;
 
         const viewerCandidate = this.candidateId ? window.hrOnboardingStore?.getCandidateById(this.candidateId) : null;
@@ -311,8 +395,11 @@ class OnboardingViewer {
         return { icon: 'file', color: 'text-indigo-600', bg: 'bg-indigo-50' };
     }
 
-    formatDataSize(fileData) {
-        const kb = Math.max(1, Math.round(String(fileData || '').length * 0.75 / 1024));
+    formatDataSize(fileOrData) {
+        const bytes = (fileOrData && typeof fileOrData === 'object')
+            ? (fileOrData.size || String(fileOrData.fileData || '').length * 0.75)
+            : String(fileOrData || '').length * 0.75;
+        const kb = Math.max(1, Math.round(bytes / 1024));
         return kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`;
     }
 
@@ -415,18 +502,18 @@ class OnboardingViewer {
                                             <div class="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
                                                 <button type="button" onclick="window.onboardingViewer.previewSubmissionFile('${tArg}', ${idx})"
                                                     class="flex items-center gap-2.5 min-w-0 flex-1 text-left hover:opacity-90" title="Bấm để xem trước">
-                                                    ${isImg
+                                                    ${isImg && f.fileData
                                                         ? `<img src="${f.fileData}" alt="" class="w-12 h-10 object-cover rounded-lg border border-slate-200 shrink-0">`
                                                         : `<span class="w-10 h-10 rounded-lg ${ic.bg} ${ic.color} flex items-center justify-center shrink-0"><i data-lucide="${ic.icon}" class="w-5 h-5"></i></span>`}
                                                     <span class="min-w-0">
                                                         <span class="block text-xs font-bold text-slate-800 truncate">${this.escapeHtml(f.fileName || 'Tệp đính kèm')}</span>
-                                                        <span class="block text-[10px] text-slate-400">${this.formatDataSize(f.fileData)} • Bấm để xem</span>
+                                                        <span class="block text-[10px] text-slate-400">${this.formatDataSize(f)} • Bấm để xem</span>
                                                     </span>
                                                 </button>
-                                                <a href="${f.fileData}" download="${this.escapeHtml(f.fileName || 'bai-nop')}"
+                                                <button type="button" onclick="window.onboardingViewer.downloadSubmissionFile('${tArg}', ${idx})"
                                                     class="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 shrink-0" title="Tải về" aria-label="Tải về">
                                                     <i data-lucide="download" class="w-4 h-4"></i>
-                                                </a>
+                                                </button>
                                             </div>
                                         `;
                                     }).join('')}
@@ -505,12 +592,12 @@ class OnboardingViewer {
                                         <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-200/80">
                                             <button type="button" onclick="window.onboardingViewer.previewSubmissionFile('${tArg}', ${idx}, true)"
                                                 class="flex items-center gap-2 min-w-0 flex-1 text-left" title="Xem trước">
-                                                ${isImg
+                                                ${isImg && f.fileData
                                                     ? `<img src="${f.fileData}" alt="" class="w-10 h-9 object-cover rounded-lg border border-slate-200 shrink-0">`
                                                     : `<span class="w-9 h-9 rounded-lg ${ic.bg} ${ic.color} flex items-center justify-center shrink-0"><i data-lucide="${ic.icon}" class="w-4 h-4"></i></span>`}
                                                 <span class="min-w-0">
                                                     <span class="block text-xs font-bold text-slate-800 truncate">${this.escapeHtml(f.fileName || 'Tệp')}</span>
-                                                    <span class="block text-[10px] text-slate-400">${this.formatDataSize(f.fileData)}</span>
+                                                    <span class="block text-[10px] text-slate-400">${this.formatDataSize(f)}</span>
                                                 </span>
                                             </button>
                                             <button type="button" onclick="window.onboardingViewer.removeDraftFile('${tArg}', ${idx})"
@@ -530,7 +617,7 @@ class OnboardingViewer {
                                     onchange="window.onboardingViewer.handleFileSelect(event, '${tArg}')" class="hidden">
                             </label>
                         ` : ''}
-                        <p class="text-[10px] text-slate-400">Ảnh được tự động nén. Tệp khác tối đa ${Math.round(limits.maxFileBytes / 1024)}KB/tệp – tệp lớn hơn vui lòng gửi link Google Drive.</p>
+                        <p class="text-[10px] text-slate-400">Ảnh được tự động nén. Tệp khác tối đa ${limits.maxFileBytes >= 1024 * 1024 ? Math.round(limits.maxFileBytes / 1024 / 1024) + 'MB' : Math.round(limits.maxFileBytes / 1024) + 'KB'}/tệp – tệp lớn hơn vui lòng gửi link Google Drive.</p>
                     </div>
 
                     <!-- Ghi chú -->
@@ -549,11 +636,18 @@ class OnboardingViewer {
                             <button type="button" onclick="window.onboardingViewer.cancelEditSubmission('${tArg}')"
                                 class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold transition-all">Hủy</button>
                         ` : ''}
+                        ${this.savingSubmissions?.[taskId] ? `
+                            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">
+                                <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
+                                <span id="sub-saving-${this.escapeHtml(taskId)}">${this.escapeHtml(this.savingSubmissions[taskId])}</span>
+                            </span>
+                        ` : `
                         <button type="button" onclick="window.onboardingViewer.handleSaveSubmission(event, '${tArg}')"
                             class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-emerald-600 hover:from-indigo-700 hover:to-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95">
                             <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
                             <span>${hasSubmission ? 'Lưu cập nhật bài làm' : 'Nộp bài & Hoàn thành'}</span>
                         </button>
+                        `}
                     </div>
                 </div>
             </div>

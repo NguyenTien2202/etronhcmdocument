@@ -453,6 +453,37 @@ test('cloud writes never contain undefined values (Firestore rejects them)', () 
     assert.equal(store.getCandidates()[0].customRoadmap[0].tasks[0].links[0].title, 'L');
 });
 
+test('homework files are uploaded in chunks outside the 1MB progress document and reassembled on read', async () => {
+    const records = new Map();
+    const db = { collection: name => ({ doc: id => ({
+        onSnapshot() { return () => {}; },
+        async set(data) { records.set(name + '/' + id, JSON.parse(JSON.stringify(data))); },
+        async get() { const d = records.get(name + '/' + id); return { exists: !!d, data: () => d }; },
+        async delete() { records.delete(name + '/' + id); },
+    }) }) };
+    const context = vm.createContext({
+        window: { firebaseDb: db, hrAuth: { isHr: () => false } }, crypto: webcrypto,
+        localStorage: { getItem: () => null, setItem() {} }, console,
+    });
+    vm.runInContext(fs.readFileSync('js/hr-onboarding-data.js', 'utf8'), context);
+    const store = context.window.hrOnboardingStore;
+    store.token = 'a'.repeat(64);
+    assert.equal(store.canUploadSubmissionFiles(), true);
+    const big = 'data:application/pdf;base64,' + 'A'.repeat(1500000);
+    const ref = await store.uploadSubmissionFile({ fileName: 'bai.pdf', fileType: 'application/pdf', fileData: big });
+    assert.equal(ref.chunks, 3);
+    assert.ok(!('fileData' in ref));
+    const keys = [...records.keys()].filter(k => k.startsWith('onboarding_files/'));
+    assert.equal(keys.length, 3);
+    assert.ok(keys.every(k => new RegExp('^onboarding_files/a{64}_[a-f0-9]{24}_[0-2]$').test(k)));
+    assert.ok([...records.values()].every(r => r.data.length <= 700000 && r.token === store.token));
+    store._fileCache.clear();
+    assert.equal(await store.loadSubmissionFile(ref), big);
+    store.deleteSubmissionFiles([ref]);
+    await new Promise(r => setTimeout(r, 10));
+    assert.equal([...records.keys()].filter(k => k.startsWith('onboarding_files/')).length, 0);
+});
+
 test('task drag-and-drop reorder and unified attachment modal with 2 tabs', async () => {
     const { store } = storeHarness(true);
     store.ready.add('roadmap');

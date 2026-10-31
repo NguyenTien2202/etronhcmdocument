@@ -52,6 +52,26 @@ service cloud.firestore {
         && (!('taskSubmissions' in request.resource.data)
             || (request.resource.data.taskSubmissions is map && request.resource.data.taskSubmissions.size() <= 100));
     }
+    // Homework file chunks: id = {token}_{fileId}_{index}. Immutable; private to HR and the link holder.
+    function validFileChunk(id) {
+      let d = request.resource.data;
+      return id.matches('^[a-f0-9]{64}_[a-f0-9]{16,32}_([0-9]|[1-9][0-9])$')
+        && d.keys().hasAll(['token', 'fileId', 'index', 'total', 'data'])
+        && d.keys().hasOnly(['token', 'fileId', 'index', 'total', 'data'])
+        && d.token is string && validToken(d.token)
+        && d.fileId is string && d.fileId.matches('^[a-f0-9]{16,32}$')
+        && d.index is int && d.total is int
+        && d.total >= 1 && d.total <= 40
+        && d.index >= 0 && d.index < d.total
+        && id == d.token + '_' + d.fileId + '_' + string(d.index)
+        && d.data is string && d.data.size() <= 700000;
+    }
+    match /onboarding_files/{id} {
+      allow get, delete: if isHr() || activeLink(resource.data.token);
+      allow list: if isHr();
+      allow create: if (isHr() || activeLink(request.resource.data.token)) && validFileChunk(id);
+      allow update: if false;
+    }
     // Deny all other collections, including legacy/private HR data.
     match /{document=**} { allow read, write: if false; }
   }

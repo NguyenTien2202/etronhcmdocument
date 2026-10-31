@@ -69,3 +69,39 @@ test('only HR can publish links; link holders can update only boolean progress',
     await assertFails(getDoc(progress));
     await assertFails(setDoc(progress, { completedTasks: {} }));
 });
+test('onboarding homework chunks are private to HR and the active link holder', async () => {
+    const fileToken = 'd'.repeat(64);
+    const fileId = '0123456789abcdef';
+    const learningData = { fullName: 'Learner', role: 'Sales', startDate: '', targetDate: '', mentor: '', customRoadmap: [] };
+    const chunkId = (t, f, i) => `${t}_${f}_${i}`;
+    const chunk = (t, f, i, extra = {}) => ({ token: t, fileId: f, index: i, total: 2, data: 'data:text/plain;base64,QQ==', ...extra });
+    await env.withSecurityRulesDisabled(async ctx => {
+        const db = ctx.firestore();
+        await setDoc(doc(db, 'onboarding_links', fileToken), learningData);
+        await setDoc(doc(db, 'onboarding_files', chunkId(otherToken, fileId, 0)), chunk(otherToken, fileId, 0));
+    });
+    const publicDb = env.unauthenticatedContext().firestore();
+    const hrDb = env.authenticatedContext(hrUid).firestore();
+    const ownRef = doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 0));
+    await assertSucceeds(setDoc(ownRef, chunk(fileToken, fileId, 0)));
+    await assertSucceeds(getDoc(ownRef));
+    await assertFails(setDoc(ownRef, chunk(fileToken, fileId, 0, { data: 'changed' })));
+    await assertFails(updateDoc(ownRef, { data: 'changed' }));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 1)), chunk(otherToken, fileId, 1)));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 1)), chunk(fileToken, fileId, 0)));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 1)), chunk(fileToken, fileId, 1, { extra: true })));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 1)), chunk(fileToken, fileId, 1, { data: 'x'.repeat(700001) })));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 2)), chunk(fileToken, fileId, 2)));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, 'abc', 1)), chunk(fileToken, 'abc', 1)));
+    await assertFails(getDoc(doc(publicDb, 'onboarding_files', chunkId(otherToken, fileId, 0))));
+    await assertFails(deleteDoc(doc(publicDb, 'onboarding_files', chunkId(otherToken, fileId, 0))));
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(otherToken, fileId, 1)), chunk(otherToken, fileId, 1)));
+    await assertFails(getDocs(collection(publicDb, 'onboarding_files')));
+    await assertSucceeds(getDoc(doc(hrDb, 'onboarding_files', chunkId(fileToken, fileId, 0))));
+    await assertSucceeds(getDocs(collection(hrDb, 'onboarding_files')));
+    await assertSucceeds(deleteDoc(ownRef));
+    await env.withSecurityRulesDisabled(async ctx => {
+        await deleteDoc(doc(ctx.firestore(), 'onboarding_links', fileToken));
+    });
+    await assertFails(setDoc(doc(publicDb, 'onboarding_files', chunkId(fileToken, fileId, 1)), chunk(fileToken, fileId, 1)));
+});

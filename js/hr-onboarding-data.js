@@ -1092,7 +1092,7 @@ class HrOnboardingStore {
             ? (sub.links || []).filter(l => typeof l === 'string' && l.trim()).map(l => l.trim())
             : (typeof sub.link === 'string' && sub.link.trim() ? [sub.link.trim()] : []);
         const files = hasMulti
-            ? (sub.files || []).filter(f => f && typeof f.fileData === 'string' && f.fileData)
+            ? (sub.files || []).filter(f => f && ((typeof f.fileData === 'string' && f.fileData) || (typeof f.fileId === 'string' && f.fileId)))
             : (sub.fileData ? [{ fileName: sub.fileName || 'Tệp đính kèm', fileType: sub.fileType || '', fileData: sub.fileData }] : []);
         return { links, files, note: typeof sub.note === 'string' ? sub.note : '', submittedAt: sub.submittedAt || 0 };
     }
@@ -1100,6 +1100,88 @@ class HrOnboardingStore {
     // Ước lượng dung lượng (ký tự) của toàn bộ bài nộp – tài liệu Firestore giới hạn 1MB
     estimateSubmissionsSize(submissions) {
         try { return JSON.stringify(submissions || {}).length; } catch (_) { return 0; }
+    }
+
+    // ==========================================
+    // TỆP BÀI NỘP: lưu riêng theo từng mảnh ở collection onboarding_files
+    // (không còn nhét tệp vào tài liệu tiến độ 1MB). Mỗi mảnh ~650KB, id: {token}_{fileId}_{index}
+    // ==========================================
+    getSubmissionFileToken(candidateId = null) {
+        if (this.isHr() && candidateId) return this.getCandidateById(candidateId)?.onboardToken || '';
+        return this.token || '';
+    }
+
+    canUploadSubmissionFiles(candidateId = null) {
+        return !!(window.firebaseDb && /^[a-f0-9]{64}$/.test(this.getSubmissionFileToken(candidateId)));
+    }
+
+    randomHex(bytes = 12) {
+        return Array.from(crypto.getRandomValues(new Uint8Array(bytes)), n => n.toString(16).padStart(2, '0')).join('');
+    }
+
+    async uploadSubmissionFile(file, candidateId = null, onProgress = null) {
+        const token = this.getSubmissionFileToken(candidateId);
+        if (!/^[a-f0-9]{64}$/.test(token) || !window.firebaseDb) throw new Error('Chưa có liên kết Onboard để tải tệp lên.');
+        const dataUrl = String(file.fileData || '');
+        if (!dataUrl) throw new Error('Tệp rỗng.');
+        const CHUNK = 650000;
+        const total = Math.ceil(dataUrl.length / CHUNK);
+        if (total > 40) throw new Error('Tệp quá lớn.');
+        const fileId = this.randomHex(12);
+        const col = window.firebaseDb.collection('onboarding_files');
+        let done = 0;
+        for (let i = 0; i < total; i += 3) {
+            const batch = [];
+            for (let j = i; j < Math.min(i + 3, total); j++) {
+                batch.push(col.doc(`${token}_${fileId}_${j}`).set({
+                    token, fileId, index: j, total, data: dataUrl.slice(j * CHUNK, (j + 1) * CHUNK)
+                }).then(() => { done++; if (onProgress) onProgress(done, total); }));
+            }
+            await Promise.all(batch);
+        }
+        this._fileCache = this._fileCache || new Map();
+        this._fileCache.set(fileId, dataUrl);
+        return {
+            fileName: file.fileName || 'Tệp đính kèm',
+            fileType: file.fileType || 'application/octet-stream',
+            size: Math.round(dataUrl.length * 0.75),
+            fileId,
+            chunks: total
+        };
+    }
+
+    // Lấy nội dung tệp (data URL) – tệp kiểu cũ có sẵn fileData, tệp mới tải từng mảnh và ghép lại
+    async loadSubmissionFile(fileRef, candidateId = null) {
+        if (!fileRef) throw new Error('Không tìm thấy tệp.');
+        if (fileRef.fileData) return fileRef.fileData;
+        this._fileCache = this._fileCache || new Map();
+        if (this._fileCache.has(fileRef.fileId)) return this._fileCache.get(fileRef.fileId);
+        const token = this.getSubmissionFileToken(candidateId);
+        if (!token || !window.firebaseDb) throw new Error('Không có quyền tải tệp này.');
+        const col = window.firebaseDb.collection('onboarding_files');
+        const parts = await Promise.all(Array.from({ length: fileRef.chunks || 1 }, (_, i) =>
+            col.doc(`${token}_${fileRef.fileId}_${i}`).get().then(snap => {
+                if (!snap.exists) throw new Error('Tệp đã bị xóa hoặc chưa tải lên xong.');
+                return snap.data().data || '';
+            })
+        ));
+        const dataUrl = parts.join('');
+        this._fileCache.set(fileRef.fileId, dataUrl);
+        return dataUrl;
+    }
+
+    // Xóa các mảnh tệp không còn dùng (chạy nền, lỗi cũng không ảnh hưởng bài nộp)
+    deleteSubmissionFiles(fileRefs, candidateId = null) {
+        const token = this.getSubmissionFileToken(candidateId);
+        if (!token || !window.firebaseDb) return;
+        const col = window.firebaseDb.collection('onboarding_files');
+        (fileRefs || []).forEach(ref => {
+            if (!ref || !ref.fileId) return;
+            if (this._fileCache) this._fileCache.delete(ref.fileId);
+            for (let i = 0; i < (ref.chunks || 1); i++) {
+                Promise.resolve().then(() => col.doc(`${token}_${ref.fileId}_${i}`).delete()).catch(() => {});
+            }
+        });
     }
 
     async saveTaskSubmission(taskId, submissionData, candidateId = null) {

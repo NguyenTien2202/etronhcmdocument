@@ -2902,18 +2902,18 @@ class HrHubApp {
                                             <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2.5 text-xs">
                                                 <button type="button" onclick="window.hrHub.previewCandidateSubmission('${candArg}', '${taskArg}', ${idx})"
                                                     class="flex items-center gap-2.5 min-w-0 flex-1 text-left hover:opacity-90" title="Bấm để xem trước">
-                                                    ${isImg
+                                                    ${isImg && f.fileData
                                                         ? `<img src="${f.fileData}" alt="" class="w-12 h-10 object-cover rounded-lg border border-slate-200 shrink-0">`
                                                         : `<span class="w-10 h-10 rounded-lg ${isPdf ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center shrink-0"><i data-lucide="${isPdf ? 'file-text' : 'file'}" class="w-5 h-5"></i></span>`}
                                                     <span class="min-w-0">
                                                         <span class="font-bold text-slate-800 block truncate">${this.escapeHtml(f.fileName || 'Tệp bài nộp')}</span>
-                                                        <span class="text-[10px] text-slate-400 block">Bấm để xem trước</span>
+                                                        <span class="text-[10px] text-slate-400 block">${f.size ? Math.max(1, Math.round(f.size / 1024)) + ' KB • ' : ''}Bấm để xem trước</span>
                                                     </span>
                                                 </button>
-                                                <a href="${f.fileData}" download="${this.escapeHtml(f.fileName || 'bai-tap')}"
+                                                <button type="button" onclick="window.hrHub.downloadCandidateSubmissionFile('${candArg}', '${taskArg}', ${idx})"
                                                     class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 shrink-0" title="Tải về" aria-label="Tải về">
                                                     <i data-lucide="download" class="w-4 h-4"></i>
-                                                </a>
+                                                </button>
                                             </div>
                                         `;
                                     }).join('')}
@@ -2933,11 +2933,36 @@ class HrHubApp {
         `;
     }
 
-    previewCandidateSubmission(candidateId, taskId, fileIdx = 0) {
+    // Lấy tệp bài nộp (tệp mới lưu từng mảnh ở onboarding_files → tải và ghép lại)
+    async resolveCandidateSubmissionFile(candidateId, taskId, fileIdx = 0) {
+        const store = window.hrOnboardingStore;
+        const raw = store.getCandidateById(candidateId)?.taskSubmissions?.[taskId];
+        const file = raw ? store.normalizeSubmission(raw).files[fileIdx] : null;
+        if (!file) return null;
+        if (file.fileData) return file;
+        this.showToast('Đang tải tệp...', 'info');
+        try {
+            return { ...file, fileData: await store.loadSubmissionFile(file, candidateId) };
+        } catch (err) {
+            this.showToast('Không mở được tệp: ' + (err?.message || 'vui lòng thử lại'), 'error');
+            return null;
+        }
+    }
+
+    async downloadCandidateSubmissionFile(candidateId, taskId, fileIdx = 0) {
+        const file = await this.resolveCandidateSubmissionFile(candidateId, taskId, fileIdx);
+        if (!file) return;
+        const a = document.createElement('a');
+        a.href = file.fileData;
+        a.download = file.fileName || 'bai-tap';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    }
+
+    async previewCandidateSubmission(candidateId, taskId, fileIdx = 0) {
         const candidate = window.hrOnboardingStore.getCandidateById(candidateId);
-        const raw = candidate?.taskSubmissions?.[taskId];
-        if (!raw) return;
-        const file = window.hrOnboardingStore.normalizeSubmission(raw).files[fileIdx];
+        const file = await this.resolveCandidateSubmissionFile(candidateId, taskId, fileIdx);
         if (!file) return;
 
         const roadmap = this.getCandidateLearningRoadmap(candidate);
