@@ -1,7 +1,7 @@
 /**
  * Quote Builder Component & Logic
  * Cấu hình chuẩn xác theo mẫu BÁO GIÁ DỊCH VỤ ADAHUB & UCALL của Etron Solutions
- * Hỗ trợ: Gói mẫu CB2, CB5, CB20, Tính toán tiền tệ, đọc số thành chữ, Floating Mini Bar & Drawer A4
+ * Hỗ trợ: Gói mẫu CB2, CB5, CB10, CB20, Tính toán tiền tệ, đọc số thành chữ, Floating Mini Bar & Drawer A4
  */
 
 const CRM_STANDARD_MODULES = [
@@ -39,10 +39,11 @@ const CALLBOT_DISCOUNT_LABELS = {
 const CALLBOT_PACKAGES = {
     cb2:   { code: 'CB-2',   name: 'CB2',   tier: 'Sale',       price: 2000000,   duration: '2 tháng',  months: 2,  scripts: 0, recordings: 0, crmAccounts: 1,  firstTwoOnly: false, discounts: { call: 0,   voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
     cb5:   { code: 'CB-5',   name: 'CB5',   tier: 'Sale',       price: 5000000,   duration: '3 tháng',  months: 3,  scripts: 1, recordings: 1, crmAccounts: 1,  firstTwoOnly: true,  discounts: { call: -10, voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
+    cb10:  { code: 'CB-10',  name: 'CB10',  tier: 'Business',   price: 10000000,  duration: '3 tháng',  months: 3,  scripts: 2, recordings: 2, crmAccounts: 1,  firstTwoOnly: false, discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
     cb20:  { code: 'CB-20',  name: 'CB20',  tier: 'Business',   price: 20000000,  duration: '6 tháng',  months: 6,  scripts: 2, recordings: 2, crmAccounts: 2,  firstTwoOnly: false, discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
-    cb50:  { code: 'CB-50',  name: 'CB50',  tier: 'Business',   price: 50000000,  duration: '6 tháng',  months: 6,  scripts: 4, recordings: 4, crmAccounts: 4,  firstTwoOnly: false, discounts: { call: -30, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
+    cb50:  { code: 'CB-50',  name: 'CB50',  tier: 'Business',   price: 50000000,  duration: '9 tháng',  months: 9,  scripts: 4, recordings: 4, crmAccounts: 4,  firstTwoOnly: false, discounts: { call: -30, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
     cb100: { code: 'CB-100', name: 'CB100', tier: 'Enterprise', price: 100000000, duration: '12 tháng', months: 12, scripts: 6, recordings: 6, crmAccounts: 8,  firstTwoOnly: false, discounts: { call: -40, voice: -10, intent: -5, agent: -5, prompt: -5 } },
-    cb200: { code: 'CB-200', name: 'CB200', tier: 'Enterprise', price: 200000000, duration: '12 tháng', months: 12, scripts: 8, recordings: 8, crmAccounts: 16, firstTwoOnly: false, discounts: { call: -50, voice: -10, intent: -5, agent: -5, prompt: -5 } }
+    cb200: { code: 'CB-200', name: 'CB200', tier: 'Enterprise', price: 200000000, duration: '18 tháng', months: 18, scripts: 8, recordings: 8, crmAccounts: 16, firstTwoOnly: false, discounts: { call: -50, voice: -10, intent: -5, agent: -5, prompt: -5 } }
 };
 
 // Số tháng Sale được TẶNG THÊM thời hạn sử dụng theo từng gói Callbot (chính sách Etron)
@@ -685,8 +686,8 @@ class QuoteBuilder {
                         numberType: 'chung_codinh',
                         unitPriceDisplay: '50.000.000₫',
                         price: 50000000,
-                        duration: '6 tháng',
-                        months: 6,
+                        duration: '9 tháng',
+                        months: 9,
                         quantity: 1,
                         unit: 'gói',
                         discountPercent: 0,
@@ -1483,13 +1484,25 @@ class QuoteBuilder {
             duration = '3 tháng';
             months = 3;
             unit = 'gói';
-        } else if (product.id === 'callbot-cb20' || product.id === 'callbot-cb50') {
+        } else if (product.id === 'callbot-cb10') {
+            duration = '3 tháng';
+            months = 3;
+            unit = 'gói';
+        } else if (product.id === 'callbot-cb20') {
             duration = '6 tháng';
             months = 6;
             unit = 'gói';
-        } else if (product.id === 'callbot-cb100' || product.id === 'callbot-cb200') {
+        } else if (product.id === 'callbot-cb50') {
+            duration = '9 tháng';
+            months = 9;
+            unit = 'gói';
+        } else if (product.id === 'callbot-cb100') {
             duration = '12 tháng';
             months = 12;
+            unit = 'gói';
+        } else if (product.id === 'callbot-cb200') {
+            duration = '18 tháng';
+            months = 18;
             unit = 'gói';
         } else if (product.id === 'vi-cuoc-vien-thong') {
             duration = 'Theo gói';

@@ -156,6 +156,16 @@ const DEFAULT_PRODUCTS = [
         warranty: 'Theo gói cước'
     },
     {
+        id: 'callbot-cb10',
+        code: 'CB-10',
+        name: 'Gói Callbot AI UCALL CB10 (10 Triệu / 3 tháng)',
+        category: 'Callbot',
+        unit: 'Gói (3 tháng)',
+        price: 10000000,
+        description: 'Thời hạn 3 tháng. Đơn giá & chiết khấu như gói CB20: chiết khấu cuộc gọi -20₫, cảm ứng giọng nói -5₫/block - Giá block 6s: Standard 210₫ (47.619 block), Advanced 245₫ (40.816 block), AI Call Agent 305₫ (32.786 block). Tặng 2 kịch bản, 2 ghi âm, 1 tài khoản CRM.',
+        warranty: 'Hỗ trợ kỹ thuật 24/7'
+    },
+    {
         id: 'callbot-cb20',
         code: 'CB-20',
         name: 'Gói Callbot AI UCALL CB20 (20 Triệu / 6 tháng)',
@@ -168,11 +178,11 @@ const DEFAULT_PRODUCTS = [
     {
         id: 'callbot-cb50',
         code: 'CB-50',
-        name: 'Gói Callbot AI UCALL CB50 (50 Triệu / 6 tháng)',
+        name: 'Gói Callbot AI UCALL CB50 (50 Triệu / 9 tháng)',
         category: 'Callbot',
-        unit: 'Gói (6 tháng)',
+        unit: 'Gói (9 tháng)',
         price: 50000000,
-        description: 'Thời hạn 6 tháng. Chiết khấu cuộc gọi -30₫, cảm ứng giọng nói -5₫/block - Giá block 6s: Standard 200₫ (250.000 block), Advanced 235₫ (212.765 block), AI Call Agent 295₫ (169.491 block). Tặng 4 kịch bản, 4 ghi âm, 4 tài khoản CRM.',
+        description: 'Thời hạn 9 tháng. Chiết khấu cuộc gọi -30₫, cảm ứng giọng nói -5₫/block - Giá block 6s: Standard 200₫ (250.000 block), Advanced 235₫ (212.765 block), AI Call Agent 295₫ (169.491 block). Tặng 4 kịch bản, 4 ghi âm, 4 tài khoản CRM.',
         warranty: 'Ưu tiên hỗ trợ'
     },
     {
@@ -188,11 +198,11 @@ const DEFAULT_PRODUCTS = [
     {
         id: 'callbot-cb200',
         code: 'CB-200',
-        name: 'Gói Callbot AI UCALL CB200 (200 Triệu / 12 tháng)',
+        name: 'Gói Callbot AI UCALL CB200 (200 Triệu / 18 tháng)',
         category: 'Callbot',
-        unit: 'Gói (12 tháng)',
+        unit: 'Gói (18 tháng)',
         price: 200000000,
-        description: 'Thời hạn 12 tháng. Chiết khấu cuộc gọi -50₫, cảm ứng giọng nói -10₫, nhận diện ý định -5₫, AI Agent -5₫, nói prompt -5₫/block - Giá block 6s: Standard 180₫ (1.111.111 block), Advanced 205₫ (975.609 block), AI Call Agent 255₫ (784.313 block). Tặng 8 kịch bản, 8 ghi âm, 16 tài khoản CRM.',
+        description: 'Thời hạn 18 tháng. Chiết khấu cuộc gọi -50₫, cảm ứng giọng nói -10₫, nhận diện ý định -5₫, AI Agent -5₫, nói prompt -5₫/block - Giá block 6s: Standard 180₫ (1.111.111 block), Advanced 205₫ (975.609 block), AI Call Agent 255₫ (784.313 block). Tặng 8 kịch bản, 8 ghi âm, 16 tài khoản CRM.',
         warranty: 'Chuyên gia riêng 24/7'
     },
 
@@ -747,15 +757,12 @@ class SalesStore {
                 updated = true;
             }
             products = products.map(p => {
-                // Gói CB2 đổi thời hạn 45 ngày -> 2 tháng
-                if (p.id === 'callbot-cb2' && /45 ngày/.test(`${p.name || ''} ${p.unit || ''} ${p.description || ''}`)) {
+                // Cập nhật thời hạn gói mới: CB2 45 ngày -> 2 tháng, CB50 6 -> 9 tháng, CB200 12 -> 18 tháng
+                const durationFix = { 'callbot-cb2': ['45 ngày', '2 tháng'], 'callbot-cb50': ['6 tháng', '9 tháng'], 'callbot-cb200': ['12 tháng', '18 tháng'] }[p.id];
+                if (durationFix && `${p.name || ''} ${p.unit || ''} ${p.description || ''}`.includes(durationFix[0])) {
                     updated = true;
-                    p = {
-                        ...p,
-                        name: String(p.name || '').replace(/45 ngày/g, '2 tháng'),
-                        unit: String(p.unit || '').replace(/45 ngày/g, '2 tháng'),
-                        description: String(p.description || '').replace(/45 ngày/g, '2 tháng')
-                    };
+                    const fix = s => String(s || '').split(durationFix[0]).join(durationFix[1]);
+                    p = { ...p, name: fix(p.name), unit: fix(p.unit), description: fix(p.description) };
                 }
                 if (p.category && catMap[p.category]) {
                     updated = true;
@@ -763,6 +770,14 @@ class SalesStore {
                 }
                 return p;
             });
+            if (!products.some(p => p.id === 'callbot-cb10')) {
+                const cb10 = DEFAULT_PRODUCTS.find(p => p.id === 'callbot-cb10');
+                if (cb10) {
+                    const at = products.findIndex(p => p.id === 'callbot-cb5');
+                    products.splice(at >= 0 ? at + 1 : products.length, 0, cb10);
+                    updated = true;
+                }
+            }
             ['srv-ket-noi-thay-so', 'srv-dang-ky-brandname', 'srv-duy-tri-ten-brandname'].forEach(newId => {
                 if (!products.some(p => p.id === newId)) {
                     const defItem = DEFAULT_PRODUCTS.find(p => p.id === newId);
