@@ -2523,7 +2523,7 @@ class QuoteBuilder {
             <!-- Mã QR thanh toán & Chữ ký -->
             <div class="signature-section" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 24px; page-break-inside: avoid !important; break-inside: avoid !important;">
                 <div style="flex-shrink: 0;">
-                    <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 235px; height: auto; display: block; border-radius: 10px;">
+                    <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 130px; height: 130px; object-fit: contain; display: block;">
                 </div>
                 <div style="text-align: center; width: 300px; font-size: 12pt; line-height: 1.5;">
                     <div style="font-style: italic;">Hà Nội, ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${d.getFullYear()}</div>
