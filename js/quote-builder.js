@@ -2521,9 +2521,13 @@ class QuoteBuilder {
         const qrSrc = window.ETRON_PAYMENT_QR_BASE64 || 'assets/qr_mbbank_etron.png';
         const renderSignature = () => `
             <!-- Mã QR thanh toán & Chữ ký -->
-            <div class="signature-section" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 24px; page-break-inside: avoid !important; break-inside: avoid !important;">
-                <div style="flex-shrink: 0;">
-                    <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 130px; height: 130px; object-fit: contain; display: block;">
+            <div class="signature-section" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; page-break-inside: avoid !important; break-inside: avoid !important;">
+                <div style="text-align: center; width: 340px; font-size: 12pt; line-height: 1.5;">
+                    <div>${this.escapeHtml(company.bankName || 'Ngân hàng TMCP Quân đội')}</div>
+                    <div style="margin-top: 2px; white-space: nowrap;">${this.escapeHtml((company.bankAccount || '999998887777') + ' ' + (company.bankAccountName || 'CONG TY CP GIAI PHAP ETRON'))}</div>
+                    <div style="margin-top: 6px; display: flex; justify-content: center;">
+                        <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 116px; height: 116px; object-fit: contain; display: block; border: 0.5pt solid #64748b; padding: 2px; background: #ffffff;">
+                    </div>
                 </div>
                 <div style="text-align: center; width: 300px; font-size: 12pt; line-height: 1.5;">
                     <div style="font-style: italic;">Hà Nội, ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${d.getFullYear()}</div>
