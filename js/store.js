@@ -162,8 +162,8 @@ const DEFAULT_PRODUCTS = [
         category: 'Callbot',
         unit: 'Gói (3 tháng)',
         price: 10000000,
-        description: 'Thời hạn 3 tháng. Đơn giá & chiết khấu như gói CB20: chiết khấu cuộc gọi -20₫, cảm ứng giọng nói -5₫/block - Giá block 6s: Standard 210₫ (47.619 block), Advanced 245₫ (40.816 block), AI Call Agent 305₫ (32.786 block). Tặng 2 kịch bản, 2 ghi âm, 1 tài khoản CRM.',
-        warranty: 'Hỗ trợ kỹ thuật 24/7'
+        description: 'Thời hạn 3 tháng. Đơn giá block như gói CB20 (chiết khấu cuộc gọi -20₫, cảm ứng giọng nói -5₫/block) - Giá block 6s: Standard 210₫ (47.619 block), Advanced 245₫ (40.816 block), AI Call Agent 305₫ (32.786 block). Tặng 1 kịch bản, 1 ghi âm (áp dụng cho 2 lần mua đầu tiên), 1 tài khoản CRM.',
+        warranty: 'Theo gói cước'
     },
     {
         id: 'callbot-cb20',
@@ -757,12 +757,19 @@ class SalesStore {
                 updated = true;
             }
             products = products.map(p => {
-                // Cập nhật thời hạn gói mới: CB2 45 ngày -> 2 tháng, CB50 6 -> 9 tháng, CB200 12 -> 18 tháng
+                // Cập nhật thời hạn gói mới: CB2 45 ngày -> 2 tháng, CB50 6 -> 9 tháng, CB200 12 -> 18 tháng, và ưu đãi gói CB10 theo CB5
                 const durationFix = { 'callbot-cb2': ['45 ngày', '2 tháng'], 'callbot-cb50': ['6 tháng', '9 tháng'], 'callbot-cb200': ['12 tháng', '18 tháng'] }[p.id];
                 if (durationFix && `${p.name || ''} ${p.unit || ''} ${p.description || ''}`.includes(durationFix[0])) {
                     updated = true;
                     const fix = s => String(s || '').split(durationFix[0]).join(durationFix[1]);
                     p = { ...p, name: fix(p.name), unit: fix(p.unit), description: fix(p.description) };
+                }
+                if (p.id === 'callbot-cb10' && String(p.description || '').includes('Tặng 2 kịch bản')) {
+                    const cb10 = DEFAULT_PRODUCTS.find(it => it.id === 'callbot-cb10');
+                    if (cb10) {
+                        updated = true;
+                        p = { ...p, description: cb10.description, warranty: cb10.warranty };
+                    }
                 }
                 if (p.category && catMap[p.category]) {
                     updated = true;
