@@ -2518,9 +2518,13 @@ class QuoteBuilder {
             </div>
         `;
 
+        const qrSrc = window.ETRON_PAYMENT_QR_BASE64 || 'assets/qr_mbbank_etron.png';
         const renderSignature = () => `
-            <!-- Chữ ký -->
-            <div class="signature-section" style="margin-top: 20px; display: flex; justify-content: flex-end; page-break-inside: avoid !important; break-inside: avoid !important;">
+            <!-- Mã QR thanh toán & Chữ ký -->
+            <div class="signature-section" style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center; gap: 24px; page-break-inside: avoid !important; break-inside: avoid !important;">
+                <div style="flex-shrink: 0;">
+                    <img src="${qrSrc}" alt="Mã QR thanh toán MBBank - Etron" style="width: 235px; height: auto; display: block; border-radius: 10px;">
+                </div>
                 <div style="text-align: center; width: 300px; font-size: 12pt; line-height: 1.5;">
                     <div style="font-style: italic;">Hà Nội, ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${d.getFullYear()}</div>
                     <div style="font-weight: bold; text-transform: uppercase; margin-top: 2px;">CÔNG TY CỔ PHẦN GIẢI PHÁP ETRON</div>
