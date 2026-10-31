@@ -3337,10 +3337,12 @@ class HrHubApp {
         const newLink = {
             title: title,
             url: mode === 'url' ? url : `note:${Date.now()}`,
-            note: noteDesc || (mode === 'note' ? 'Ghi chú đào tạo' : undefined),
-            type: mode === 'note' ? 'note' : (url.startsWith('http') ? 'external' : 'internal'),
-            content: mode === 'note' ? noteContent : undefined
+            type: mode === 'note' ? 'note' : (url.startsWith('http') ? 'external' : 'internal')
         };
+        // Firestore không chấp nhận giá trị undefined: chỉ thêm trường khi có dữ liệu
+        const linkNote = noteDesc || (mode === 'note' ? 'Ghi chú đào tạo' : '');
+        if (linkNote) newLink.note = linkNote;
+        if (mode === 'note') newLink.content = noteContent;
 
         const isTaskLevel = !!this.attachingTaskId;
         if (isTaskLevel) {

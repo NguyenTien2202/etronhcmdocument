@@ -440,6 +440,19 @@ test('submission rules: practice task without the submission tick needs no submi
     assert.equal(mixed.links.length + mixed.files.length, 0);
 });
 
+test('cloud writes never contain undefined values (Firestore rejects them)', () => {
+    const { store, listeners, writes } = storeHarness(true);
+    store.setupCloudSync();
+    listeners.find(l => l.id === 'candidates_data').next({ exists: true, metadata: { fromCache: false }, data: () => ({ items: [{ id: 'c1', fullName: 'A', note: undefined }] }) });
+    const hasUndefined = v => v === undefined || (Array.isArray(v) ? v.some(hasUndefined) : (v && typeof v === 'object' ? Object.values(v).some(hasUndefined) : false));
+    store.saveCandidateRoadmap('c1', [{ id: 'd1', title: 'Day', tasks: [{ id: 't1', links: [{ title: 'L', url: 'https://x', note: undefined, content: undefined }] }] }]);
+    const roadmapWrite = writes.filter(w => w.id === 'cand_roadmap_c1').pop();
+    assert.equal(hasUndefined(roadmapWrite.data), false);
+    store.saveCandidates(store.getCandidates());
+    assert.equal(hasUndefined(writes.filter(w => w.id === 'candidates_data').pop().data), false);
+    assert.equal(store.getCandidates()[0].customRoadmap[0].tasks[0].links[0].title, 'L');
+});
+
 test('task drag-and-drop reorder and unified attachment modal with 2 tabs', async () => {
     const { store } = storeHarness(true);
     store.ready.add('roadmap');

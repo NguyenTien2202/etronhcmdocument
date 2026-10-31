@@ -857,6 +857,7 @@ class HrOnboardingStore {
         if (!Array.isArray(days) || days.length === 0) {
             return JSON.parse(JSON.stringify(DEFAULT_ONBOARDING_ROADMAP));
         }
+        days = this.cleanForCloud(days);
         days.forEach(d => {
             if (!Array.isArray(d.tasks)) d.tasks = [];
             if (!Array.isArray(d.attachedDocIds)) d.attachedDocIds = [];
@@ -870,6 +871,19 @@ class HrOnboardingStore {
         return days;
     }
     isHr() { return window.hrAuth?.isHr() === true; }
+    // Firestore từ chối mọi giá trị undefined ("Unsupported field value: undefined"):
+    // loại bỏ chúng (đệ quy) trước khi ghi lên Cloud.
+    cleanForCloud(value) {
+        if (Array.isArray(value)) return value.map(v => (v === undefined ? null : this.cleanForCloud(v)));
+        if (value && Object.prototype.toString.call(value) === '[object Object]') {
+            const out = {};
+            for (const [key, v] of Object.entries(value)) {
+                if (v !== undefined) out[key] = this.cleanForCloud(v);
+            }
+            return out;
+        }
+        return value;
+    }
     onChange(cb) { if (typeof cb === 'function') this._listeners.push(cb); }
     notifyChange(source = 'local') { this._listeners.forEach(cb => cb(source)); }
     requireHr(key) {
@@ -996,7 +1010,7 @@ class HrOnboardingStore {
     saveCandidates(list) {
         this.requireHr('candidates');
         this.privateData.candidates = list;
-        const stored = this.toStoredCandidates(list);
+        const stored = this.cleanForCloud(this.toStoredCandidates(list));
         try {
             localStorage.setItem('etron_hr_cached_candidates', JSON.stringify(stored));
         } catch (_) {}
@@ -1089,10 +1103,10 @@ class HrOnboardingStore {
     }
 
     async saveTaskSubmission(taskId, submissionData, candidateId = null) {
-        const payload = {
+        const payload = this.cleanForCloud({
             ...submissionData,
             submittedAt: submissionData.submittedAt || Date.now()
-        };
+        });
 
         if (this.isHr() && candidateId) {
             const candidate = this.getCandidateById(candidateId);
@@ -1334,7 +1348,7 @@ class HrOnboardingStore {
                 } else if (current && Array.isArray(current.customRoadmap) && current.customRoadmap.length && !doc.metadata?.fromCache) {
                     // Dữ liệu cũ còn nằm trong candidates_data: chuyển sang tài liệu riêng
                     this.personalRoadmaps[id] = current.customRoadmap;
-                    ref.set({ days: current.customRoadmap, updatedAt: Date.now() }).catch(() => {});
+                    ref.set({ days: this.cleanForCloud(current.customRoadmap), updatedAt: Date.now() }).catch(() => {});
                 }
                 if (!doc.metadata?.fromCache) this.personalRoadmapReady.add(id);
                 this.notifyChange('candidate_roadmap');
@@ -1353,7 +1367,7 @@ class HrOnboardingStore {
         this.requireHr('candidates');
         const cand = this.getCandidates().find(c => c.id === candidateId);
         if (!cand) throw new Error('Không tìm thấy hồ sơ nhân sự.');
-        const list = Array.isArray(days) ? days : [];
+        const list = this.cleanForCloud(Array.isArray(days) ? days : []);
         cand.customRoadmap = list;
         this.personalRoadmaps[candidateId] = list;
         this.personalRoadmapReady.add(candidateId);
@@ -1404,7 +1418,7 @@ class HrOnboardingStore {
             startDate: candidate.startDate || '',
             mentor: candidate.mentor || '',
             targetDate: candidate.targetDate || '',
-            customRoadmap: Array.isArray(candidate.customRoadmap) ? candidate.customRoadmap : [],
+            customRoadmap: Array.isArray(candidate.customRoadmap) ? this.cleanForCloud(candidate.customRoadmap) : [],
         };
         const ref = window.firebaseDb.collection('onboarding_links').doc(token);
         await ref.set(publicData);
