@@ -37,13 +37,13 @@ const CALLBOT_DISCOUNT_LABELS = {
 
 // Mức ưu đãi, chiết khấu (đ/block 6s) — gói từ CB5 trở lên bắt đầu được chiết khấu
 const CALLBOT_PACKAGES = {
-    cb2:   { code: 'CB-2',   name: 'CB2',   tier: 'Sale',       price: 2000000,   duration: '2 tháng',  months: 2,  scripts: 0, recordings: 0, crmAccounts: 1,  firstTwoOnly: false, discounts: { call: 0,   voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
-    cb5:   { code: 'CB-5',   name: 'CB5',   tier: 'Sale',       price: 5000000,   duration: '3 tháng',  months: 3,  scripts: 1, recordings: 1, crmAccounts: 1,  firstTwoOnly: true,  discounts: { call: -10, voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
-    cb10:  { code: 'CB-10',  name: 'CB10',  tier: 'Sale',       price: 10000000,  duration: '3 tháng',  months: 3,  scripts: 1, recordings: 1, crmAccounts: 1,  firstTwoOnly: true,  discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
-    cb20:  { code: 'CB-20',  name: 'CB20',  tier: 'Business',   price: 20000000,  duration: '6 tháng',  months: 6,  scripts: 2, recordings: 2, crmAccounts: 2,  firstTwoOnly: false, discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
-    cb50:  { code: 'CB-50',  name: 'CB50',  tier: 'Business',   price: 50000000,  duration: '9 tháng',  months: 9,  scripts: 4, recordings: 4, crmAccounts: 4,  firstTwoOnly: false, discounts: { call: -30, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
-    cb100: { code: 'CB-100', name: 'CB100', tier: 'Enterprise', price: 100000000, duration: '12 tháng', months: 12, scripts: 6, recordings: 6, crmAccounts: 8,  firstTwoOnly: false, discounts: { call: -40, voice: -10, intent: -5, agent: -5, prompt: -5 } },
-    cb200: { code: 'CB-200', name: 'CB200', tier: 'Enterprise', price: 200000000, duration: '18 tháng', months: 18, scripts: 8, recordings: 8, crmAccounts: 16, firstTwoOnly: false, discounts: { call: -50, voice: -10, intent: -5, agent: -5, prompt: -5 } }
+    cb2:   { code: 'CB-2',   name: 'CB2',   tier: 'Sale',       price: 2000000,   duration: '2 tháng',  months: 2,  extendMonths: 1, scripts: 0, recordings: 0, crmAccounts: 1,  firstTwoOnly: false, discounts: { call: 0,   voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
+    cb5:   { code: 'CB-5',   name: 'CB5',   tier: 'Sale',       price: 5000000,   duration: '3 tháng',  months: 3,  extendMonths: 1, scripts: 1, recordings: 1, crmAccounts: 1,  firstTwoOnly: true,  discounts: { call: -10, voice: 0,   intent: 0,  agent: 0,  prompt: 0 } },
+    cb10:  { code: 'CB-10',  name: 'CB10',  tier: 'Sale',       price: 10000000,  duration: '3 tháng',  months: 3,  extendMonths: 1, scripts: 1, recordings: 1, crmAccounts: 1,  firstTwoOnly: true,  discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
+    cb20:  { code: 'CB-20',  name: 'CB20',  tier: 'Business',   price: 20000000,  duration: '6 tháng',  months: 6,  extendMonths: 3, scripts: 2, recordings: 2, crmAccounts: 2,  firstTwoOnly: false, discounts: { call: -20, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
+    cb50:  { code: 'CB-50',  name: 'CB50',  tier: 'Business',   price: 50000000,  duration: '9 tháng',  months: 9,  extendMonths: 3, scripts: 4, recordings: 4, crmAccounts: 4,  firstTwoOnly: false, discounts: { call: -30, voice: -5,  intent: 0,  agent: 0,  prompt: 0 } },
+    cb100: { code: 'CB-100', name: 'CB100', tier: 'Enterprise', price: 100000000, duration: '12 tháng', months: 12, extendMonths: 3, scripts: 6, recordings: 6, crmAccounts: 8,  firstTwoOnly: false, discounts: { call: -40, voice: -10, intent: -5, agent: -5, prompt: -5 } },
+    cb200: { code: 'CB-200', name: 'CB200', tier: 'Enterprise', price: 200000000, duration: '18 tháng', months: 18, extendMonths: 3, scripts: 8, recordings: 8, crmAccounts: 16, firstTwoOnly: false, discounts: { call: -50, voice: -10, intent: -5, agent: -5, prompt: -5 } }
 };
 
 // Số tháng Sale được TẶNG THÊM thời hạn sử dụng theo từng gói Callbot (chính sách Etron)
@@ -905,7 +905,17 @@ class QuoteBuilder {
         const vatTerm = `Phần mềm CRM, Callbot, phí kết nối và dịch vụ đi kèm chưa bao gồm thuế VAT ${vatRate}%. Phí khởi tạo và duy trì đầu số đã bao gồm VAT 10%.`;
         const paymentTerm = 'Thông tin thanh toán: Ngân hàng TMCP Quân đội (MBBank) - Số TK: 999998887777 - CONG TY CP GIAI PHAP ETRON.';
 
-        const callbotTerm = 'Callbot tính theo block 6 giây. Giá block chưa bao gồm cước gọi và phí đầu số khi dùng số riêng. Trong 90 ngày sau khi hết hạn gói, có thể gia hạn với phí bằng 30% số dư còn lại.';
+        const callbotItems = this.currentQuote.items.filter(item => this.isCallbotItem(item));
+        const hasCallbot = callbotItems.length > 0;
+        const extendSet = new Set(
+            callbotItems
+                .map(it => CALLBOT_PACKAGES[this.getCallbotPackageKey(it)]?.extendMonths)
+                .filter(Boolean)
+        );
+        const extendText = extendSet.size === 1
+            ? `${[...extendSet][0]} tháng (tối đa 1 lần)`
+            : '1 tháng (gói CB2, CB5, CB10) hoặc 3 tháng (gói CB20, CB50, CB100, CB200), tối đa 1 lần,';
+        const callbotTerm = `Callbot tính theo block 6 giây. Giá block chưa bao gồm cước gọi và phí đầu số khi dùng số riêng. Trong 90 ngày sau khi hết hạn gói, có thể: (1) Gia hạn thêm ${extendText} với phí bằng 30% số dư còn lại; hoặc (2) Mua gói mới để sử dụng tiếp 70% số tiền còn lại của gói.`;
 
         const crmTermUnder12 = 'Phần mềm CRM tính theo user/tháng, thanh toán theo năm. Thời hạn dưới 12 tháng áp dụng đơn giá riêng (Tổng đài: 50.000₫, Standard: 100.000₫, Advanced: 250.000₫/user/tháng).';
         const crmTermFrom12 = 'Phần mềm CRM tính theo user/tháng, áp dụng cho thời hạn từ 12 tháng, thanh toán theo năm. Phí tích hợp API tùy yêu cầu.';
@@ -913,7 +923,6 @@ class QuoteBuilder {
         const telecomTerm = 'Cước viễn thông thanh toán trước vào ví cước, tối thiểu 1.000.000₫, đã bao gồm VAT 10%. Phí khởi tạo/duy trì đầu số và cước cuộc gọi thực tế trừ dần vào ví cước.';
         const pbxRatesTerm = 'Cước gọi tổng đài trừ vào ví cước: Đầu số chung cố định: 700đ/phút; Đầu số riêng cố định: 660đ/phút; Đầu số riêng di động: 720đ/phút; Voice Brandname: 660đ/phút (đã gồm VAT 10%).';
 
-        const hasCallbot = this.currentQuote.items.some(item => this.isCallbotItem(item));
         const crmItems = this.currentQuote.items.filter(item => this.isCrmItem(item));
         const hasCrm = crmItems.length > 0;
 
