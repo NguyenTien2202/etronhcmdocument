@@ -916,116 +916,7 @@ class HrHubApp {
                                         </h4>
                                     </div>
 
-                                    ${(() => {
-                                        const subs = cand.taskSubmissions || {};
-                                        const subEntries = Object.entries(subs);
-                                        if (subEntries.length === 0) {
-                                            return `
-                                                <div class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400 space-y-1">
-                                                    <i data-lucide="inbox" class="w-6 h-6 mx-auto text-slate-300"></i>
-                                                    <p class="font-medium text-slate-500">Chưa có bài tập nào được nộp</p>
-                                                    <p class="text-[11px]">Khi học viên tải file hoặc gắn link bài làm trên Cổng Onboard, kết quả sẽ tự động hiển thị tại đây để bạn kiểm tra.</p>
-                                                </div>
-                                            `;
-                                        }
-
-                                        const allTasks = this.getCandidateLearningRoadmap(cand).flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
-                                        return `
-                                            <div class="grid grid-cols-1 gap-2.5">
-                                                ${subEntries.map(([taskId, sub]) => {
-                                                    const match = allTasks.find(x => x.task.id === taskId);
-                                                    const taskTitle = match ? match.task.title : taskId;
-                                                    const dayNumber = match ? match.day.dayNumber : 'Lộ trình';
-                                                    const isImg = !!((sub.fileType && sub.fileType.startsWith('image/')) || (sub.fileData && sub.fileData.startsWith('data:image')));
-                                                    const formattedTime = window.hrOnboardingStore.formatDateTime(sub.submittedAt);
-
-                                                    return `
-                                                        <div class="p-3.5 rounded-2xl bg-white border border-indigo-200/80 shadow-2xs space-y-2 hover:border-indigo-400 transition-all">
-                                                            <div class="flex items-start justify-between gap-2">
-                                                                <div class="min-w-0 flex-1">
-                                                                    <div class="flex items-center gap-2">
-                                                                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 text-indigo-700 shrink-0">${this.escapeHtml(dayNumber)}</span>
-                                                                        <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${this.escapeHtml(this.cleanTaskTitle(taskTitle))}</h5>
-                                                                    </div>
-                                                                    <span class="text-[10px] text-slate-400 block mt-0.5 flex items-center gap-1">
-                                                                        <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
-                                                                        <span>Nộp lúc: ${formattedTime}</span>
-                                                                    </span>
-                                                                </div>
-                                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 flex items-center gap-1">
-                                                                    <i data-lucide="check-circle" class="w-3 h-3"></i> Đã nộp
-                                                                </span>
-                                                            </div>
-
-                                                            <!-- Link bài làm -->
-                                                            ${sub.link ? `
-                                                                <div class="p-2 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-center justify-between gap-2 text-xs">
-                                                                    <div class="flex items-center gap-2 min-w-0">
-                                                                        <i data-lucide="link" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
-                                                                        <span class="font-bold text-slate-600 shrink-0">Link:</span>
-                                                                        <a href="${this.escapeHtml(sub.link)}" target="_blank" rel="noopener noreferrer"
-                                                                            class="text-indigo-600 hover:text-indigo-800 font-bold underline truncate">${this.escapeHtml(sub.link)}</a>
-                                                                    </div>
-                                                                    <a href="${this.escapeHtml(sub.link)}" target="_blank" rel="noopener noreferrer"
-                                                                        class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shrink-0 flex items-center gap-1">
-                                                                        <span>Mở xem</span>
-                                                                        <i data-lucide="arrow-up-right" class="w-3 h-3"></i>
-                                                                    </a>
-                                                                </div>
-                                                            ` : ''}
-
-                                                            <!-- File / Hình ảnh đính kèm -->
-                                                            ${(sub.fileData || sub.fileName) ? `
-                                                                <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3 text-xs">
-                                                                    <div class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer hover:opacity-90"
-                                                                        onclick="window.hrHub.previewCandidateSubmission('${this.escapeJs(cand.id)}', '${this.escapeJs(taskId)}')"
-                                                                        title="Bấm để xem trước bài làm trực tiếp">
-                                                                        ${isImg ? `
-                                                                            <img src="${sub.fileData}" alt="${this.escapeHtml(sub.fileName || 'Bài tập')}"
-                                                                                class="w-14 h-11 sm:w-16 sm:h-12 object-cover rounded-lg border border-slate-200 shadow-2xs shrink-0">
-                                                                        ` : `
-                                                                            <div class="w-10 h-10 rounded-lg ${sub.fileName?.toLowerCase().endsWith('.pdf') ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center shrink-0 shadow-2xs">
-                                                                                <i data-lucide="${sub.fileName?.toLowerCase().endsWith('.pdf') ? 'file-text' : 'file'}" class="w-5 h-5"></i>
-                                                                            </div>
-                                                                        `}
-                                                                        <div class="min-w-0">
-                                                                            <span class="font-bold text-slate-800 block truncate hover:text-indigo-600 transition-colors">${this.escapeHtml(sub.fileName || 'File bài nộp')}</span>
-                                                                            <span class="text-[10px] text-slate-400 block flex items-center gap-1">
-                                                                                <i data-lucide="eye" class="w-3 h-3 text-indigo-500"></i>
-                                                                                <span>${isImg ? 'Ảnh đính kèm • Bấm xem lớn' : (sub.fileName?.toLowerCase().endsWith('.pdf') ? 'Tệp PDF • Bấm xem trước' : 'Tệp đính kèm • Bấm xem trước')}</span>
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="flex items-center gap-1.5 shrink-0">
-                                                                        <button type="button" onclick="window.hrHub.previewCandidateSubmission('${this.escapeJs(cand.id)}', '${this.escapeJs(taskId)}')"
-                                                                            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
-                                                                            title="Xem trước bài làm trực tiếp">
-                                                                            <i data-lucide="eye" class="w-3.5 h-3.5 text-indigo-600"></i>
-                                                                            <span>Xem</span>
-                                                                        </button>
-                                                                        <a href="${sub.fileData}" download="${this.escapeHtml(sub.fileName || 'bai-tap')}"
-                                                                            class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-2xs"
-                                                                            title="Tải tệp về máy tính">
-                                                                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                                                            <span>Tải về</span>
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            ` : ''}
-
-                                                            <!-- Note / Ghi chú -->
-                                                            ${sub.note ? `
-                                                                <div class="p-2.5 rounded-xl bg-amber-50/40 border border-amber-200/70 text-xs text-slate-800 leading-relaxed">
-                                                                    <span class="font-extrabold text-amber-900 block text-[11px] mb-0.5">Ghi chú của học viên:</span>
-                                                                    <p class="whitespace-pre-wrap">${this.escapeHtml(sub.note)}</p>
-                                                                </div>
-                                                            ` : ''}
-                                                        </div>
-                                                    `;
-                                                }).join('')}
-                                            </div>
-                                        `;
-                                    })()}
+                                    ${this.renderCandidateSubmissionsHtml(cand)}
                                 </div>
 
                                 </div>
@@ -1946,7 +1837,7 @@ class HrHubApp {
                                                         </span>
                                                     ` : ''}
                                                     ${window.onboardingViewer ? window.onboardingViewer.getTaskTypeBadge(task.type) : ''}
-                                                    ${(task.requiresSubmission || task.type === 'practice') ? `
+                                                    ${window.hrOnboardingStore.taskRequiresSubmission(task) ? `
                                                         <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                                                             <i data-lucide="upload-cloud" class="w-3 h-3 text-amber-600"></i>
                                                             <span>Có nộp bài</span>
@@ -2949,24 +2840,119 @@ class HrHubApp {
         if (window.lucide) lucide.createIcons();
     }
 
-    previewCandidateSubmission(candidateId, taskId) {
-        const candidate = window.hrOnboardingStore.getCandidateById(candidateId);
-        const sub = candidate?.taskSubmissions?.[taskId];
-        if (!sub) return;
+    // Danh sách bài nộp của một nhân sự (hỗ trợ nhiều link + nhiều tệp, đọc được cả bài nộp kiểu cũ)
+    renderCandidateSubmissionsHtml(cand) {
+        const store = window.hrOnboardingStore;
+        const subEntries = Object.entries(cand.taskSubmissions || {});
+        if (subEntries.length === 0) {
+            return `
+                <div class="p-4 rounded-xl bg-slate-50 border border-dashed border-slate-200 text-center text-xs text-slate-400 space-y-1">
+                    <i data-lucide="inbox" class="w-6 h-6 mx-auto text-slate-300"></i>
+                    <p class="font-medium text-slate-500">Chưa có bài tập nào được nộp</p>
+                    <p class="text-[11px]">Khi học viên tải file hoặc gắn link bài làm trên Cổng Onboard, kết quả sẽ tự động hiển thị tại đây để bạn kiểm tra.</p>
+                </div>
+            `;
+        }
+        const allTasks = this.getCandidateLearningRoadmap(cand).flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
+        const candArg = this.escapeJs(cand.id);
+        return `
+            <div class="grid grid-cols-1 gap-2.5">
+                ${subEntries.sort((a, b) => (b[1]?.submittedAt || 0) - (a[1]?.submittedAt || 0)).map(([taskId, raw]) => {
+                    const sub = store.normalizeSubmission(raw);
+                    const match = allTasks.find(x => x.task.id === taskId);
+                    const taskTitle = match ? match.task.title : taskId;
+                    const dayNumber = match ? match.day.dayNumber : 'Lộ trình';
+                    const taskArg = this.escapeJs(taskId);
+                    return `
+                        <div class="p-3.5 rounded-2xl bg-white border border-indigo-200/80 shadow-2xs space-y-2.5 hover:border-indigo-400 transition-all">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-indigo-100 text-indigo-700 shrink-0">${this.escapeHtml(dayNumber)}</span>
+                                        <h5 class="text-xs sm:text-sm font-extrabold text-slate-900 truncate">${this.escapeHtml(this.cleanTaskTitle(taskTitle))}</h5>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 mt-0.5 flex items-center gap-1">
+                                        <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
+                                        <span>Nộp lúc: ${store.formatDateTime(sub.submittedAt)}</span>
+                                        ${sub.links.length ? ` • ${sub.links.length} link` : ''}${sub.files.length ? ` • ${sub.files.length} tệp` : ''}
+                                    </span>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200 shrink-0 flex items-center gap-1">
+                                    <i data-lucide="check-circle" class="w-3 h-3"></i> Đã nộp
+                                </span>
+                            </div>
 
-        const roadmap = candidate?.customRoadmap?.length ? candidate.customRoadmap : this.getEditableRoadmap();
+                            ${sub.links.map(link => `
+                                <a href="${this.escapeHtml(link)}" target="_blank" rel="noopener noreferrer"
+                                    class="p-2 rounded-xl bg-indigo-50/50 border border-indigo-100 flex items-center justify-between gap-2 text-xs hover:border-indigo-300 group">
+                                    <span class="flex items-center gap-2 min-w-0">
+                                        <i data-lucide="link" class="w-3.5 h-3.5 text-indigo-600 shrink-0"></i>
+                                        <span class="text-indigo-600 group-hover:text-indigo-800 font-bold underline truncate">${this.escapeHtml(link)}</span>
+                                    </span>
+                                    <i data-lucide="arrow-up-right" class="w-3.5 h-3.5 text-indigo-500 shrink-0"></i>
+                                </a>
+                            `).join('')}
+
+                            ${sub.files.length ? `
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    ${sub.files.map((f, idx) => {
+                                        const isImg = String(f.fileType || '').startsWith('image/') || String(f.fileData || '').startsWith('data:image');
+                                        const isPdf = String(f.fileName || '').toLowerCase().endsWith('.pdf');
+                                        return `
+                                            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center gap-2.5 text-xs">
+                                                <button type="button" onclick="window.hrHub.previewCandidateSubmission('${candArg}', '${taskArg}', ${idx})"
+                                                    class="flex items-center gap-2.5 min-w-0 flex-1 text-left hover:opacity-90" title="Bấm để xem trước">
+                                                    ${isImg
+                                                        ? `<img src="${f.fileData}" alt="" class="w-12 h-10 object-cover rounded-lg border border-slate-200 shrink-0">`
+                                                        : `<span class="w-10 h-10 rounded-lg ${isPdf ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'} flex items-center justify-center shrink-0"><i data-lucide="${isPdf ? 'file-text' : 'file'}" class="w-5 h-5"></i></span>`}
+                                                    <span class="min-w-0">
+                                                        <span class="font-bold text-slate-800 block truncate">${this.escapeHtml(f.fileName || 'Tệp bài nộp')}</span>
+                                                        <span class="text-[10px] text-slate-400 block">Bấm để xem trước</span>
+                                                    </span>
+                                                </button>
+                                                <a href="${f.fileData}" download="${this.escapeHtml(f.fileName || 'bai-tap')}"
+                                                    class="p-1.5 rounded-lg text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 shrink-0" title="Tải về" aria-label="Tải về">
+                                                    <i data-lucide="download" class="w-4 h-4"></i>
+                                                </a>
+                                            </div>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            ` : ''}
+
+                            ${sub.note ? `
+                                <div class="p-2.5 rounded-xl bg-amber-50/40 border border-amber-200/70 text-xs text-slate-800 leading-relaxed">
+                                    <span class="font-extrabold text-amber-900 block text-[11px] mb-0.5">Ghi chú của học viên:</span>
+                                    <p class="whitespace-pre-wrap">${this.escapeHtml(sub.note)}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    previewCandidateSubmission(candidateId, taskId, fileIdx = 0) {
+        const candidate = window.hrOnboardingStore.getCandidateById(candidateId);
+        const raw = candidate?.taskSubmissions?.[taskId];
+        if (!raw) return;
+        const file = window.hrOnboardingStore.normalizeSubmission(raw).files[fileIdx];
+        if (!file) return;
+
+        const roadmap = this.getCandidateLearningRoadmap(candidate);
         const allTasks = roadmap.flatMap(d => (d.tasks || []).map(t => ({ day: d, task: t })));
         const match = allTasks.find(x => x.task.id === taskId);
-        const taskTitle = match ? match.task.title : taskId;
+        const taskTitle = match ? this.cleanTaskTitle(match.task.title) : taskId;
         const dayNumber = match ? match.day.dayNumber : '';
 
         if (window.documentHub && typeof window.documentHub.previewFilePayload === 'function') {
             window.documentHub.previewFilePayload({
-                ...sub,
-                title: `${dayNumber ? dayNumber + ': ' : ''}${taskTitle}`
+                ...file,
+                title: `${dayNumber ? dayNumber + ': ' : ''}${taskTitle} • ${file.fileName || 'Tệp'}`
             });
-        } else if (sub.fileData) {
-            this.previewSubmissionImage(sub.fileData);
+        } else if (file.fileData) {
+            this.previewSubmissionImage(file.fileData);
         }
     }
 

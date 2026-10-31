@@ -420,6 +420,26 @@ test('personal roadmap: edits stay with one candidate, dates follow position and
     assertSame(store.getCandidates().find(c => c.id === 'c1').customRoadmap.map(d => d.id), ['day-2', 'day-1']);
 });
 
+test('submission rules: practice task without the submission tick needs no submission; old and new submission formats are read', () => {
+    const { store } = storeHarness(true);
+    assert.equal(store.taskRequiresSubmission({ type: 'practice', requiresSubmission: false }), false);
+    assert.equal(store.taskRequiresSubmission({ type: 'learn', requiresSubmission: true }), true);
+    assert.equal(store.taskRequiresSubmission({ type: 'practice' }), true); // old data without a tick defaults to practice
+    assert.equal(store.taskRequiresSubmission({ type: 'learn' }), false);
+
+    const legacy = store.normalizeSubmission({ link: 'https://a.example', fileName: 'x.pdf', fileType: 'application/pdf', fileData: 'data:application/pdf;base64,AA', note: 'n', submittedAt: 5 });
+    assert.equal(JSON.stringify(legacy.links), JSON.stringify(['https://a.example']));
+    assert.equal(legacy.files.length, 1);
+    assert.equal(legacy.files[0].fileName, 'x.pdf');
+
+    const multi = store.normalizeSubmission({ links: ['https://a.example', ' ', 'https://b.example'], files: [{ fileName: 'a.png', fileType: 'image/png', fileData: 'data:image/png;base64,AA' }, { fileName: 'empty' }], note: '' });
+    assert.equal(JSON.stringify(multi.links), JSON.stringify(['https://a.example', 'https://b.example']));
+    assert.equal(multi.files.length, 1);
+    // New format ignores stale legacy fields left over from older saves
+    const mixed = store.normalizeSubmission({ links: [], files: [], link: 'https://old.example', fileData: 'data:x' });
+    assert.equal(mixed.links.length + mixed.files.length, 0);
+});
+
 test('task drag-and-drop reorder and unified attachment modal with 2 tabs', async () => {
     const { store } = storeHarness(true);
     store.ready.add('roadmap');

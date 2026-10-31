@@ -1063,6 +1063,31 @@ class HrOnboardingStore {
         return this.personalSubmissions || {};
     }
 
+    // Mục có yêu cầu nộp bài không: ưu tiên lựa chọn HR đã tick; dữ liệu cũ chưa có lựa chọn thì mặc định theo loại "Thực hành"
+    taskRequiresSubmission(task) {
+        if (!task) return false;
+        if (typeof task.requiresSubmission === 'boolean') return task.requiresSubmission;
+        return task.type === 'practice';
+    }
+
+    // Chuẩn hóa bài nộp về dạng nhiều link + nhiều tệp (vẫn đọc được bài nộp kiểu cũ: link / fileData đơn lẻ)
+    normalizeSubmission(sub) {
+        if (!sub || typeof sub !== 'object') return { links: [], files: [], note: '', submittedAt: 0 };
+        const hasMulti = Array.isArray(sub.links) || Array.isArray(sub.files);
+        const links = hasMulti
+            ? (sub.links || []).filter(l => typeof l === 'string' && l.trim()).map(l => l.trim())
+            : (typeof sub.link === 'string' && sub.link.trim() ? [sub.link.trim()] : []);
+        const files = hasMulti
+            ? (sub.files || []).filter(f => f && typeof f.fileData === 'string' && f.fileData)
+            : (sub.fileData ? [{ fileName: sub.fileName || 'Tệp đính kèm', fileType: sub.fileType || '', fileData: sub.fileData }] : []);
+        return { links, files, note: typeof sub.note === 'string' ? sub.note : '', submittedAt: sub.submittedAt || 0 };
+    }
+
+    // Ước lượng dung lượng (ký tự) của toàn bộ bài nộp – tài liệu Firestore giới hạn 1MB
+    estimateSubmissionsSize(submissions) {
+        try { return JSON.stringify(submissions || {}).length; } catch (_) { return 0; }
+    }
+
     async saveTaskSubmission(taskId, submissionData, candidateId = null) {
         const payload = {
             ...submissionData,
@@ -1096,20 +1121,31 @@ class HrOnboardingStore {
 
         // 2. Đồng bộ lên Cloud nếu có token liên kết
         if (this.token && window.firebaseDb) {
+            const ref = window.firebaseDb.collection('onboarding_progress').doc(this.token);
+            const FieldPath = window.firebase?.firestore?.FieldPath;
             try {
-                // Ghi cả taskSubmissions và completedTasks lên Cloud bằng merge: true
-                await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({
-                    completedTasks: { [taskId]: true },
-                    taskSubmissions: { [taskId]: payload }
-                }, { merge: true });
+                if (FieldPath && typeof ref.update === 'function') {
+                    // Thay TOÀN BỘ bài nộp của mục này (merge sẽ giữ lại tệp cũ đã xóa, làm phình dung lượng)
+                    await ref.update(new FieldPath('taskSubmissions', taskId), payload);
+                    await ref.set({ completedTasks: { [taskId]: true } }, { merge: true });
+                } else {
+                    await ref.set({
+                        completedTasks: { [taskId]: true },
+                        taskSubmissions: { [taskId]: payload }
+                    }, { merge: true });
+                }
             } catch (err) {
                 console.warn('[HrOnboardingStore] Cảnh báo lưu submission lên Cloud:', err);
-                // Fallback: ghi nhận ít nhất completedTasks nếu Cloud rules chưa cập nhật taskSubmissions
                 try {
-                    await window.firebaseDb.collection('onboarding_progress').doc(this.token).set({
-                        completedTasks: { [taskId]: true }
+                    await ref.set({
+                        completedTasks: { [taskId]: true },
+                        taskSubmissions: { [taskId]: payload }
                     }, { merge: true });
-                } catch (_) {}
+                } catch (err2) {
+                    // Fallback: ghi nhận ít nhất completedTasks nếu Cloud từ chối bài nộp (VD: vượt dung lượng)
+                    try { await ref.set({ completedTasks: { [taskId]: true } }, { merge: true }); } catch (_) {}
+                    throw err2;
+                }
             }
         }
 
