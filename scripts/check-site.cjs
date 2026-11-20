@@ -7,7 +7,7 @@ const { spawnSync } = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 let references = 0;
 let scripts = 0;
-for (const page of ['index.html', 'hr.html', 'onboard.html']) {
+for (const page of ['index.html', 'hr.html', 'onboard.html', 'proposal.html']) {
     const html = fs.readFileSync(path.join(root, page), 'utf8');
     for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/g)) {
         const ref = match[1];
@@ -64,4 +64,4 @@ builder.currentQuote = { items: [], overallDiscountPercent: 0, vatRate: 8 };
 builder.recalculate();
 assert.equal(builder.currentQuote.grandTotal, 0);
 assert.equal(context.window.readVietnameseCurrency(0), 'Không đồng chẵn.');
-console.log(`PASS: 3 HTML pages, ${references} local references, ${scripts} scripts, quotation totals and currency conversion.`);
+console.log(`PASS: 4 HTML pages, ${references} local references, ${scripts} scripts, quotation totals and currency conversion.`);

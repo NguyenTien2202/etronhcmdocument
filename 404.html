@@ -36,6 +36,12 @@
                 return;
             }
 
+            // 2b. Xử lý Proposal UCALL: /proposal hoặc /proposal-ucall
+            if (path.indexOf('/proposal') !== -1 && path.indexOf('/proposal.html') === -1) {
+                window.location.replace(repoPrefix + '/proposal.html' + search + hash);
+                return;
+            }
+
             // 3. Xử lý các tab SalesHub (/baogia, /khotailieu, /callbot, v.v.)
             var cleanPath = path;
             if (repoPrefix && cleanPath.indexOf(repoPrefix) === 0) {

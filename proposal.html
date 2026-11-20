@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal Nền Tảng Tổng Đài Gọi Tự Động Callbot UCALL | Etron Solutions</title>
+    <meta name="description" content="Giải pháp Callbot AI Auto Call tạo ra hàng nghìn cuộc gọi tự động, tương tác tự nhiên với khách hàng chỉ với 1 click chuột. Giảm 60% chi phí và thúc đẩy doanh thu.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+
+    <!-- Fonts & Tailwind CSS -->
+    <script src="js/tailwindcss.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ucall: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            200: '#bae0fd',
+                            300: '#7cc7fb',
+                            400: '#36abf7',
+                            500: '#0c8fe9',
+                            600: '#0070c7',
+                            700: '#0052cc',
+                            800: '#0047a8',
+                            900: '#003c8c',
+                            950: '#002256',
+                        },
+                        navy: {
+                            900: '#0a192f',
+                            950: '#060d1a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 40px -10px rgba(0, 112, 199, 0.45)',
+                        'glow-lg': '0 0 60px -15px rgba(0, 82, 204, 0.55)',
+                        'soft': '0 10px 30px -5px rgba(0, 34, 123, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="js/lucide.min.js"></script>
+
+    <style>
+        @keyframes pulseSlow {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.04); opacity: 1; }
+        }
+        @keyframes floatBot {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1.5deg); }
+        }
+        @keyframes waveBar {
+            0%, 100% { height: 6px; }
+            50% { height: 26px; }
+        }
+        .animate-float { animation: floatBot 5s ease-in-out infinite; }
+        .wave-bar-1 { animation: waveBar 1.1s ease-in-out infinite 0.1s; }
+        .wave-bar-2 { animation: waveBar 0.9s ease-in-out infinite 0.3s; }
+        .wave-bar-3 { animation: waveBar 1.3s ease-in-out infinite 0.2s; }
+        .wave-bar-4 { animation: waveBar 0.8s ease-in-out infinite 0.4s; }
+        .wave-bar-5 { animation: waveBar 1.2s ease-in-out infinite 0.15s; }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(224, 239, 254, 0.8);
+        }
+        .glass-panel-dark {
+            background: rgba(10, 25, 47, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(59, 130, 246, 0.25);
+        }
+        .hero-pattern {
+            background-color: #00227B;
+            background-image: radial-gradient(circle at 20% 30%, #0052cc 0%, transparent 45%),
+                              radial-gradient(circle at 80% 70%, #0c8fe9 0%, transparent 45%),
+                              radial-gradient(circle at 50% 50%, #00195e 0%, #001242 100%);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-ucall-600 selection:text-white">
+
+    <!-- Top Reading Progress Bar -->
+    <div id="scrollProgressBar" class="fixed top-0 left-0 h-1 bg-gradient-to-r from-cyan-400 via-ucall-500 to-indigo-600 z-50 transition-all duration-150" style="width: 0%;"></div>
+
+    <!-- Sticky Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all duration-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo -->
+                <a href="#hero" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-ucall-800 to-ucall-600 flex items-center justify-center text-white shadow-md shadow-ucall-700/20 group-hover:scale-105 transition-transform">
+                        <i data-lucide="phone-call" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-black text-xl tracking-tight bg-gradient-to-r from-ucall-800 to-ucall-600 bg-clip-text text-transparent">UCALL</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-ucall-50 text-ucall-700 border border-ucall-200">Proposal</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 font-medium">Nền tảng Callbot AI Auto Call</p>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex items-center gap-1 lg:gap-2 text-sm font-semibold text-slate-600">
+                    <a href="#gioi-thieu" class="px-3 py-1.5 rounded-lg hover:text-ucall-700 hover:bg-ucall-50/80 transition-colors">1. Giới thiệu</a>
+                    <a href="#tinh-nang" class="px-3 py-1.5 rounded-lg hover:text-ucall-700 hover:bg-ucall-50/80 transition-colors">2. Tính năng AI</a>
+                    <a href="#giai-phap" class="px-3 py-1.5 rounded-lg hover:text-ucall-700 hover:bg-ucall-50/80 transition-colors">3. Giải pháp ngành</a>
+                    <a href="#demo-cuoc-goi" class="px-3 py-1.5 rounded-lg hover:text-ucall-700 hover:bg-ucall-50/80 transition-colors flex items-center gap-1.5 text-ucall-600">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Demo cuộc gọi
+                    </a>
+                    <a href="#bang-gia" class="px-3 py-1.5 rounded-lg hover:text-ucall-700 hover:bg-ucall-50/80 transition-colors">4. Bảng giá</a>
+                    <a href="#lien-he" class="px-3 py-1.5 rounded-lg hover:text-ucall-700 hover:bg-ucall-50/80 transition-colors">5. Liên hệ</a>
+                </nav>
+
+                <!-- Actions Button -->
+                <div class="flex items-center gap-2">
+                    <!-- Presentation Mode Toggle -->
+                    <button type="button" onclick="openSlideDeckModal(1)" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 hover:border-ucall-300 transition-all shadow-xs">
+                        <i data-lucide="presentation" class="w-4 h-4 text-ucall-600"></i>
+                        <span>Xem Slide PDF</span>
+                    </button>
+                    <!-- CTA -->
+                    <a href="#demo-cuoc-goi" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-ucall-700 to-ucall-600 text-white text-xs sm:text-sm font-bold shadow-md shadow-ucall-600/25 hover:shadow-lg hover:shadow-ucall-600/35 hover:-translate-y-0.5 transition-all">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Thử nghiệm ngay</span>
+                    </a>
+                    <!-- Mobile Menu Button -->
+                    <button type="button" onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600 hover:text-ucall-700 rounded-lg focus:outline-none">
+                        <i data-lucide="menu" id="mobileMenuIcon" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 pt-3 pb-5 space-y-2 text-sm font-semibold">
+            <a href="#gioi-thieu" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-ucall-50 text-slate-700">1. Giới thiệu sản phẩm</a>
+            <a href="#tinh-nang" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-ucall-50 text-slate-700">2. Tính năng công nghệ AI</a>
+            <a href="#giai-phap" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-ucall-50 text-slate-700">3. Giải pháp theo ngành</a>
+            <a href="#demo-cuoc-goi" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-ucall-50 text-ucall-700 font-bold flex items-center justify-between">
+                <span>Demo cuộc gọi thực tế</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </a>
+            <a href="#bang-gia" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-ucall-50 text-slate-700">4. Bảng giá chính thức</a>
+            <a href="#lien-he" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg hover:bg-ucall-50 text-slate-700">5. Thông tin liên hệ</a>
+            <div class="pt-2 flex gap-2">
+                <button type="button" onclick="toggleMobileMenu(); openSlideDeckModal(1);" class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 bg-slate-50">
+                    <i data-lucide="presentation" class="w-4 h-4 text-ucall-600"></i> Xem Slide PDF (30 trang)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION (Slide 1 & 2) -->
+    <section id="hero" class="relative overflow-hidden hero-pattern text-white pt-16 pb-24 md:pt-24 md:pb-32">
+        <!-- Floating decorative elements -->
+        <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-ucall-500/30 blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <!-- Left: Hero Headline -->
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-cyan-300 text-xs font-bold tracking-wide shadow-sm">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-cyan-400 animate-bounce"></i>
+                        <span>GIẢI PHÁP TỔNG ĐÀI AI HÀNG ĐẦU VIỆT NAM</span>
+                    </div>
+
+                    <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight sm:leading-none">
+                        Nền tảng <br class="hidden sm:inline"/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-cyan-400">Tổng đài gọi tự động</span><br/>
+                        <span class="text-white">Callbot UCALL</span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl text-blue-100/90 font-normal max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        Thực hiện tới <span class="text-cyan-300 font-bold">2.000 cuộc gọi</span> chỉ trong một giờ. Giảm <span class="text-cyan-300 font-bold">60% chi phí</span> nhân sự và thúc đẩy doanh thu bứt phá.
+                    </p>
+
+                    <!-- CTAs -->
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2">
+                        <a href="#demo-cuoc-goi" class="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-white text-ucall-900 font-bold text-sm sm:text-base shadow-xl shadow-black/20 hover:bg-cyan-50 hover:scale-105 active:scale-95 transition-all">
+                            <span>Trải nghiệm Demo</span>
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </a>
+                        <button type="button" onclick="openSlideDeckModal(1)" class="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-sm sm:text-base backdrop-blur-md transition-all">
+                            <i data-lucide="file-text" class="w-4 h-4 text-cyan-300"></i>
+                            <span>Xem Full Slide (30 trang)</span>
+                        </button>
+                        <a href="assets/proposal/UCALL_Callbot_Proposal.pdf" download="UCALL_Callbot_Proposal.pdf" class="inline-flex items-center gap-2 px-4 py-3.5 rounded-2xl text-blue-200 hover:text-white font-semibold text-xs sm:text-sm transition-colors">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Tải PDF gốc</span>
+                        </a>
+                    </div>
+
+                    <!-- 4 High-Impact Metrics Badges -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-white/15">
+                        <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
+                            <div class="text-2xl sm:text-3xl font-black text-cyan-300">2.000</div>
+                            <div class="text-[11px] text-blue-200 font-medium">Cuộc gọi/giờ</div>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
+                            <div class="text-2xl sm:text-3xl font-black text-emerald-300">-60%</div>
+                            <div class="text-[11px] text-blue-200 font-medium">Chi phí Telesale</div>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
+                            <div class="text-2xl sm:text-3xl font-black text-amber-300">99%</div>
+                            <div class="text-[11px] text-blue-200 font-medium">Giống người thật</div>
+                        </div>
+                        <div class="bg-white/10 backdrop-blur-md border border-white/15 rounded-xl p-3 text-center">
+                            <div class="text-2xl sm:text-3xl font-black text-purple-300">3 Ngày</div>
+                            <div class="text-[11px] text-blue-200 font-medium">Triển khai siêu tốc</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Visual Hero Card & Robot Mascot -->
+                <div class="lg:col-span-5 flex justify-center relative">
+                    <div class="relative w-full max-w-md">
+                        <!-- Glow behind card -->
+                        <div class="absolute inset-0 bg-gradient-to-tr from-cyan-400 to-ucall-400 rounded-3xl blur-2xl opacity-40"></div>
+
+                        <!-- Slide 1 Preview Card -->
+                        <div class="relative rounded-3xl overflow-hidden border border-white/30 shadow-2xl bg-white/10 backdrop-blur-xl p-3 transition-transform hover:scale-[1.02] cursor-pointer" onclick="openSlideDeckModal(1)">
+                            <img src="assets/proposal/slide_01.jpg" alt="Proposal Cover Slide" class="w-full h-auto rounded-2xl shadow-inner">
+                            <div class="absolute inset-0 bg-gradient-to-t from-ucall-950/80 via-transparent to-transparent flex items-end p-5">
+                                <div class="flex items-center justify-between w-full">
+                                    <div class="text-left">
+                                        <span class="text-xs font-bold uppercase tracking-wider text-cyan-300">Bản Trình Bày Proposal</span>
+                                        <p class="text-sm font-semibold text-white">Bấm để phóng to và xem slide</p>
+                                    </div>
+                                    <span class="w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+                                        <i data-lucide="maximize-2" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Floating Badge: Live Bot Simulator -->
+                        <div class="absolute -top-5 -right-3 sm:-right-5 bg-white rounded-2xl p-3 sm:p-3.5 shadow-xl border border-slate-100 flex items-center gap-3 text-slate-800 z-10">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                <i data-lucide="radio" class="w-5 h-5 animate-pulse"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="text-xs font-bold text-slate-900">AI Speech Recognition</div>
+                                <div class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Độ chính xác 90%+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: MỤC LỤC & TỔNG QUAN NỘI DUNG (Slide 2) -->
+    <section class="py-14 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-10">
+                <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-ucall-50 px-3 py-1 rounded-full border border-ucall-200">Nội dung đề xuất</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-2">Cấu trúc giải pháp Callbot UCALL</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-2">Khám phá từng phần chi tiết của đề án công nghệ tổng đài tự động thế hệ mới</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Mục 1 -->
+                <a href="#gioi-thieu" class="group p-6 rounded-2xl bg-slate-50 hover:bg-gradient-to-br hover:from-ucall-50 hover:to-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-ucall-600 text-white flex items-center justify-center text-lg font-black mb-4 group-hover:scale-110 transition-transform">
+                        1
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg group-hover:text-ucall-700 transition-colors">Giới thiệu sản phẩm</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 line-clamp-3">Nền tảng No-code kéo thả kịch bản, 14 giọng bot 3 miền, nhận diện ý định & cảm ứng giọng nói.</p>
+                    <div class="mt-4 flex items-center gap-1 text-xs font-bold text-ucall-600 group-hover:translate-x-1 transition-transform">
+                        <span>Tìm hiểu</span> <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+
+                <!-- Mục 2 -->
+                <a href="#giai-phap" class="group p-6 rounded-2xl bg-slate-50 hover:bg-gradient-to-br hover:from-ucall-50 hover:to-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-600 text-white flex items-center justify-center text-lg font-black mb-4 group-hover:scale-110 transition-transform">
+                        2
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg group-hover:text-cyan-700 transition-colors">Giải pháp của UCALL</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 line-clamp-3">Ứng dụng đa lĩnh vực (BĐS, Tài chính, Bảo hiểm, Bán lẻ), so sánh với Ads và Telesale truyền thống.</p>
+                    <div class="mt-4 flex items-center gap-1 text-xs font-bold text-cyan-600 group-hover:translate-x-1 transition-transform">
+                        <span>Tìm hiểu</span> <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+
+                <!-- Mục 3 -->
+                <a href="#demo-cuoc-goi" class="group p-6 rounded-2xl bg-slate-50 hover:bg-gradient-to-br hover:from-ucall-50 hover:to-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-lg font-black mb-4 group-hover:scale-110 transition-transform">
+                        3
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg group-hover:text-indigo-700 transition-colors">Case Study & Demo</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 line-clamp-3">Mô phỏng cuộc gọi thoại thực tế theo kịch bản thật của các doanh nghiệp đang vận hành.</p>
+                    <div class="mt-4 flex items-center gap-1 text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">
+                        <span>Trải nghiệm</span> <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+
+                <!-- Mục 4 -->
+                <a href="#bang-gia" class="group p-6 rounded-2xl bg-slate-50 hover:bg-gradient-to-br hover:from-ucall-50 hover:to-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-lg font-black mb-4 group-hover:scale-110 transition-transform">
+                        4
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-lg group-hover:text-emerald-700 transition-colors">Bảng giá & Ưu đãi</h3>
+                    <p class="text-xs text-slate-500 mt-1.5 line-clamp-3">Các gói dịch vụ từ 2 triệu đến 200 triệu, tặng thêm thời hạn sử dụng và tài khoản CRM tích hợp.</p>
+                    <div class="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-600 group-hover:translate-x-1 transition-transform">
+                        <span>Xem bảng giá</span> <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 1: GIỚI THIỆU SẢN PHẨM & CÔNG NGHỆ (Slide 3 - 16) -->
+    <section id="gioi-thieu" class="py-20 bg-slate-50 relative scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header section -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-ucall-100/70 px-3 py-1 rounded-full border border-ucall-200">Phần 1</span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-2">Sản phẩm Callbot AI Auto Call</h2>
+                    <p class="text-slate-600 text-sm sm:text-base mt-2 max-w-2xl">
+                        Giải pháp tạo ra hàng nghìn cuộc gọi tự động, tương tác tự nhiên với khách hàng chỉ với 1 click chuột, giúp lọc khách tiềm năng và chăm sóc tự động.
+                    </p>
+                </div>
+                <button type="button" onclick="openSlideDeckModal(4)" class="inline-flex items-center gap-1.5 text-xs font-bold text-ucall-700 hover:text-ucall-800 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-xs">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                    <span>Xem slide gốc (Trang 4 - 16)</span>
+                </button>
+            </div>
+
+            <!-- 3 Core Benefits Cards (Slide 4) -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-ucall-50 text-ucall-600 flex items-center justify-center mb-4">
+                            <i data-lucide="phone-forwarded" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-lg mb-2">Gọi tự động hàng loạt</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Tiếp cận hàng ngàn khách hàng tiềm năng chỉ với 1 click chuột. Thực hiện đồng thời lên đến 2.000 cuộc gọi mỗi giờ mà không bị quá tải.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-semibold text-ucall-700">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Tự động điều phối hạn mức gọi</span>
+                    </div>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-4">
+                            <i data-lucide="filter" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-lg mb-2">Lọc khách hàng tiềm năng</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Tự động phân loại mức độ quan tâm của khách hàng, gắn nhãn thông minh (Quan tâm, Hẹn gọi lại, Gửi Zalo, Sai số...) giúp sales chỉ chăm sóc khách nét.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-semibold text-cyan-700">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+                        <span>AI phân tích ý định tức thì</span>
+                    </div>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-white border border-slate-200 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+                            <i data-lucide="trending-down" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-lg mb-2">Tiết kiệm 60% chi phí</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Cắt giảm gánh nặng tuyển dụng, đào tạo, quản lý nhân sự telesale. Nâng cao năng suất và giải phóng nhân viên tập trung chốt đơn chuyên sâu.
+                        </p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-xs font-semibold text-emerald-700">
+                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Đo lường ROI minh bạch</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kịch bản No-code & Các Node thông minh (Slide 5 & 6) -->
+            <div id="tinh-nang" class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm mb-16 scroll-mt-24">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                    <div class="lg:col-span-6 space-y-5">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-ucall-700 text-xs font-bold border border-blue-200">
+                            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                            <span>NO-CODE PLATFORM</span>
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-snug">
+                            Kịch bản kéo thả thông minh, tùy biến cho mọi ngành nghề
+                        </h3>
+                        <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                            Doanh nghiệp tự do thiết kế luồng hội thoại chỉ bằng thao tác kéo thả các block chức năng. UCALL cung cấp sẵn <strong class="text-ucall-700">200+ kịch bản mẫu</strong> tối ưu cho từng ngành nghề (Bất động sản, Tuyển sinh, CSKH, Nhắc nợ, Bán lẻ).
+                        </p>
+
+                        <!-- Các khối Node -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div class="p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+                                <div class="flex items-center gap-2 text-rose-700 font-bold text-sm mb-1">
+                                    <i data-lucide="volume-2" class="w-4 h-4"></i> Node Nói
+                                </div>
+                                <p class="text-xs text-slate-600">Phát lời thoại AI hoặc bản ghi âm người thật; tự động cá nhân hóa tên khách, địa chỉ, xưng hô nam/nữ.</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+                                <div class="flex items-center gap-2 text-amber-700 font-bold text-sm mb-1">
+                                    <i data-lucide="mic" class="w-4 h-4"></i> Node Nghe
+                                </div>
+                                <p class="text-xs text-slate-600">Nhận diện ý định khách hàng bằng từ khóa hoặc mô tả AI (Đồng ý, Từ chối, Im lặng, Nghe lại...).</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-cyan-50/70 border border-cyan-200 sm:col-span-2">
+                                <div class="flex items-center gap-2 text-cyan-800 font-bold text-sm mb-1">
+                                    <i data-lucide="ear" class="w-4 h-4 text-cyan-600"></i> Cảm ứng giọng nói (VAD - Voice Activity Detection)
+                                </div>
+                                <p class="text-xs text-slate-600">Tự động chờ khách nói hết câu, thông minh cho phép khách ngắt lời / xen ngang (Barge-in) và tự nhận diện giới tính người nghe.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Illustration (Slide 5 screenshot preview) -->
+                    <div class="lg:col-span-6">
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-lg group relative cursor-pointer" onclick="openSlideDeckModal(5)">
+                            <img src="assets/proposal/slide_05.jpg" alt="Kịch bản kéo thả UCALL" class="w-full h-auto group-hover:scale-105 transition-transform duration-300">
+                            <div class="absolute inset-0 bg-ucall-950/20 group-hover:bg-ucall-950/40 transition-colors flex items-center justify-center">
+                                <span class="px-4 py-2 rounded-xl bg-white/90 text-slate-900 font-bold text-xs shadow-md backdrop-blur-md flex items-center gap-1.5">
+                                    <i data-lucide="zoom-in" class="w-4 h-4 text-ucall-600"></i> Xem giao diện kịch bản (Trang 5)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Công nghệ Nhận diện tiếng nói & Giọng đọc AI (Slide 7 & 8) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+                <!-- Speech-to-Text (Slide 7) -->
+                <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-ucall-700 bg-ucall-50 px-3 py-1 rounded-full border border-ucall-200">Speech-to-Text (STT)</span>
+                            <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">Chính xác > 90%</span>
+                        </div>
+                        <h4 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">Công nghệ Nhận diện tiếng nói tối ưu cho Tiếng Việt</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                            Được phát triển bởi đội ngũ chuyên gia của UCALL, phân tích ngữ nghĩa, nhận diện từ khóa và ngữ điệu cả 3 miền Bắc - Trung - Nam với độ trễ phản hồi cực thấp.
+                        </p>
+
+                        <!-- Visual simulation chat -->
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 text-xs">
+                            <div class="flex items-start gap-2.5 justify-end">
+                                <div class="bg-ucall-600 text-white p-3 rounded-2xl rounded-tr-xs max-w-xs leading-relaxed">
+                                    "Ừ, giá căn này đang là bao nhiêu trên mét vuông em nhỉ?"
+                                </div>
+                                <div class="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 shrink-0 font-bold">K</div>
+                            </div>
+                            <div class="text-[11px] text-right text-ucall-700 font-semibold pr-9">
+                                🎯 AI nhận diện: <span class="bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded">Quan tâm giá</span>
+                            </div>
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-7 h-7 rounded-full bg-cyan-600 flex items-center justify-center text-white shrink-0">
+                                    <i data-lucide="bot" class="w-4 h-4"></i>
+                                </div>
+                                <div class="bg-white border border-slate-200 text-slate-800 p-3 rounded-2xl rounded-tl-xs max-w-xs leading-relaxed shadow-xs">
+                                    "Dạ, hiện tại đây là phân khu giá tốt nhất từ trước đến nay của Vin, hơn nữa đang là thời điểm đầu mở bán nên giá rất ưu đãi ạ..."
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>Tỷ lệ phản hồi đúng kịch bản: <strong>90%</strong></span>
+                        <button type="button" onclick="openSlideDeckModal(7)" class="text-ucall-600 hover:underline font-bold flex items-center gap-1">
+                            Xem slide 7 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Text-to-Speech (Slide 8) -->
+                <div class="p-6 sm:p-8 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">Text-to-Speech (TTS)</span>
+                            <span class="text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-md border border-indigo-200">14 Giọng Bot</span>
+                        </div>
+                        <h4 class="text-xl sm:text-2xl font-bold text-slate-900 mb-3">Đa dạng lựa chọn giọng nói tự nhiên</h4>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                            Lựa chọn giữa giọng AI tự nhiên hoặc thu âm người thật chuyên nghiệp. 14 giọng bot phủ sóng Nam/Nữ cả 3 miền Bắc, Trung, Nam.
+                        </p>
+
+                        <!-- Voice Options Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs font-semibold">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-slate-700">
+                                <i data-lucide="mic" class="w-4 h-4 text-ucall-600"></i> Giọng nữ (Bắc)
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-slate-700">
+                                <i data-lucide="mic" class="w-4 h-4 text-cyan-600"></i> Giọng nam (Bắc)
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-slate-700">
+                                <i data-lucide="mic" class="w-4 h-4 text-pink-600"></i> Giọng nữ (Nam)
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-slate-700">
+                                <i data-lucide="mic" class="w-4 h-4 text-amber-600"></i> Giọng nam (Nam)
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2 text-slate-700">
+                                <i data-lucide="mic" class="w-4 h-4 text-purple-600"></i> Giọng nữ (Trung)
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center gap-2 text-emerald-800">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i> Thu âm người thật
+                            </div>
+                        </div>
+
+                        <!-- Audio Waveform preview -->
+                        <div class="mt-6 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <button type="button" onclick="playSampleVoice(this)" class="w-9 h-9 rounded-full bg-ucall-600 text-white flex items-center justify-center hover:bg-ucall-700 transition-colors shadow-sm">
+                                    <i data-lucide="play" class="w-4 h-4 ml-0.5"></i>
+                                </button>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800" id="voiceStatusText">Nghe thử giọng mẫu Callbot</div>
+                                    <div class="text-[11px] text-slate-500">Demo giọng nữ miền Bắc truyền cảm</div>
+                                </div>
+                            </div>
+                            <!-- Animated Wave Bars -->
+                            <div class="flex items-center gap-1 h-8 px-2" id="voiceWaveContainer">
+                                <span class="w-1 bg-ucall-400 rounded-full h-2"></span>
+                                <span class="w-1 bg-ucall-500 rounded-full h-4"></span>
+                                <span class="w-1 bg-ucall-600 rounded-full h-6"></span>
+                                <span class="w-1 bg-ucall-500 rounded-full h-3"></span>
+                                <span class="w-1 bg-ucall-400 rounded-full h-5"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>Hỗ trợ tích hợp đa kịch bản</span>
+                        <button type="button" onclick="openSlideDeckModal(8)" class="text-ucall-600 hover:underline font-bold flex items-center gap-1">
+                            Xem slide 8 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Điểm Đột Phá Giúp Cuộc Gọi Giống 99% Người Thật (Slide 11 & 12) -->
+            <div class="bg-gradient-to-br from-ucall-900 via-ucall-800 to-indigo-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl mb-16 relative overflow-hidden">
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-cyan-400/10 blur-3xl"></div>
+
+                <div class="text-center max-w-3xl mx-auto mb-10">
+                    <span class="text-xs font-bold uppercase tracking-wider text-cyan-300 bg-white/10 px-3 py-1 rounded-full border border-white/20">Công nghệ thông minh vượt trội</span>
+                    <h3 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">Công nghệ AI giúp cuộc gọi giống 99% người thật</h3>
+                    <p class="text-blue-100 text-sm mt-1.5">Trải nghiệm đàm thoại tự nhiên, linh hoạt, loại bỏ hoàn toàn cảm giác robot thô cứng</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- 1. Nhận diện giới tính -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 hover:bg-white/15 transition-all">
+                        <div class="w-10 h-10 rounded-xl bg-cyan-400/20 text-cyan-300 flex items-center justify-center mb-3">
+                            <i data-lucide="user-check" class="w-5 h-5"></i>
+                        </div>
+                        <h4 class="font-bold text-base text-white mb-1.5">Nhận diện giới tính</h4>
+                        <p class="text-xs text-blue-100/90 leading-relaxed">
+                            Bot tự động phân biệt giọng nam / nữ ngay từ câu "Alo" đầu tiên để xưng hô Anh / Chị chính xác.
+                        </p>
+                    </div>
+
+                    <!-- 2. Cá nhân hóa nội dung -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 hover:bg-white/15 transition-all">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center mb-3">
+                            <i data-lucide="badge-percent" class="w-5 h-5"></i>
+                        </div>
+                        <h4 class="font-bold text-base text-white mb-1.5">Cá nhân hóa nội dung</h4>
+                        <p class="text-xs text-blue-100/90 leading-relaxed">
+                            Chèn linh hoạt tên khách, tên sản phẩm, mã đơn hàng, ngày hẹn, địa chỉ giao hàng vào từng câu thoại.
+                        </p>
+                    </div>
+
+                    <!-- 3. Chờ khách nói hết -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 hover:bg-white/15 transition-all">
+                        <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center mb-3">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <h4 class="font-bold text-base text-white mb-1.5">Chờ khách nói hết</h4>
+                        <p class="text-xs text-blue-100/90 leading-relaxed">
+                            Khi khách hàng giải thích dài hoặc ngập ngừng, bot kiên nhẫn lắng nghe trọn vẹn trước khi phản hồi.
+                        </p>
+                    </div>
+
+                    <!-- 4. Cho phép xen ngang (Barge-in) -->
+                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/15 hover:bg-white/15 transition-all">
+                        <div class="w-10 h-10 rounded-xl bg-purple-400/20 text-purple-300 flex items-center justify-center mb-3">
+                            <i data-lucide="message-square-dashed" class="w-5 h-5"></i>
+                        </div>
+                        <h4 class="font-bold text-base text-white mb-1.5">Cho phép xen ngang</h4>
+                        <p class="text-xs text-blue-100/90 leading-relaxed">
+                            Nếu khách hàng ngắt lời để hỏi ngay, bot lập tức ngừng nói và tiếp thu câu hỏi của khách để đối đáp.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hệ thống Báo cáo & Hệ sinh thái All-in-one (Slide 13 - 16) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Báo cáo phân tích AI (Slide 13, 14, 15) -->
+                <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-ucall-700 bg-ucall-50 px-3 py-1 rounded-full border border-ucall-200">Báo Cáo & AI Analytics</span>
+                            <span class="text-xs text-slate-500 font-medium">Dashboard Real-time</span>
+                        </div>
+                        <h4 class="text-xl sm:text-2xl font-bold text-slate-900 mb-2">Báo cáo đa chiều & Phân loại khách hàng tự động</h4>
+                        <p class="text-sm text-slate-600 mb-6">
+                            Sau mỗi chiến dịch, toàn bộ dữ liệu cuộc gọi được đồng bộ ngay lập tức lên dashboard với đầy đủ báo cáo tổng quan và chi tiết:
+                        </p>
+
+                        <div class="space-y-3.5">
+                            <div class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 text-ucall-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-900">Báo cáo tổng quan chiến dịch</h5>
+                                    <p class="text-xs text-slate-600">Thống kê số lượng cuộc gọi thành công, tỉ lệ bắt máy, thời lượng trung bình, số block và chi phí tiêu hao.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                                <div class="w-8 h-8 rounded-lg bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
+                                    <i data-lucide="file-audio" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-slate-900">Báo cáo chi tiết & File ghi âm</h5>
+                                    <p class="text-xs text-slate-600">Xem văn bản bóc băng (transcript) chi tiết từng giây kèm file ghi âm trực tiếp cho mỗi cuộc đàm thoại.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                                    <i data-lucide="tags" class="w-4 h-4"></i>
+                                </div>
+                                <div>
+                                    <h5 class="text-xs font-bold text-emerald-900">AI tự động gắn nhãn (Tags)</h5>
+                                    <p class="text-xs text-emerald-800">Không cần nghe lại hàng trăm cuộc gọi; AI tự phân loại: <span class="font-bold underline">Quan tâm</span>, <span class="font-bold underline">Gặp nhân viên</span>, <span class="font-bold underline">Gửi Zalo</span> để chuyển ngay cho sales chốt.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>Hỗ trợ xuất báo cáo Excel/CSV</span>
+                        <button type="button" onclick="openSlideDeckModal(13)" class="text-ucall-600 hover:underline font-bold flex items-center gap-1">
+                            Xem slide 13 - 15 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Hệ sinh thái All-in-one (Slide 16) -->
+                <div class="lg:col-span-5 bg-gradient-to-b from-slate-900 to-navy-900 text-white rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-cyan-300 bg-white/10 px-3 py-1 rounded-full border border-white/15">Hệ sinh thái Etron & UCALL</span>
+                        <h4 class="text-xl sm:text-2xl font-bold text-white mt-3 mb-2">Bộ công cụ All-in-one cho Doanh nghiệp</h4>
+                        <p class="text-xs sm:text-sm text-blue-100/90 mb-6 leading-relaxed">
+                            Sự kết hợp hoàn hảo giữa Callbot AI, Tổng đài thông minh và CRM giúp tối ưu toàn diện từ Marketing đến Chăm sóc khách hàng.
+                        </p>
+
+                        <div class="space-y-4">
+                            <!-- UCALL -->
+                            <div class="p-4 rounded-2xl bg-white/10 border border-white/15">
+                                <div class="flex items-center gap-2.5 text-cyan-300 font-bold text-sm mb-1">
+                                    <i data-lucide="bot" class="w-4 h-4"></i> UCALL Callbot AI
+                                </div>
+                                <p class="text-xs text-slate-300">Gọi tự động hàng ngàn khách hàng tiềm năng, tương tác tự nhiên chỉ với 1 click chuột.</p>
+                            </div>
+
+                            <!-- Adahub Auto-dial -->
+                            <div class="p-4 rounded-2xl bg-white/10 border border-white/15">
+                                <div class="flex items-center gap-2.5 text-amber-300 font-bold text-sm mb-1">
+                                    <i data-lucide="phone-forwarded" class="w-4 h-4"></i> Adahub Tổng đài quay số
+                                </div>
+                                <p class="text-xs text-slate-300">Tăng x3 hiệu quả Telesales bằng việc nối máy liên tục, bỏ qua thao tác bấm số thủ công.</p>
+                            </div>
+
+                            <!-- Adahub CRM -->
+                            <div class="p-4 rounded-2xl bg-white/10 border border-white/15">
+                                <div class="flex items-center gap-2.5 text-emerald-300 font-bold text-sm mb-1">
+                                    <i data-lucide="users" class="w-4 h-4"></i> Adahub CRM Quản lý KH
+                                </div>
+                                <p class="text-xs text-slate-300">Hỗ trợ toàn diện Marketing - Bán hàng - CSKH - Quản lý KPI trên cùng một nền tảng.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+                        <span>Đồng bộ dữ liệu tự động 100%</span>
+                        <button type="button" onclick="openSlideDeckModal(16)" class="text-cyan-300 hover:underline font-bold flex items-center gap-1">
+                            Xem slide 16 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: GIẢI PHÁP THEO NGÀNH & BẢNG SO SÁNH (Slide 17 - 21) -->
+    <section id="giai-phap" class="py-20 bg-white border-y border-slate-200 scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-ucall-50 px-3 py-1 rounded-full border border-ucall-200">Phần 2</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-2">Giải pháp gọi tự động đa lĩnh vực</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-2">
+                    UCALL linh hoạt triển khai cho mọi mô hình kinh doanh với bài toán kinh tế vượt trội so với các kênh truyền thống
+                </p>
+            </div>
+
+            <!-- Tabbed Industry & Applications (Slide 18) -->
+            <div class="mb-16">
+                <div class="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-slate-100 rounded-2xl max-w-2xl mx-auto mb-8">
+                    <button type="button" onclick="switchIndustryTab('bds')" class="industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-ucall-700 shadow-xs" data-target="bds">Bất động sản</button>
+                    <button type="button" onclick="switchIndustryTab('taichinh')" class="industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900" data-target="taichinh">Tài chính - Bảo hiểm</button>
+                    <button type="button" onclick="switchIndustryTab('giaoduc')" class="industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900" data-target="giaoduc">Giáo dục & Đào tạo</button>
+                    <button type="button" onclick="switchIndustryTab('banle')" class="industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900" data-target="banle">Bán lẻ & E-commerce</button>
+                    <button type="button" onclick="switchIndustryTab('spa')" class="industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900" data-target="spa">Spa & Làm đẹp</button>
+                </div>
+
+                <!-- Industry Content Panels -->
+                <div id="industryContent" class="p-6 sm:p-10 rounded-3xl bg-slate-50 border border-slate-200">
+                    <!-- Default: BDS -->
+                    <div id="panel-bds" class="industry-panel grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 text-ucall-700 flex items-center justify-center">
+                                <i data-lucide="building-2" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900">Giải pháp Callbot cho ngành Bất động sản</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Hỗ trợ các đại lý F1, sàn môi giới tìm kiếm và lọc khách hàng tiềm năng qua chiến dịch tự động gọi cập nhật bảng hàng, chính sách bán hàng mới của các dự án lớn (Vinhomes, Sungroup, Masterise...).
+                            </p>
+                            <ul class="space-y-2 text-xs sm:text-sm text-slate-700 font-medium">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Quét hàng chục ngàn data nhà đầu tư trong vài giờ</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tự động kết bạn và gửi bảng hàng chi tiết qua Zalo</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Phân loại khách quan tâm để môi giới gọi lại ngay</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white p-4">
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Kịch bản tiêu biểu</div>
+                            <div class="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100 text-xs text-slate-700 space-y-2">
+                                <p><strong>Bot:</strong> "Đợt này Vinhomes mở bán Ocean Park 3, vị trí rất đẹp giá tốt. Anh quan tâm em gửi thông tin chi tiết qua Zalo nhé ạ?"</p>
+                                <p><strong>Khách:</strong> "Giá khu này bao tiền căn em nhỉ?"</p>
+                                <p><strong>Bot:</strong> "Dạ hiện tại phân khu đang có chính sách giá gốc đợt 1 cực kỳ tốt. Em gửi bảng giá chi tiết qua Zalo số này cho anh nhé!"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Tai Chinh -->
+                    <div id="panel-taichinh" class="industry-panel hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900">Giải pháp cho Tài chính & Bảo hiểm</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Tiếp cận khách hàng đồng ý nhận tư vấn các gói bảo hiểm tiết kiệm, hưu trí, đầu tư tài chính hoặc gói vay tiêu dùng ưu đãi.
+                            </p>
+                            <ul class="space-y-2 text-xs sm:text-sm text-slate-700 font-medium">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Lọc khách có nhu cầu thực tế trước khi chuyển giao tư vấn viên</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tự động nhắc hạn đóng phí và quyền lợi bảo hiểm</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Đảm bảo tính bảo mật và ghi âm minh bạch 100%</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white p-4">
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Kịch bản tiêu biểu</div>
+                            <div class="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-100 text-xs text-slate-700 space-y-2">
+                                <p><strong>Bot:</strong> "Bên em đang có gói Bảo hiểm Tiết kiệm hưu trí lãi suất rất hấp dẫn. Chị cho em xin 3 phút trao đổi nhanh nhé ạ?"</p>
+                                <p><strong>Khách:</strong> "Lãi suất thế nào em?"</p>
+                                <p><strong>Bot:</strong> "Dạ gói này chị vừa được bảo vệ vừa hưởng quyền lợi tích lũy cao. Em gửi hồ sơ minh họa chi tiết qua Zalo cho chị nhé!"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Giao Duc -->
+                    <div id="panel-giaoduc" class="industry-panel hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                                <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900">Giải pháp cho Giáo dục & Tuyển sinh</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Trung tâm ngoại ngữ, trường cao đẳng, du học tự động gọi tư vấn khóa học, nhắc lịch học thử, gửi link Zoom và khảo sát tiến độ học sinh.
+                            </p>
+                            <ul class="space-y-2 text-xs sm:text-sm text-slate-700 font-medium">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tỷ lệ tham gia buổi học thử tăng gấp 2 lần nhờ nhắc lịch tự động</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tự động gửi link phòng học qua Email / Zalo ngay sau cuộc gọi</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tuyển sinh cao đẳng, đại học tự động theo danh sách thí sinh</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white p-4">
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Kịch bản tiêu biểu</div>
+                            <div class="p-3.5 bg-purple-50/60 rounded-xl border border-purple-100 text-xs text-slate-700 space-y-2">
+                                <p><strong>Bot:</strong> "Chào anh Lâm, tối nay lớp Tiếng Anh bắt đầu lúc 8 giờ. Em gửi link Zoom qua Zalo, anh sắp xếp vào lớp đúng giờ nhé!"</p>
+                                <p><strong>Khách:</strong> "Mấy giờ tối ý nhỉ?"</p>
+                                <p><strong>Bot:</strong> "Dạ lớp bắt đầu lúc 8 giờ tối nay anh nhé. Em xin phép gửi link phòng học qua Zalo cho mình ạ!"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Ban Le -->
+                    <div id="panel-banle" class="industry-panel hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                                <i data-lucide="shopping-cart" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900">Giải pháp cho Bán lẻ & E-commerce</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Tự động gọi xác nhận đơn hàng chỉ với 1 nút bấm từ phần mềm bán hàng; gọi giới thiệu ưu đãi khách hàng cũ; thông báo lộ trình đơn hàng.
+                            </p>
+                            <ul class="space-y-2 text-xs sm:text-sm text-slate-700 font-medium">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Giảm 50% tỉ lệ hoàn đơn (tỉ lệ bom hàng) nhờ xác nhận tức thì</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tự động cập nhật thời gian giao mong muốn của khách</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tích hợp trực tiếp với KiotViet, Sapo, Haravan, Pancake</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white p-4">
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Kịch bản tiêu biểu</div>
+                            <div class="p-3.5 bg-amber-50/60 rounded-xl border border-amber-100 text-xs text-slate-700 space-y-2">
+                                <p><strong>Bot:</strong> "Em chào chị Hạnh, em gọi xác nhận đơn sữa rửa mặt 398.000₫ giao đến Khúc Thừa Dụ chiều nay đúng không ạ?"</p>
+                                <p><strong>Khách:</strong> "Giao sau 19h được không, giờ đó chị mới có nhà?"</p>
+                                <p><strong>Bot:</strong> "Dạ vâng, bên em đã cập nhật giao cho chị sau 19h tối nay ạ. Em cảm ơn chị!"</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel Spa -->
+                    <div id="panel-spa" class="industry-panel hidden grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                        <div class="space-y-4">
+                            <div class="w-10 h-10 rounded-xl bg-pink-100 text-pink-700 flex items-center justify-center">
+                                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-900">Giải pháp cho Spa & Thẩm mỹ viện</h3>
+                            <p class="text-sm text-slate-600 leading-relaxed">
+                                Tự động gọi nhắc lịch hẹn liệu trình, chăm sóc sau dịch vụ, chúc mừng sinh nhật kèm voucher ưu đãi để kích thích khách quay lại.
+                            </p>
+                            <ul class="space-y-2 text-xs sm:text-sm text-slate-700 font-medium">
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Khắc phục triệt để tình trạng khách quên lịch hẹn</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Tự động đề xuất đổi giờ hẹn nếu khách bận</li>
+                                <li class="flex items-center gap-2"><i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Khảo sát đánh giá độ hài lòng của khách hàng (CSAT)</li>
+                            </ul>
+                        </div>
+                        <div class="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-white p-4">
+                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Kịch bản tiêu biểu</div>
+                            <div class="p-3.5 bg-pink-50/60 rounded-xl border border-pink-100 text-xs text-slate-700 space-y-2">
+                                <p><strong>Bot:</strong> "Em chào chị Mai, em gọi nhắc lịch chăm sóc da buổi thứ 3 tại viện thẩm mỹ vào 15h chiều mai ạ!"</p>
+                                <p><strong>Khách:</strong> "Mai chị bận rồi, đổi sang sáng chủ nhật được không?"</p>
+                                <p><strong>Bot:</strong> "Dạ được ạ, em đã chuyển lịch của chị sang 9h sáng Chủ nhật này nhé ạ!"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng So sánh 1: Callbot vs Ads (Slide 19) -->
+            <div class="mb-14">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Tại sao nên sử dụng Callbot để Marketing?</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">So sánh hiệu quả trực diện giữa Callbot và Quảng cáo trả phí (Google / Facebook Ads)</p>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                                <th class="p-4 w-1/4">TIÊU CHÍ</th>
+                                <th class="p-4 w-1/4 bg-ucall-50 text-ucall-800 font-extrabold border-x border-ucall-200">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="bot" class="w-4 h-4 text-ucall-600"></i> CALLBOT UCALL
+                                    </div>
+                                </th>
+                                <th class="p-4 w-1/4 text-slate-700">GOOGLE ADS</th>
+                                <th class="p-4 w-1/4 text-slate-700">FACEBOOK ADS</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">CHI PHÍ</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Thấp (tính theo block 6s)</td>
+                                <td class="p-4 text-rose-600 font-semibold">Cao (CPC liên tục tăng)</td>
+                                <td class="p-4 text-rose-600 font-semibold">Cao (CPM đắt đỏ)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">TARGET KHÁCH HÀNG</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-slate-800 font-bold">Chủ động 100% tệp data</td>
+                                <td class="p-4 text-slate-600">Dựa trên từ khóa tìm kiếm</td>
+                                <td class="p-4 text-slate-600">Dựa trên nhóm Ads, khó kiểm soát</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">NỘI DUNG TƯƠNG TÁC</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-slate-800 font-bold">Hỗ trợ xây kịch bản 1-1 tối ưu</td>
+                                <td class="p-4 text-slate-600">Tự setup text/link thụ động</td>
+                                <td class="p-4 text-slate-600">Tự setup hình ảnh/video</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">BÁO CÁO KẾT QUẢ</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-slate-800 font-bold">Rõ ràng, có SĐT và ghi âm cụ thể</td>
+                                <td class="p-4 text-slate-600">Chỉ thống kê khi khách để lại form</td>
+                                <td class="p-4 text-slate-600">Chỉ thống kê khi khách để lại form</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">KHI TĂNG NGÂN SÁCH</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Chi phí giảm dần, không giới hạn</td>
+                                <td class="p-4 text-slate-600">CPC tăng, dễ chạm ngưỡng ngân sách</td>
+                                <td class="p-4 text-slate-600">Chi phí trên lead tăng theo thời gian</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bảng So sánh 2: Callbot vs Autocall vs Nhân viên (Slide 20) -->
+            <div class="mb-14">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900">Tại sao cần tích hợp UCALL vào CSKH tự động?</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">Đánh giá khách quan giữa Callbot AI, Autocall truyền thống và Nhân viên Telesale</p>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-xs">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-800 font-bold border-b border-slate-200">
+                                <th class="p-4 w-1/4">TIÊU CHÍ</th>
+                                <th class="p-4 w-1/4 bg-ucall-50 text-ucall-800 font-extrabold border-x border-ucall-200">
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="bot" class="w-4 h-4 text-ucall-600"></i> UCALL CALLBOT
+                                    </div>
+                                </th>
+                                <th class="p-4 w-1/4 text-slate-700">AUTOCALL CŨ</th>
+                                <th class="p-4 w-1/4 text-slate-700">NHÂN VIÊN TELESALE</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">CHI PHÍ VẬN HÀNH</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Thấp</td>
+                                <td class="p-4 text-slate-700">Thấp</td>
+                                <td class="p-4 text-rose-600 font-semibold">Rất Cao (lương, thưởng, chỗ ngồi)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">QUẢN LÝ & SCALE</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Đơn giản, bật tắt trong 1 giây</td>
+                                <td class="p-4 text-slate-700">Đơn giản</td>
+                                <td class="p-4 text-rose-600 font-semibold">Phức tạp, biến động nhân sự liên tục</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">MỨC ĐỘ TƯƠNG TÁC</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Cao (đối đáp 2 chiều thông minh)</td>
+                                <td class="p-4 text-rose-600 font-semibold">Thấp (chỉ phát ghi âm 1 chiều)</td>
+                                <td class="p-4 text-slate-700">Cao (nhưng phong độ không ổn định)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">BẢO MẬT DỮ LIỆU DATA</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Tuyệt đối (mã hóa chuẩn DN)</td>
+                                <td class="p-4 text-slate-700">Tùy nhà cung cấp</td>
+                                <td class="p-4 text-rose-600 font-semibold">Dễ bị tuồn lộ data ra ngoài</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">TỶ LỆ PHẢN HỒI</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Cao (giống người thật 99%)</td>
+                                <td class="p-4 text-rose-600 font-semibold">Rất thấp (bị dập máy ngay)</td>
+                                <td class="p-4 text-slate-700">Cao</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 font-semibold text-slate-900">BÁO CÁO & PHÂN TÍCH</td>
+                                <td class="p-4 bg-ucall-50/50 border-x border-ucall-200 text-emerald-700 font-bold">Thông minh, tự động phân loại AI</td>
+                                <td class="p-4 text-slate-700">Tự động nhưng cơ bản</td>
+                                <td class="p-4 text-rose-600 font-semibold">Thủ công, ghi chú không đồng đều</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quy trình triển khai 3 ngày (Slide 21) -->
+            <div class="bg-gradient-to-r from-ucall-50 via-white to-ucall-50 rounded-3xl p-6 sm:p-10 border border-ucall-200">
+                <div class="text-center max-w-2xl mx-auto mb-8">
+                    <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-white px-3 py-1 rounded-full border border-ucall-200 shadow-xs">Triển khai thần tốc</span>
+                    <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-2">Quy trình triển khai giải pháp trong 3 ngày</h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
+                    <!-- Day 1 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs relative">
+                        <div class="text-xs font-black text-ucall-600 uppercase tracking-widest mb-1">NGÀY 01</div>
+                        <h4 class="font-bold text-slate-900 text-base mb-2">Tiếp nhận yêu cầu chi tiết</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Khảo sát mục tiêu chiến dịch, đối tượng khách hàng mục tiêu và thu thập dữ liệu sản phẩm/dịch vụ cần truyền thông.
+                        </p>
+                    </div>
+
+                    <!-- Day 2 -->
+                    <div class="bg-white p-6 rounded-2xl border border-ucall-300 shadow-sm relative ring-2 ring-ucall-500/20">
+                        <div class="text-xs font-black text-ucall-700 uppercase tracking-widest mb-1">NGÀY 02</div>
+                        <h4 class="font-bold text-slate-900 text-base mb-2">Xây dựng kịch bản & Giọng nói</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Đội ngũ chuyên gia thiết kế kịch bản tối ưu, thiết lập các nhánh rẽ ý định, chọn giọng bot AI hoặc thu âm chuyên nghiệp và test thử nghiệm.
+                        </p>
+                    </div>
+
+                    <!-- Day 3 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs relative">
+                        <div class="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">NGÀY 03</div>
+                        <h4 class="font-bold text-slate-900 text-base mb-2">Chạy chiến dịch & Báo cáo</h4>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Kích hoạt chiến dịch gọi tự động hàng loạt, hệ thống realtime bóc băng transcript, AI gắn nhãn và bàn giao danh sách khách nét.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: DEMO CUỘC GỌI THỰC TẾ (Slide 22 - 27) -->
+    <section id="demo-cuoc-goi" class="py-20 bg-slate-100/70 relative scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-white px-3 py-1 rounded-full border border-ucall-200 shadow-xs">Phần 3</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-2">Trình mô phỏng cuộc gọi thoại Callbot AI</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-2">
+                    Trải nghiệm trực tiếp các kịch bản đối thoại thực tế như đang diễn ra trên điện thoại của khách hàng
+                </p>
+            </div>
+
+            <!-- Phone Call Simulator Interface -->
+            <div class="max-w-4xl mx-auto">
+                <!-- Case Selector Tabs (Slide 23) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                    <button type="button" onclick="selectDemoCase('bds')" class="demo-tab-btn p-3 rounded-2xl border text-center transition-all bg-white border-ucall-600 text-ucall-700 shadow-sm ring-2 ring-ucall-500/20" data-case="bds">
+                        <i data-lucide="building" class="w-5 h-5 mx-auto mb-1 text-ucall-600"></i>
+                        <span class="text-xs font-bold block">Bất Động Sản</span>
+                        <span class="text-[10px] text-slate-500 block truncate">Vinhomes Ocean Park 3</span>
+                    </button>
+                    <button type="button" onclick="selectDemoCase('giaoduc')" class="demo-tab-btn p-3 rounded-2xl border text-center transition-all bg-white/70 border-slate-200 text-slate-700 hover:bg-white" data-case="giaoduc">
+                        <i data-lucide="graduation-cap" class="w-5 h-5 mx-auto mb-1 text-purple-600"></i>
+                        <span class="text-xs font-bold block">Giáo Dục</span>
+                        <span class="text-[10px] text-slate-500 block truncate">Nhắc lịch học Zoom</span>
+                    </button>
+                    <button type="button" onclick="selectDemoCase('baohiem')" class="demo-tab-btn p-3 rounded-2xl border text-center transition-all bg-white/70 border-slate-200 text-slate-700 hover:bg-white" data-case="baohiem">
+                        <i data-lucide="shield" class="w-5 h-5 mx-auto mb-1 text-emerald-600"></i>
+                        <span class="text-xs font-bold block">Tài Chính - Bảo Hiểm</span>
+                        <span class="text-[10px] text-slate-500 block truncate">Bảo hiểm hưu trí</span>
+                    </button>
+                    <button type="button" onclick="selectDemoCase('banle')" class="demo-tab-btn p-3 rounded-2xl border text-center transition-all bg-white/70 border-slate-200 text-slate-700 hover:bg-white" data-case="banle">
+                        <i data-lucide="shopping-bag" class="w-5 h-5 mx-auto mb-1 text-amber-600"></i>
+                        <span class="text-xs font-bold block">Bán Lẻ - Ecom</span>
+                        <span class="text-[10px] text-slate-500 block truncate">Xác nhận đơn hàng</span>
+                    </button>
+                </div>
+
+                <!-- Smartphone Mockup Wrapper -->
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+                        <!-- Left: Smartphone Screen -->
+                        <div class="md:col-span-7 flex justify-center">
+                            <div class="w-full max-w-sm rounded-[36px] bg-slate-900 p-3 shadow-2xl border-4 border-slate-800 ring-1 ring-slate-700/50">
+                                <!-- Phone Notch & Speaker -->
+                                <div class="bg-slate-950 rounded-[28px] overflow-hidden flex flex-col h-[520px] relative text-slate-800 bg-gradient-to-b from-slate-50 to-blue-50/40">
+                                    <!-- Status Bar -->
+                                    <div class="px-5 pt-3 pb-2 flex items-center justify-between text-[11px] font-bold text-slate-500 border-b border-slate-100 bg-white/80 backdrop-blur-md">
+                                        <span>09:41</span>
+                                        <div class="w-16 h-3.5 bg-slate-900 rounded-full mx-auto"></div>
+                                        <div class="flex items-center gap-1">
+                                            <i data-lucide="wifi" class="w-3 h-3"></i>
+                                            <i data-lucide="battery" class="w-3.5 h-3.5"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Call In-Progress Header -->
+                                    <div class="p-3.5 bg-white border-b border-slate-100 flex items-center justify-between shadow-xs">
+                                        <div class="flex items-center gap-2.5">
+                                            <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-ucall-700 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shadow-xs animate-float">
+                                                <i data-lucide="bot" class="w-4 h-4"></i>
+                                            </div>
+                                            <div>
+                                                <div class="text-xs font-bold text-slate-900" id="callerTitle">UCALL AI Callbot</div>
+                                                <div class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                                    <span id="callDurationTimer">00:18</span> · Đang đàm thoại
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-1 rounded-md bg-blue-50 text-ucall-700 font-bold text-[10px]" id="caseCategoryBadge">Bất động sản</span>
+                                    </div>
+
+                                    <!-- Chat / Audio Dialogue Body -->
+                                    <div id="dialogueContainer" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs leading-relaxed">
+                                        <!-- Dialogue items injected via JS -->
+                                    </div>
+
+                                    <!-- Audio Player Controls Footer -->
+                                    <div class="p-3 bg-white/90 backdrop-blur-md border-t border-slate-200 flex items-center justify-between">
+                                        <button type="button" id="btnRestartCall" onclick="restartDemoCall()" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 transition-colors">
+                                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Chạy lại
+                                        </button>
+                                        <button type="button" id="btnTogglePlay" onclick="toggleDemoCallPlay()" class="px-4 py-1.5 rounded-xl bg-ucall-600 hover:bg-ucall-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors">
+                                            <i data-lucide="play" id="playIcon" class="w-3.5 h-3.5"></i> <span id="playBtnText">Bắt đầu phát</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Case Explanation & Value Note -->
+                        <div class="md:col-span-5 space-y-4 text-left">
+                            <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-ucall-50 px-2.5 py-1 rounded-md border border-ucall-200" id="caseTagText">Case thực tế ngành BĐS</span>
+                            <h3 class="text-2xl font-bold text-slate-900" id="caseTitleText">Dự án Vinhomes Ocean Park 3</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed" id="caseDescText">
+                                Bot tự động liên hệ theo danh sách khách hàng để thông báo mở bán phân khu mới, giải đáp thắc mắc về vị trí, giá tiền và tự động gửi thông tin chi tiết qua Zalo.
+                            </p>
+
+                            <!-- Key highlight points -->
+                            <div class="space-y-2 pt-2 text-xs">
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                    <span id="caseFeat1">Nhận diện câu hỏi xen ngang về giá mét vuông</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                    <span id="caseFeat2">Tự động kết bạn và chuyển tiếp Zalo tức thì</span>
+                                </div>
+                                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                    <span id="caseFeat3">Tỷ lệ chuyển đổi khách quan tâm đạt 18 - 25%</span>
+                                </div>
+                            </div>
+
+                            <div class="pt-3">
+                                <button type="button" onclick="openSlideDeckModal(24)" class="inline-flex items-center gap-1.5 text-xs font-bold text-ucall-700 hover:text-ucall-800">
+                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                                    <span>Xem slide chi tiết về Case Study này</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: BẢNG GIÁ DỊCH VỤ CALLBOT (Slide 28 & 29) -->
+    <section id="bang-gia" class="py-20 bg-white scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="text-xs font-bold uppercase tracking-wider text-ucall-700 bg-ucall-50 px-3 py-1 rounded-full border border-ucall-200">Phần 4</span>
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-2">Bảng giá Callbot AI UCALL</h2>
+                <p class="text-slate-600 text-sm sm:text-base mt-2">
+                    Bảng giá áp dụng cho gói dịch vụ số chung cố định, liên hệ để được tư vấn các đầu số khác (Đầu số riêng, Brandname)
+                </p>
+            </div>
+
+            <!-- Pricing Grid (6 Gói chính thức theo Slide 29 và chính sách cập nhật) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+                <!-- Gói 2M -->
+                <div class="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">Gói Khởi Điểm</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">CB2</span>
+                        </div>
+                        <div class="text-3xl font-black text-slate-900 mb-1">2.000.000 <span class="text-sm font-semibold text-slate-500">VNĐ</span></div>
+                        <p class="text-xs text-slate-500 mb-6">Thử nghiệm và vận hành chiến dịch ngắn hạn</p>
+
+                        <ul class="space-y-3 text-xs sm:text-sm text-slate-700 mb-6">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> <strong>230đ</strong> / block 6s (~8.695 block)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Thời hạn dùng: <strong>2 tháng</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Tặng <strong>1 tài khoản CRM</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng thêm <strong>+1 tháng</strong> (tổng 3T)</li>
+                        </ul>
+                    </div>
+                    <a href="index.html#quote-builder" class="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 hover:border-ucall-400 transition-colors">
+                        Chọn gói CB2
+                    </a>
+                </div>
+
+                <!-- Gói 5M -->
+                <div class="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">Gói Tiêu Chuẩn</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">CB5</span>
+                        </div>
+                        <div class="text-3xl font-black text-slate-900 mb-1">5.000.000 <span class="text-sm font-semibold text-slate-500">VNĐ</span></div>
+                        <p class="text-xs text-slate-500 mb-6">Dành cho cá nhân và nhóm bán hàng nhỏ</p>
+
+                        <ul class="space-y-3 text-xs sm:text-sm text-slate-700 mb-6">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> <strong>220đ</strong> / block 6s (~22.727 block)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Thời hạn dùng: <strong>3 tháng</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Tặng <strong>1 tài khoản CRM</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng <strong>1 kịch bản + 1 thu âm</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng thêm <strong>+1 tháng</strong> (tổng 4T)</li>
+                        </ul>
+                    </div>
+                    <a href="index.html#quote-builder" class="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 hover:border-ucall-400 transition-colors">
+                        Chọn gói CB5
+                    </a>
+                </div>
+
+                <!-- Gói 20M (Nổi bật nhất) -->
+                <div class="rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-ucall-900 to-ucall-800 text-white shadow-xl relative flex flex-col justify-between ring-4 ring-ucall-500/20">
+                    <div class="absolute -top-3 right-6 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                        Khuyên dùng
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase text-cyan-300 tracking-wider">Doanh Nghiệp Vừa</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-white/20 text-white">CB20</span>
+                        </div>
+                        <div class="text-3xl font-black text-white mb-1">20.000.000 <span class="text-sm font-semibold text-blue-200">VNĐ</span></div>
+                        <p class="text-xs text-blue-200 mb-6">Tối ưu chi phí & hiệu suất telesale vượt bậc</p>
+
+                        <ul class="space-y-3 text-xs sm:text-sm text-blue-100 mb-6">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-cyan-300 shrink-0"></i> <strong>210đ</strong> / block 6s (~95.238 block)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-cyan-300 shrink-0"></i> Thời hạn dùng: <strong>6 tháng</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-cyan-300 shrink-0"></i> Tặng <strong>2 tài khoản CRM</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-300 shrink-0"></i> Tặng <strong>2 kịch bản + 2 thu âm</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-300 shrink-0"></i> Tặng thêm <strong>+3 tháng</strong> (tổng 9T)</li>
+                        </ul>
+                    </div>
+                    <a href="index.html#quote-builder" class="w-full text-center py-3 rounded-xl bg-white text-ucall-900 font-extrabold text-xs sm:text-sm hover:bg-cyan-50 shadow-md hover:scale-[1.02] transition-all">
+                        Chọn gói CB20
+                    </a>
+                </div>
+
+                <!-- Gói 50M -->
+                <div class="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">Doanh Nghiệp Lớn</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">CB50</span>
+                        </div>
+                        <div class="text-3xl font-black text-slate-900 mb-1">50.000.000 <span class="text-sm font-semibold text-slate-500">VNĐ</span></div>
+                        <p class="text-xs text-slate-500 mb-6">Chiến dịch quy mô lớn liên tục cả năm</p>
+
+                        <ul class="space-y-3 text-xs sm:text-sm text-slate-700 mb-6">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> <strong>200đ</strong> / block 6s (~250.000 block)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Thời hạn dùng: <strong>9 tháng</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Tặng <strong>4 tài khoản CRM</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng <strong>4 kịch bản + 4 thu âm</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng thêm <strong>+4 tháng</strong> (tổng 13T)</li>
+                        </ul>
+                    </div>
+                    <a href="index.html#quote-builder" class="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 hover:border-ucall-400 transition-colors">
+                        Chọn gói CB50
+                    </a>
+                </div>
+
+                <!-- Gói 100M -->
+                <div class="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">Enterprise Pro</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">CB100</span>
+                        </div>
+                        <div class="text-3xl font-black text-slate-900 mb-1">100.000.000 <span class="text-sm font-semibold text-slate-500">VNĐ</span></div>
+                        <p class="text-xs text-slate-500 mb-6">Quy mô toàn quốc, hỗ trợ kỹ thuật chuyên gia riêng</p>
+
+                        <ul class="space-y-3 text-xs sm:text-sm text-slate-700 mb-6">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> <strong>190đ</strong> / block 6s (~526.315 block)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Thời hạn dùng: <strong>12 tháng</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Tặng <strong>8 tài khoản CRM</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng <strong>6 kịch bản + 6 thu âm</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng thêm <strong>+5 tháng</strong> (tổng 17T)</li>
+                        </ul>
+                    </div>
+                    <a href="index.html#quote-builder" class="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 hover:border-ucall-400 transition-colors">
+                        Chọn gói CB100
+                    </a>
+                </div>
+
+                <!-- Gói 200M -->
+                <div class="rounded-3xl p-6 sm:p-7 bg-white border border-slate-200 hover:border-ucall-300 shadow-xs hover:shadow-soft transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold uppercase text-slate-500 tracking-wider">Enterprise Max</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">CB200</span>
+                        </div>
+                        <div class="text-3xl font-black text-slate-900 mb-1">200.000.000 <span class="text-sm font-semibold text-slate-500">VNĐ</span></div>
+                        <p class="text-xs text-slate-500 mb-6">Đơn giá block ưu đãi tối đa trên 1.100.000 cuộc</p>
+
+                        <ul class="space-y-3 text-xs sm:text-sm text-slate-700 mb-6">
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> <strong>180đ</strong> / block 6s (~1.111.111 block)</li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Thời hạn dùng: <strong>18 tháng</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="check" class="w-4 h-4 text-emerald-600 shrink-0"></i> Tặng <strong>16 tài khoản CRM</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng <strong>8 kịch bản + 8 thu âm</strong></li>
+                            <li class="flex items-center gap-2.5"><i data-lucide="gift" class="w-4 h-4 text-amber-500 shrink-0"></i> Tặng thêm <strong>+6 tháng</strong> (tổng 24T)</li>
+                        </ul>
+                    </div>
+                    <a href="index.html#quote-builder" class="w-full text-center py-2.5 rounded-xl border border-slate-300 font-bold text-xs text-slate-700 hover:bg-slate-50 hover:border-ucall-400 transition-colors">
+                        Chọn gói CB200
+                    </a>
+                </div>
+            </div>
+
+            <!-- Interactive ROI Calculator Widget -->
+            <div class="bg-gradient-to-r from-ucall-50 via-blue-50/50 to-cyan-50 rounded-3xl p-6 sm:p-10 border border-ucall-200">
+                <div class="max-w-3xl mx-auto">
+                    <div class="text-center mb-6">
+                        <span class="text-xs font-bold text-ucall-700 bg-white px-3 py-1 rounded-full border border-ucall-200 shadow-xs">Ước tính bài toán kinh tế</span>
+                        <h3 class="text-xl sm:text-2xl font-bold text-slate-900 mt-2">Tính toán số tiền tiết kiệm với Callbot UCALL</h3>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center text-xs sm:text-sm font-semibold mb-2">
+                                <span class="text-slate-700">Quy mô cuộc gọi mong muốn:</span>
+                                <span class="text-ucall-700 font-bold text-base" id="calcCallsLabel">1.000 cuộc / ngày</span>
+                            </div>
+                            <input type="range" id="calcCallsSlider" min="200" max="5000" step="100" value="1000" oninput="updateRoiCalc()" class="w-full accent-ucall-600 cursor-pointer">
+                            <div class="flex justify-between text-[11px] text-slate-500 mt-1">
+                                <span>200 cuộc</span>
+                                <span>1.000 cuộc</span>
+                                <span>2.500 cuộc</span>
+                                <span>5.000 cuộc</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-ucall-200/80 text-center">
+                            <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                                <div class="text-xs text-slate-500 font-medium">Nhân sự tương đương</div>
+                                <div class="text-2xl font-black text-slate-800 mt-1" id="calcStaffCount">10 Telesales</div>
+                                <div class="text-[11px] text-slate-400">~100 cuộc/nhân viên/ngày</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                                <div class="text-xs text-slate-500 font-medium">Chi phí nhân sự truyền thống</div>
+                                <div class="text-2xl font-black text-rose-600 mt-1" id="calcOldCost">80 Triệu / tháng</div>
+                                <div class="text-[11px] text-slate-400">Lương cứng + thưởng + KPI</div>
+                            </div>
+                            <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-300 ring-2 ring-emerald-500/20">
+                                <div class="text-xs text-emerald-700 font-bold">Tiết kiệm dự kiến</div>
+                                <div class="text-2xl font-black text-emerald-600 mt-1" id="calcSavedCost">~50 Triệu / tháng</div>
+                                <div class="text-[11px] text-emerald-600 font-semibold">Giảm 60%+ chi phí vận hành</div>
+                            </div>
+                        </div>
+
+                        <div class="text-center pt-2">
+                            <a href="index.html#quote-builder" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-ucall-700 hover:bg-ucall-800 text-white font-bold text-sm shadow-md transition-all">
+                                <i data-lucide="calculator" class="w-4 h-4"></i>
+                                <span>Tùy biến bảng báo giá chi tiết cho doanh nghiệp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: THÔNG TIN LIÊN HỆ & TƯ VẤN (Slide 30) -->
+    <section id="lien-he" class="py-20 hero-pattern text-white relative scroll-mt-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                <!-- Left: Contact Details -->
+                <div class="lg:col-span-6 space-y-6">
+                    <span class="text-xs font-bold uppercase tracking-wider text-cyan-300 bg-white/10 px-3 py-1 rounded-full border border-white/20">Đồng hành phát triển</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+                        Sẵn sàng nâng cấp tổng đài và bứt phá doanh số?
+                    </h2>
+                    <p class="text-blue-100 text-sm sm:text-base leading-relaxed">
+                        UCALL và Etron Solutions luôn sẵn sàng tư vấn giải pháp phù hợp nhất với mô hình vận hành và tệp khách hàng của bạn.
+                    </p>
+
+                    <div class="space-y-4 pt-2">
+                        <a href="tel:02499999468" class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-400/20 text-cyan-300 flex items-center justify-center shrink-0">
+                                <i data-lucide="phone" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200">Hotline tư vấn (Phòng Kinh Doanh)</div>
+                                <div class="text-lg font-bold text-white">0249.9999.468 / 024 8888 9966</div>
+                            </div>
+                        </a>
+
+                        <a href="https://ucall.vn/" target="_blank" rel="noopener" class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-purple-400/20 text-purple-300 flex items-center justify-center shrink-0">
+                                <i data-lucide="globe" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200">Trang chủ chính thức</div>
+                                <div class="text-lg font-bold text-white">https://ucall.vn / https://etron.vn</div>
+                            </div>
+                        </a>
+
+                        <a href="https://www.facebook.com/ucall.vn" target="_blank" rel="noopener" class="flex items-center gap-4 p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all">
+                            <div class="w-12 h-12 rounded-xl bg-blue-400/20 text-blue-300 flex items-center justify-center shrink-0">
+                                <i data-lucide="facebook" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs text-blue-200">Fanpage chính thức</div>
+                                <div class="text-lg font-bold text-white">facebook.com/ucall.vn</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: Quick Contact Form -->
+                <div class="lg:col-span-6">
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 text-slate-800 shadow-2xl border border-white/20">
+                        <h3 class="text-xl font-bold text-slate-900 mb-1">Đăng ký nhận kịch bản mẫu & Demo</h3>
+                        <p class="text-xs text-slate-500 mb-6">Chuyên gia của UCALL sẽ liên hệ và thiết kế kịch bản thử nghiệm cho bạn trong 24 giờ</p>
+
+                        <form onsubmit="handleContactSubmit(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên *</label>
+                                <input type="text" required placeholder="Nguyễn Văn A" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-ucall-600 focus:ring-2 focus:ring-ucall-500/20">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Số điện thoại *</label>
+                                    <input type="tel" required placeholder="0901 234 567" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-ucall-600 focus:ring-2 focus:ring-ucall-500/20">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ngành nghề kinh doanh</label>
+                                    <select class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-ucall-600 focus:ring-2 focus:ring-ucall-500/20 bg-white">
+                                        <option value="bds">Bất động sản</option>
+                                        <option value="taichinh">Tài chính - Bảo hiểm</option>
+                                        <option value="giaoduc">Giáo dục - Tuyển sinh</option>
+                                        <option value="banle">Bán lẻ - E-commerce</option>
+                                        <option value="spa">Spa - Thẩm mỹ</option>
+                                        <option value="khac">Ngành nghề khác</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nhu cầu cụ thể</label>
+                                <textarea rows="3" placeholder="Ví dụ: Cần gọi thông báo mở bán cho 5.000 khách, cần tích hợp Zalo..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-ucall-600 focus:ring-2 focus:ring-ucall-500/20"></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-ucall-700 to-ucall-600 text-white font-bold text-sm shadow-md shadow-ucall-600/30 hover:shadow-lg hover:shadow-ucall-600/40 hover:-translate-y-0.5 transition-all">
+                                Gửi yêu cầu tư vấn miễn phí
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-8 bg-slate-950 text-slate-400 text-xs border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="font-bold text-white text-sm">UCALL · ETRON SOLUTIONS</span>
+                <span>© 2026 Bản quyền thuộc về Etron & UCALL.</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="hover:text-white transition-colors">Về SalesHub</a>
+                <a href="index.html#quote-builder" class="hover:text-white transition-colors">Tạo Báo Giá</a>
+                <a href="assets/proposal/UCALL_Callbot_Proposal.pdf" download="UCALL_Callbot_Proposal.pdf" class="hover:text-white transition-colors">Tải Proposal PDF</a>
+                <a href="#hero" class="hover:text-white transition-colors flex items-center gap-1">
+                    <span>Lên đầu trang</span> <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- MODAL: FULL SLIDE DECK VIEWER (Presentation Mode - 30 trang Slide) -->
+    <div id="slideDeckModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-md hidden flex flex-col transition-opacity duration-200">
+        <!-- Top bar of Modal -->
+        <div class="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-800 bg-slate-900/90 text-white">
+            <div class="flex items-center gap-3">
+                <span class="font-bold text-sm sm:text-base text-cyan-300">Proposal Presentation</span>
+                <span class="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700" id="slideIndexDisplay">Slide 1 / 30</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="assets/proposal/UCALL_Callbot_Proposal.pdf" download="UCALL_Callbot_Proposal.pdf" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Tải PDF
+                </a>
+                <button type="button" onclick="toggleSlideDeckFullscreen()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="maximize" class="w-4 h-4"></i>
+                </button>
+                <button type="button" onclick="closeSlideDeckModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Slide View Stage -->
+        <div class="flex-1 relative flex items-center justify-center p-3 sm:p-6 overflow-hidden select-none">
+            <!-- Prev Button -->
+            <button type="button" onclick="prevSlide()" class="absolute left-4 z-20 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-ucall-600 text-white flex items-center justify-center backdrop-blur-md shadow-lg transition-all focus:outline-none">
+                <i data-lucide="chevron-left" class="w-6 h-6"></i>
+            </button>
+
+            <!-- Main Slide Image Display -->
+            <div class="relative max-w-5xl max-h-full flex items-center justify-center">
+                <img id="mainSlideImg" src="assets/proposal/slide_01.jpg" alt="Slide Preview" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl border border-slate-800 transition-opacity duration-150">
+            </div>
+
+            <!-- Next Button -->
+            <button type="button" onclick="nextSlide()" class="absolute right-4 z-20 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-ucall-600 text-white flex items-center justify-center backdrop-blur-md shadow-lg transition-all focus:outline-none">
+                <i data-lucide="chevron-right" class="w-6 h-6"></i>
+            </button>
+        </div>
+
+        <!-- Bottom Thumbnails Drawer -->
+        <div class="px-4 py-3 bg-slate-900 border-t border-slate-800 overflow-x-auto flex items-center gap-2.5 scrollbar-thin">
+            <!-- 30 Slide Thumbnails generated dynamically by JS -->
+            <div id="thumbnailsList" class="flex gap-2"></div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Init Lucide
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Scroll progress bar
+        window.addEventListener('scroll', () => {
+            const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrolled = (winScroll / height) * 100;
+            const bar = document.getElementById('scrollProgressBar');
+            if (bar) bar.style.width = scrolled + '%';
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            if (!menu) return;
+            menu.classList.toggle('hidden');
+        }
+
+        // Industry tab switcher
+        function switchIndustryTab(key) {
+            document.querySelectorAll('.industry-tab').forEach(btn => {
+                if (btn.getAttribute('data-target') === key) {
+                    btn.className = 'industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all bg-white text-ucall-700 shadow-xs';
+                } else {
+                    btn.className = 'industry-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all text-slate-600 hover:text-slate-900';
+                }
+            });
+            document.querySelectorAll('.industry-panel').forEach(p => p.classList.add('hidden'));
+            const targetPanel = document.getElementById('panel-' + key);
+            if (targetPanel) {
+                targetPanel.classList.remove('hidden');
+            }
+        }
+
+        // ROI Calculator
+        function updateRoiCalc() {
+            const slider = document.getElementById('calcCallsSlider');
+            if (!slider) return;
+            const calls = parseInt(slider.value, 10);
+            document.getElementById('calcCallsLabel').textContent = calls.toLocaleString('vi-VN') + ' cuộc / ngày';
+
+            // Calculations
+            const staff = Math.round(calls / 100);
+            const oldCostM = staff * 8; // 8M/tháng
+            const newCostM = Math.round(calls * 30 * 200 * 5 / 1000000); // 200d/block, 5 block/cuoc
+            const savedM = Math.max(0, oldCostM - newCostM);
+
+            document.getElementById('calcStaffCount').textContent = staff + ' Telesales';
+            document.getElementById('calcOldCost').textContent = oldCostM + ' Triệu / tháng';
+            document.getElementById('calcSavedCost').textContent = '~' + savedM + ' Triệu / tháng';
+        }
+
+        // Demo cases data
+        const DEMO_CASES = {
+            bds: {
+                title: 'Dự án Vinhomes Ocean Park 3',
+                badge: 'Bất động sản',
+                tag: 'Case thực tế ngành BĐS',
+                desc: 'Bot tự động liên hệ theo danh sách khách hàng để thông báo mở bán phân khu mới, giải đáp thắc mắc về vị trí, giá tiền và tự động gửi thông tin chi tiết qua Zalo.',
+                feat1: 'Nhận diện câu hỏi xen ngang về giá mét vuông',
+                feat2: 'Tự động kết bạn và chuyển tiếp Zalo tức thì',
+                feat3: 'Tỷ lệ chuyển đổi khách quan tâm đạt 18 - 25%',
+                slide: 24,
+                dialogues: [
+                    { sender: 'bot', text: 'Dạ em chào anh Nam ạ! Đợt này Vinhomes chuẩn bị mở bán phân khu Ocean Park 3 mới, vị trí rất đẹp và tiềm năng đầu tư cao. Anh quan tâm em gửi thông tin chi tiết qua Zalo cho mình nhé ạ?' },
+                    { sender: 'user', text: 'Khu này ở đâu cơ em?' },
+                    { sender: 'bot', text: 'Dạ khu này nằm đối diện Ocean Park 2, giáp vành đai 3.5 và gần cao tốc Hà Nội - Hải Phòng anh nhé.' },
+                    { sender: 'user', text: 'Giá khu này bao tiền căn em nhỉ?' },
+                    { sender: 'bot', text: 'Dạ hiện tại đây là phân khu có giá tốt nhất của Vin đợt đầu mở bán. Em xin phép gửi bảng giá chi tiết qua Zalo số này cho anh nhé!' }
+                ]
+            },
+            giaoduc: {
+                title: 'Lớp học trực tuyến & Nhắc lịch Zoom',
+                badge: 'Giáo dục',
+                tag: 'Case thực tế ngành Giáo dục',
+                desc: 'Tự động nhắc lịch học thử, gửi link phòng Zoom và hỗ trợ phụ huynh nắm rõ lịch học của học sinh mà không cần nhân viên gọi thủ công.',
+                feat1: 'Tự động lặp lại thời gian khi khách hỏi lại giờ',
+                feat2: 'Tỷ lệ tham gia buổi học thử tăng gấp 2 lần',
+                feat3: 'Gửi link Zoom trực tiếp qua Zalo / Email',
+                slide: 25,
+                dialogues: [
+                    { sender: 'bot', text: 'Chào anh Lâm ạ! Tối nay lớp Tiếng Anh của thầy Hoà được tổ chức vào lúc 8 giờ. Em gửi link Zoom qua Zalo cho anh rồi. Anh sắp xếp cho bé tham gia đúng giờ nhé ạ!' },
+                    { sender: 'user', text: 'Mấy giờ tối ý em nhỉ?' },
+                    { sender: 'bot', text: 'Dạ lớp học bắt đầu vào lúc 8 giờ tối nay anh nhé. Anh nhớ vào trước 5 phút để ổn định đường truyền ạ!' },
+                    { sender: 'user', text: 'Oke anh cảm ơn em.' },
+                    { sender: 'bot', text: 'Dạ vâng ạ, em cảm ơn anh. Chúc bé có buổi học thật hiệu quả ạ!' }
+                ]
+            },
+            baohiem: {
+                title: 'Bảo hiểm Tiết kiệm Hưu trí',
+                badge: 'Tài chính - Bảo hiểm',
+                tag: 'Case ngành Tài chính - Bảo hiểm',
+                desc: 'Callbot AI sàng lọc khách hàng có nhu cầu bảo vệ tài chính trước khi chuyển tiếp cho chuyên viên tài chính tư vấn chuyên sâu.',
+                feat1: 'Phân tích nhanh nhu cầu lãi suất và quyền lợi',
+                feat2: 'Bảo mật data khách hàng tuyệt đối 100%',
+                feat3: 'Tự động ghi âm cuộc gọi làm bằng chứng tư vấn',
+                slide: 26,
+                dialogues: [
+                    { sender: 'bot', text: 'Em là Hạnh đến từ công ty bảo hiểm X. Hiện tại bên em đang có gói Bảo hiểm Tiết kiệm hưu trí với lãi suất rất hấp dẫn. Chị cho em xin 3 phút trao đổi nhanh nhé ạ!' },
+                    { sender: 'user', text: 'Lãi suất thế nào vậy em?' },
+                    { sender: 'bot', text: 'Dạ với gói này chị vừa được tích lũy lãi suất ưu đãi vừa được bảo vệ viện phí toàn diện ạ.' },
+                    { sender: 'user', text: 'Gửi thêm thông tin cụ thể cho chị nhé.' },
+                    { sender: 'bot', text: 'Dạ vâng ạ, em cảm ơn chị. Em xin phép gửi bảng minh họa quyền lợi qua Zalo số này cho chị ngay ạ!' }
+                ]
+            },
+            banle: {
+                title: 'Xác nhận đơn hàng Sam Cosmetics',
+                badge: 'Bán lẻ - Ecom',
+                tag: 'Case thực tế ngành Bán lẻ',
+                desc: 'Xác nhận đơn hàng tự động ngay khi khách đặt trên website/fanpage, giúp giảm tỷ lệ hoàn đơn và cập nhật giờ giao thuận tiện cho khách.',
+                feat1: 'Cá nhân hóa chính xác tên, tiền và địa chỉ',
+                feat2: 'Ghi nhận linh hoạt yêu cầu đổi khung giờ giao',
+                feat3: 'Giảm 50% tỉ lệ hoàn hủy đơn hàng',
+                slide: 27,
+                dialogues: [
+                    { sender: 'bot', text: 'Em chào chị Hạnh ạ! Em gọi từ Sam Cosmetics để xác nhận đơn hàng Sữa rửa mặt DoctorClean 398.000₫ chị đặt hôm nay đúng không ạ?' },
+                    { sender: 'user', text: 'Ừ đúng rồi em nhé.' },
+                    { sender: 'bot', text: 'Dạ địa chỉ giao là số 123 Khúc Thừa Dụ, dự kiến giao chiều nay khung 14-18h. Chị có cần điều chỉnh gì không ạ?' },
+                    { sender: 'user', text: 'Giao sau 19h được không, lúc đó chị mới đi làm về?' },
+                    { sender: 'bot', text: 'Dạ vâng ạ, vậy em đã ghi chú shipper giao sau 19h tối nay cho chị nhé. Em cảm ơn chị ạ!' }
+                ]
+            }
+        };
+
+        let currentCaseKey = 'bds';
+        let demoPlayInterval = null;
+        let isDemoPlaying = false;
+        let dialogueStep = 0;
+
+        function selectDemoCase(caseKey) {
+            currentCaseKey = caseKey;
+            document.querySelectorAll('.demo-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-case') === caseKey) {
+                    btn.className = 'demo-tab-btn p-3 rounded-2xl border text-center transition-all bg-white border-ucall-600 text-ucall-700 shadow-sm ring-2 ring-ucall-500/20';
+                } else {
+                    btn.className = 'demo-tab-btn p-3 rounded-2xl border text-center transition-all bg-white/70 border-slate-200 text-slate-700 hover:bg-white';
+                }
+            });
+
+            const data = DEMO_CASES[caseKey];
+            document.getElementById('caseCategoryBadge').textContent = data.badge;
+            document.getElementById('caseTagText').textContent = data.tag;
+            document.getElementById('caseTitleText').textContent = data.title;
+            document.getElementById('caseDescText').textContent = data.desc;
+            document.getElementById('caseFeat1').textContent = data.feat1;
+            document.getElementById('caseFeat2').textContent = data.feat2;
+            document.getElementById('caseFeat3').textContent = data.feat3;
+
+            restartDemoCall();
+        }
+
+        function restartDemoCall() {
+            clearInterval(demoPlayInterval);
+            isDemoPlaying = false;
+            dialogueStep = 0;
+            document.getElementById('playIcon').setAttribute('data-lucide', 'play');
+            document.getElementById('playBtnText').textContent = 'Bắt đầu phát';
+            if (window.lucide) lucide.createIcons();
+
+            const container = document.getElementById('dialogueContainer');
+            container.innerHTML = '';
+
+            // Load first line
+            const data = DEMO_CASES[currentCaseKey];
+            renderNextDialogueLine();
+        }
+
+        function renderNextDialogueLine() {
+            const data = DEMO_CASES[currentCaseKey];
+            if (dialogueStep >= data.dialogues.length) {
+                clearInterval(demoPlayInterval);
+                isDemoPlaying = false;
+                document.getElementById('playBtnText').textContent = 'Đã xong';
+                return;
+            }
+
+            const item = data.dialogues[dialogueStep];
+            const container = document.getElementById('dialogueContainer');
+
+            const row = document.createElement('div');
+            row.className = 'flex items-start gap-2 ' + (item.sender === 'user' ? 'justify-end' : '');
+
+            if (item.sender === 'bot') {
+                row.innerHTML = `
+                    <div class="w-6 h-6 rounded-full bg-cyan-600 flex items-center justify-center text-white shrink-0 text-[10px] font-bold">
+                        <i data-lucide="bot" class="w-3.5 h-3.5"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 text-slate-800 p-2.5 rounded-2xl rounded-tl-xs max-w-[85%] shadow-xs">
+                        ${item.text}
+                    </div>
+                `;
+            } else {
+                row.innerHTML = `
+                    <div class="bg-ucall-600 text-white p-2.5 rounded-2xl rounded-tr-xs max-w-[85%] text-right">
+                        ${item.text}
+                    </div>
+                    <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 shrink-0 text-[10px] font-bold">KH</div>
+                `;
+            }
+
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+            if (window.lucide) lucide.createIcons();
+            dialogueStep++;
+        }
+
+        function toggleDemoCallPlay() {
+            if (isDemoPlaying) {
+                clearInterval(demoPlayInterval);
+                isDemoPlaying = false;
+                document.getElementById('playBtnText').textContent = 'Tiếp tục';
+            } else {
+                isDemoPlaying = true;
+                document.getElementById('playBtnText').textContent = 'Tạm dừng';
+                demoPlayInterval = setInterval(() => {
+                    renderNextDialogueLine();
+                }, 2200);
+            }
+        }
+
+        // Voice sample simulator
+        let isVoicePlaying = false;
+        function playSampleVoice(btn) {
+            const container = document.getElementById('voiceWaveContainer');
+            const text = document.getElementById('voiceStatusText');
+            if (isVoicePlaying) {
+                isVoicePlaying = false;
+                btn.innerHTML = '<i data-lucide="play" class="w-4 h-4 ml-0.5"></i>';
+                text.textContent = 'Nghe thử giọng mẫu Callbot';
+                container.querySelectorAll('span').forEach(s => s.classList.remove('wave-bar-1', 'wave-bar-2', 'wave-bar-3', 'wave-bar-4', 'wave-bar-5'));
+            } else {
+                isVoicePlaying = true;
+                btn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i>';
+                text.textContent = 'Đang phát giọng đọc mẫu...';
+                container.children[0].classList.add('wave-bar-1');
+                container.children[1].classList.add('wave-bar-2');
+                container.children[2].classList.add('wave-bar-3');
+                container.children[3].classList.add('wave-bar-4');
+                container.children[4].classList.add('wave-bar-5');
+                setTimeout(() => {
+                    if (isVoicePlaying) playSampleVoice(btn);
+                }, 4000);
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // SLIDE DECK MODAL LOGIC (30 SLIDES)
+        let currentSlideIndex = 1;
+        const TOTAL_SLIDES = 30;
+
+        function initThumbnails() {
+            const list = document.getElementById('thumbnailsList');
+            if (!list) return;
+            list.innerHTML = '';
+            for (let i = 1; i <= TOTAL_SLIDES; i++) {
+                const num = String(i).padStart(2, '0');
+                const thumb = document.createElement('button');
+                thumb.type = 'button';
+                thumb.className = `shrink-0 w-20 h-12 rounded-lg overflow-hidden border-2 transition-all ${i === currentSlideIndex ? 'border-cyan-400 ring-2 ring-cyan-400/40' : 'border-slate-700 opacity-60 hover:opacity-100'}`;
+                const thumbImg = document.createElement('img');
+                thumbImg.src = `assets/proposal/slide_${num}.jpg`;
+                thumbImg.alt = `Slide ${i}`;
+                thumbImg.className = 'w-full h-full object-cover';
+                thumb.appendChild(thumbImg);
+                thumb.onclick = () => showSlide(i);
+                list.appendChild(thumb);
+            }
+        }
+
+        function openSlideDeckModal(slideNum = 1) {
+            currentSlideIndex = Math.max(1, Math.min(TOTAL_SLIDES, slideNum));
+            initThumbnails();
+            showSlide(currentSlideIndex);
+            const modal = document.getElementById('slideDeckModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        }
+
+        function closeSlideDeckModal() {
+            const modal = document.getElementById('slideDeckModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        function showSlide(index) {
+            currentSlideIndex = index;
+            const num = String(index).padStart(2, '0');
+            const img = document.getElementById('mainSlideImg');
+            if (img) {
+                img.style.opacity = '0.5';
+                setTimeout(() => {
+                    img.src = `assets/proposal/slide_${num}.jpg`;
+                    img.style.opacity = '1';
+                }, 80);
+            }
+            document.getElementById('slideIndexDisplay').textContent = `Slide ${index} / ${TOTAL_SLIDES}`;
+
+            // Highlight thumbnail
+            const thumbs = document.querySelectorAll('#thumbnailsList button');
+            thumbs.forEach((t, idx) => {
+                if (idx + 1 === index) {
+                    t.className = 'shrink-0 w-20 h-12 rounded-lg overflow-hidden border-2 border-cyan-400 ring-2 ring-cyan-400/40 scale-105';
+                    t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    t.className = 'shrink-0 w-20 h-12 rounded-lg overflow-hidden border-2 border-slate-700 opacity-60 hover:opacity-100';
+                }
+            });
+        }
+
+        function prevSlide() {
+            if (currentSlideIndex > 1) {
+                showSlide(currentSlideIndex - 1);
+            } else {
+                showSlide(TOTAL_SLIDES);
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlideIndex < TOTAL_SLIDES) {
+                showSlide(currentSlideIndex + 1);
+            } else {
+                showSlide(1);
+            }
+        }
+
+        // Keyboard navigation for presentation
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('slideDeckModal');
+            if (!modal || modal.classList.contains('hidden')) return;
+            if (e.key === 'ArrowRight' || e.key === 'Space') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Escape') {
+                closeSlideDeckModal();
+            }
+        });
+
+        function toggleSlideDeckFullscreen() {
+            const elem = document.getElementById('slideDeckModal');
+            if (!document.fullscreenElement) {
+                if (elem.requestFullscreen) elem.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        function handleContactSubmit(e) {
+            e.preventDefault();
+            alert('Cảm ơn Quý khách! Chuyên gia UCALL sẽ liên hệ tư vấn và gửi tài liệu chi tiết trong ít phút.');
+            e.target.reset();
+        }
+
+        // Initialize default call demo
+        window.addEventListener('DOMContentLoaded', () => {
+            selectDemoCase('bds');
+        });
+    </script>
+</body>
+</html>
